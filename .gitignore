@@ -1,0 +1,11 @@
+# Latex files
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex
+*.synctex(busy)
+*.synctex.gz
+*.synctex.gz(busy)
