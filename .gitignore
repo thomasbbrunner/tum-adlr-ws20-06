@@ -9,3 +9,6 @@
 *.synctex(busy)
 *.synctex.gz
 *.synctex.gz(busy)
+
+src/data/
+venv/
