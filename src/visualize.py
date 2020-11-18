@@ -11,18 +11,22 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
 
+    '''
+    Generation of a sample based on the condition which digit should be generated.
+    The generated image is stored as generated_digit.png in the same folder
+    '''
+
+    # TODO: Adapt MNIST sample to 2D robot arm
+
     ####################################################################################################################
     # TO MODIFY
     ####################################################################################################################
 
-    # 2-d latent space, parameter count in same order of magnitude
-    # as in the original VAE paper (VAE paper has about 3x as many)
     X_dim = 28 * 28
     hidden_dim = 100
     latent_dim = 2
     batch_size = 128
     num_classes = 10
-    # capacity = 64
     learning_rate = 1e-3
     variational_beta = 1
     use_gpu = False
@@ -58,7 +62,6 @@ if __name__ == '__main__':
     # create a random latent vector
     z = torch.randn(1, latent_dim).to(device)
 
-    # pick a class, for which we want to generate the data
     # pick randomly 1 class, for which we want to generate the data
     y = torch.randint(0, num_classes, (1, 1)).to(dtype=torch.long)
 
@@ -73,4 +76,4 @@ if __name__ == '__main__':
 
     plt.figure()
     plt.imshow(img, cmap='gray')
-    plt.show()
+    plt.savefig("generated_digit.png")
