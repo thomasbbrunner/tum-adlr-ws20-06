@@ -1,6 +1,4 @@
 import torch
-from torch import nn
-import torch.nn.functional as F
 
 def onehot(idx, num_classes):
 

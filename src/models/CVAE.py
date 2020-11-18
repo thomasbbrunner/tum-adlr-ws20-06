@@ -6,11 +6,12 @@ class Encoder(nn.Module):
     def __init__(self, X_dim, hidden_dim, latent_dim, num_classes):
 
         '''
+        Encoder network
         Args:
-            input_dim:
-            hidden_dim:
-            latent_dims:
-            num_classes:
+            X_dim: number of input variables (joint angles, ect.)
+            hidden_dim: number of nodes of the fully connected layers
+            latent_dims: number of nodes for additional variable z)
+            num_classes: For classification in MNIST: 10 classes, for 2D robot: observations (x,y)
         '''
 
         super(Encoder, self).__init__()
@@ -32,6 +33,15 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
 
     def __init__(self, X_dim, hidden_dim, latent_dim, num_classes):
+        '''
+        Decoder network
+        Args:
+            X_dim: number of input variables (joint angles, ect.)
+            hidden_dim: number of nodes of the fully connected layers
+            latent_dims: number of nodes for additional variable z)
+            num_classes: For classification in MNIST: 10 classes, for 2D robot: observations (x,y)
+        '''
+
         super(Decoder, self).__init__()
         self.fc1 = nn.Linear(in_features=latent_dim + num_classes, out_features=hidden_dim)
         self.fc2 = nn.Linear(in_features=hidden_dim, out_features=X_dim)
@@ -48,6 +58,14 @@ class Decoder(nn.Module):
 class CVAE(nn.Module):
 
     def __init__(self, X_dim, hidden_dim, latent_dim, num_classes):
+
+        '''
+        Args:
+            X_dim: number of input variables (joint angles, ect.)
+            hidden_dim: number of nodes of the fully connected layers
+            latent_dims: number of nodes for additional variable z)
+            num_classes: For classification in MNIST: 10 classes, for 2D robot: observations (x,y)
+        '''
         super(CVAE, self).__init__()
         self.encoder = Encoder( X_dim, hidden_dim, latent_dim, num_classes)
         self.decoder = Decoder( X_dim, hidden_dim, latent_dim, num_classes)
@@ -71,6 +89,8 @@ class CVAE(nn.Module):
             return eps.mul(std).add_(mu)
         else:
             return mu
+
+    # TODO: save whole model state
 
     def save_weights(self, PATH):
         torch.save(self.state_dict(), PATH)

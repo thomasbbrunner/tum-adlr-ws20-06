@@ -11,6 +11,11 @@ from utils import onehot
 
 if __name__ == '__main__':
 
+    '''
+    Trains the Conditional Autoencoder on the MNIST dataset and saves weights in weights/
+    
+    '''
+
     ####################################################################################################################
     # TO MODIFY
     ####################################################################################################################
@@ -47,19 +52,19 @@ if __name__ == '__main__':
     cvae = CVAE(X_dim, hidden_dim, latent_dim, num_classes)
 
     device = torch.device("cuda:0" if use_gpu and torch.cuda.is_available() else "cpu")
-    vae = cvae.to(device)
+    cvae = cvae.to(device)
 
-    num_params = sum(p.numel() for p in vae.parameters() if p.requires_grad)
+    num_params = sum(p.numel() for p in cvae.parameters() if p.requires_grad)
     print('Number of parameters: %d' % num_params)
 
-    optimizer = torch.optim.Adam(params=vae.parameters(), lr=learning_rate, weight_decay=1e-5)
+    optimizer = torch.optim.Adam(params=cvae.parameters(), lr=learning_rate, weight_decay=1e-5)
 
     ####################################################################################################################
     # TRAINING
     ####################################################################################################################
 
     # set to training mode
-    vae.train()
+    cvae.train()
 
     train_loss_avg = []
 
@@ -78,7 +83,7 @@ if __name__ == '__main__':
             # convert y into one-hot encoding
             label_batch = onehot(label_batch.view(-1, 1), num_classes)
 
-            # vae reconstruction
+            # cvae reconstruction
             image_batch_recon, latent_mu, latent_logvar = cvae(image_batch, label_batch)
 
             # reconstruction error
@@ -88,7 +93,7 @@ if __name__ == '__main__':
             optimizer.zero_grad()
             loss.backward()
 
-            # one step of the optimizer (using the gradients from backpropagation)
+            # one step of the optimizer
             optimizer.step()
 
             train_loss_avg[-1] += loss.item()
@@ -97,4 +102,6 @@ if __name__ == '__main__':
         train_loss_avg[-1] /= num_batches
         print('Epoch [%d / %d] average reconstruction error: %f' % (epoch + 1, num_epochs, train_loss_avg[-1]))
 
-    vae.save_weights(PATH)
+    cvae.save_weights(PATH)
+
+    # TODO: Plot loss
