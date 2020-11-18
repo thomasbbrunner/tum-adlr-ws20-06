@@ -157,21 +157,48 @@ class RobotSim2D(RobotSim):
 
         return theta
 
-    def plot_configurations(self, joint_states: list or int):
+    def plot_configurations(self, joint_states):
         """
         """
+
+        if type(joint_states) is int or type(joint_states) is float:
+            joint_states = np.array([[joint_states]])
+        else:
+            joint_states = np.array(joint_states)
+
+            if joint_states.ndim == 1:
+                joint_states = np.expand_dims(joint_states, axis=0)
+            elif joint_states.ndim > 2:
+                raise RuntimeError(
+                    "Expected fewer dimensions for joint_states: {}". format(joint_states))
+
+        joint_coords = np.zeros((joint_states.shape[0], 4, 4))
+
+        for i, theta in enumerate(joint_states):
+
+            if theta.shape[0] != self.num_links:
+                raise RuntimeError(
+                    "Missing joint state information: {}". format(joint_states))
+
+            theta.resize(3)
+
+            T01 = dh_transformation(0, 0, 0, theta[0])
+            T02 = T01 @ dh_transformation(
+                0, self.len_links[0], 0, theta[1])
+            T03 = T02 @ dh_transformation(
+                0, self.len_links[1], 0, theta[2])
+
+            v1 = np.zeros((4, 1))
+            v2 = v1 + T01 @ np.array([[self.len_links[0]], [0], [0], [0]])
+            v3 = v2 + T02 @ np.array([[self.len_links[1]], [0], [0], [0]])
+            vtcp = v3 + T03 @ np.array([[self.len_links[2]], [0], [0], [0]])
+
+            joint_coords[i] = [
+                v1.flatten(), v2.flatten(),
+                v3.flatten(), vtcp.flatten()]
 
         # import matplotlib only if needed
         plt = importlib.import_module(".pyplot", "matplotlib")
-
-        T01 = dh_transformation(0, 0, 0, joint_states[0])
-        T02 = T01 @ dh_transformation(0, self.len_links[0], 0, joint_states[1])
-        T03 = T02 @ dh_transformation(0, self.len_links[1], 0, joint_states[2])
-
-        v1 = np.zeros((4, 1))
-        v2 = v1 + T01 @ np.array([[self.len_links[0]], [0], [0], [0]])
-        v3 = v2 + T02 @ np.array([[self.len_links[1]], [0], [0], [0]])
-        vtcp = v3 + T03 @ np.array([[self.len_links[2]], [0], [0], [0]])
 
         fig, ax = plt.subplots()
         ax.grid()
@@ -180,12 +207,12 @@ class RobotSim2D(RobotSim):
         ax.set_ylim([-robot_length, robot_length])
 
         ax.plot(
-            [v1[0], v2[0], v3[0], vtcp[0]],
-            [v1[1], v2[1], v3[1], vtcp[1]],
+            joint_coords[:, :, 0].flatten(),
+            joint_coords[:, :, 1].flatten(),
             'or')
 
         ax.plot(
-            [v1[0], v2[0], v3[0], vtcp[0]],
-            [v1[1], v2[1], v3[1], vtcp[1]])
+            joint_coords[:, :, 0].flatten(),
+            joint_coords[:, :, 1].flatten(),)
 
         plt.show()
