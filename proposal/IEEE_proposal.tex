@@ -27,43 +27,31 @@
 
 \section*{Objective}
 
-In robotics, computing the whole set of solutions of the inverse kinematics function is a complex problem which has been tackled in many research papers in the past as well as in recent work. In this project, we will investigate and implement Invertible Neural Networks (INNs) \cite{Ardizzone2018} which is one approach to solve this problem. More specifically, we want to assess how well INNs can be used to solve inverse kinematics problems
-both in planar robotic arms and in complex three-dimensional robotic arms with multiple degrees of freedom.
+In robotics, computing the whole set of solutions of the inverse kinematics function is a complex problem which has been tackled in many research papers in the past as well as in recent work. In this project, we will investigate and implement Invertible Neural Networks (INNs) \cite{Ardizzone2018} which is one approach to solve this problem. Real-world applications in robotics often involve high-dimensional joint spaces. However, current INN architectures become less effective when scaled up to higher dimensionalities due to limitations in their choice of a discriminator \cite{Ardizzone2018}. Moreover, current implementations of INNs in the field of robotics have only focused on theoretical experiments and simple simulations in two-dimensional space \cite{Ardizzone2018}.
 
-
-Current implementations of INNs have been shown to become less effective when scaled up to higher dimesionalities
-due to limitations in the discriminator used in these models \cite{Ardizzone2018}.
-Therefore, experiments with INNs in the field of robotics have been limited to theoretical experiments
-and simple simulations in two-dimensional space \cite{Ardizzone2018,Kruse2019}.
-
-However, real-world robotics applications often involve high-dimensional spaces. As far as we know,
-there have not been any attempts to apply INNs in inverse kinematics problems for three dimensional robotic arms.
-
-In this project, we will investigate how INNs perform in inverse kinematics problems for more complex robotic arms.
-Moreover, we will attempt to propose improvements to these models to allow INNs to perform better on higher-dimensional spaces.
+In this project, we will investigate how INNs perform in inverse kinematics problems for more complex robotic arms. More specifically, we want to assess how well INNs can be used to solve inverse kinematics problems
+both in planar robotic arms and in complex three-dimensional robotic arms with multiple degrees of freedom. Moreover, we will attempt to propose improvements to these models to allow INNs to perform better on higher-dimensional spaces.
 
 If these approaches prove to be successful, they could be used in real-world robotics problems
 and would possibly enable the expansion of the use of more complex robotic systems.
 
 \section*{Related Work}
 
-In the last years, many literature was published in the field of solving the inverse kinematics of robots in both two-dimensional \cite{Duka2014} and three-dimensional space. 
-In contrast to INNs, the inverse process in these approaches is learned explicitly which makes them unable to recover the lost information and limits them to computing ambiguous solutions to the inverse function.
+In the last years, many literature was published in the field of solving the inverse kinematics for robots in both two-dimensional  and three-dimensional space. For example in \cite{Duka2014}, a feed-forward neural network is used for directly mapping the observations to the joint space. In contrast to INNs, the inverse process is learned explicitly which makes the model unable to recover lost information and limits itself to find only one out of many solutions for the angles of the robot links.
 
-In \cite{Kruse2019} and \cite{Ardizzone2018}, several invertible architectures and related models like conditional Variational Autoencoders (cVAE) \cite{Sohn2015} or conditional Generative Adversarial Networks (cGAN) \cite{Mehdi2018} have been benchmarked on inverse problems. 
-Accordig to these benchmarks, INNs have been shown to perform better than competing models. However, these problems remain low-dimensional which do not necessarily translate to real-world robotic applications.
+In \cite{Kruse2019} and \cite{Ardizzone2018}, several invertible architectures and related models like conditional Variational Autoencoders (cVAE) \cite{Sohn2015} or conditional Generative Adversarial Networks (cGAN) \cite{Mehdi2018} have been benchmarked on inverse problems. Accordig to these benchmarks, INNs have been shown to perform better than competing models. However, these problems remain low-dimensional which do not necessarily translate to real-world robotic applications.
 
 In this project we will expand these comparisons and evaluate the performance of INNs and competing models on more complex robotics problems.
 
 \section*{Technical Outline}
 
-INNs try to estimate the full posterior of the robot joint space by introducing additional latent variables in the forward process which follow a certain distribution. This enables them to also capture the data which is lost during the inverse process and results in a bijective mapping from end-effector coordinates to joint parameters.
+INNs try to estimate the full posterior in the configuration space by introducing additional latent variables preserving the information which is lost during the forward kinematics step. The solution for the inverse kinematics problem can then be easily obtained by inverting the model as the mapping from end-effector coordinates to joint parameters is now bijective.
 
-In this work, we implement INN on the one hand. On the other hand, we also implement a cVAE \cite{Sohn2015} which is an extension of VAE where both the input parameters and the latent variables are conditioned on the end-effector coordinates. We use this approach as a baseline to INNs, as this approach is conceptually close to them and was also used as a baseline in \cite{Ardizzone2018}.
+In this work, we not only implement a INN but also a cVAE which is an extension of VAE where both the input parameters and the latent variables are conditioned on the end-effector coordinates. We use this approach as a baseline to INNs, as this approach is conceptually close to them and was also used as a baseline in \cite{Ardizzone2018}.
 
 In order to analyze the suitability of these architectures, we simulate the forward kinematics of a planar 3DoF manipulator and generate a dataset which is used for training and testing the performance on estimating the full posterior of the three joint angles.
 
-As INNs use Maximum Mean Discrpancy (MMD) \cite{Gretton2008} to compare two probability distributions, the authors of \cite{Ardizzone2018} also mention the problem of computing the distance between high-dimensional probability distribtutions, as MMD becomes less effective in this case.
+As INNs use Maximum Mean Discrepancy (MMD) \cite{Gretton2008} to compare two probability distributions, the authors of \cite{Ardizzone2018} also mention the problem of computing the distance between high-dimensional probability distribtutions, as MMD becomes less effective in this case.
 
 Our contribution is twofold: First, we want to illustrate this claim by systematically increasing the number of DoF of the planar robot arm and compare the performance of cVAEs and INNs. Second, we try alternative methods to MMD which also compute the distance between two probability distributions only given samples from these distributions.
 
