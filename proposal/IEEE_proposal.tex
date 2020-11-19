@@ -27,22 +27,31 @@
 
 \section*{Objective}
 
-In robotics, computing the whole set of solutions of the inverse kinematics function is a complex problem which is tackled in many research papers in the past as well as in recent work. In this project, we will investigate and implement Invertible Neural Networks (INN) \cite{Ardizzone2018} which is one approach to solve this problem. More specifically, we want to assess how well INNs can be used to solve inverse kinematics problems
+In robotics, computing the whole set of solutions of the inverse kinematics function is a complex problem which has been tackled in many research papers in the past as well as in recent work. In this project, we will investigate and implement Invertible Neural Networks (INNs) \cite{Ardizzone2018} which is one approach to solve this problem. More specifically, we want to assess how well INNs can be used to solve inverse kinematics problems
 both in planar robotic arms and in complex three-dimensional robotic arms with multiple degrees of freedom.
 
-Real-world robotics applications often involve high-dimensional spaces. However, current INN architectures become less effective when scaled up to higher dimesionalities
-due to limitations in their choice of a discriminator \cite{Ardizzone2018}. Moreover, current implementations of INNs in the field of robotics have only focused on theoretical experiments and simple simulations in two-dimensional space \cite{Ardizzone2018}.
 
-Due to these limitations, we will investigate how INNs would perform in more complex robotics problems. Moreover, we will attempt to propose improvements to these models and look for new techniques to allow INNs to operate on higher-dimensional spaces.
+Current implementations of INNs have been shown to become less effective when scaled up to higher dimesionalities
+due to limitations in the discriminator used in these models \cite{Ardizzone2018}.
+Therefore, experiments with INNs in the field of robotics have been limited to theoretical experiments
+and simple simulations in two-dimensional space \cite{Ardizzone2018,Kruse2019}.
+
+However, real-world robotics applications often involve high-dimensional spaces. As far as we know,
+there have not been any attempts to apply INNs in inverse kinematics problems for three dimensional robotic arms.
+
+In this project, we will investigate how INNs perform in inverse kinematics problems for more complex robotic arms.
+Moreover, we will attempt to propose improvements to these models to allow INNs to perform better on higher-dimensional spaces.
 
 If these approaches prove to be successful, they could be used in real-world robotics problems
 and would possibly enable the expansion of the use of more complex robotic systems.
 
 \section*{Related Work}
 
-In the last years, many literature was published in the field of solving the inverse kinematics of robots in both two-dimensional \cite{Duka2014} and three-dimensional space. In contrast to INNs, the inverse process is learned explicitly which makes these approaches unable to recover the lost information and compute ambiguous solutions to the inverse function.
+In the last years, many literature was published in the field of solving the inverse kinematics of robots in both two-dimensional \cite{Duka2014} and three-dimensional space. 
+In contrast to INNs, the inverse process in these approaches is learned explicitly which makes them unable to recover the lost information and limits them to computing ambiguous solutions to the inverse function.
 
-In \cite{Kruse2019} and \cite{Ardizzone2018}, several invertible architectures and related models like conditional Variational Autoencoders (cVAE) \cite{Sohn2015} or conditional Generative Adversarial Networks (cGAN) \cite{Mehdi2018} have been benchmarked on inverse problems. However, these problems remain low-dimensional which do not necessarily translate to real-world robotic applications.
+In \cite{Kruse2019} and \cite{Ardizzone2018}, several invertible architectures and related models like conditional Variational Autoencoders (cVAE) \cite{Sohn2015} or conditional Generative Adversarial Networks (cGAN) \cite{Mehdi2018} have been benchmarked on inverse problems. 
+Accordig to these benchmarks, INNs have been shown to perform better than competing models. However, these problems remain low-dimensional which do not necessarily translate to real-world robotic applications.
 
 In this project we will expand these comparisons and evaluate the performance of INNs and competing models on more complex robotics problems.
 
