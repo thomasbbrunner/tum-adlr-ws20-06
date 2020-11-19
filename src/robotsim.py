@@ -40,42 +40,38 @@ class RobotSim(ABC):
     def inverse(self):
         pass
 
+    @abstractmethod
+    def plot_configurations(self):
+        pass
+
 
 class RobotSim3D(RobotSim):
     # create example of 3d with 3dof
-    # (http://courses.csail.mit.edu/6.141/spring2011/pub/lectures/Lec14-Manipulation-II.pdf) slide 29
+    # http://courses.csail.mit.edu/6.141/spring2011/pub/lectures/Lec14-Manipulation-II.pdf (slide 29)
     pass
 
 
 class RobotSim2D(RobotSim):
     """Simulation of 2D robotic arm with two or three revolute joints.
 
-    Usage example for robot with three links:
+    Examples:
+    >>> # for robot with three links
+    >>> robot = RobotSim2D(3, [3, 2, 1])
 
-    robot = RobotSim2D(3, [3, 2, 1])
-    theta = [-np.pi/4, 0, 0]
-
-    xtcp = robot.forward(theta)
-    robot.plot_configurations(theta)
-
-    theta_inv = robot.inverse(xtcp)
-
+    >>> # for robot with two links
+    >>> robot = RobotSim2D(2, [0.5, 0.5])
     """
 
     def __init__(self, num_links, len_links):
 
         self.num_links = num_links
-
-        if type(len_links) is int or type(len_links) is float:
-            self.len_links = np.array([len_links])
-        else:
-            self.len_links = np.array(len_links)
+        self.len_links = np.array(len_links)
 
         if self.num_links not in [2, 3]:
             raise RuntimeError(
                 "Unsupported number of links: {}".format(self.num_links))
 
-        if len(self.len_links) != self.num_links:
+        if self.len_links.shape[0] != self.num_links:
             raise RuntimeError(
                 "Missing link length information: {}". format(self.len_links))
 
@@ -88,10 +84,11 @@ class RobotSim2D(RobotSim):
 
     def forward(self, joint_states):
         """Returns TCP coordinates for specified joint states.
+
         Also accepts batch processing of several joint states.
 
         Examples:
-        >>> # for single state
+        >>> # for a single state
         >>> robot.forward(
                 [0, 1, 0])
 
@@ -101,9 +98,7 @@ class RobotSim2D(RobotSim):
                 [1, 0, 1]])
         """
 
-        # make sure it is a numpy array
         joint_states = np.array(joint_states)
-
         input_dim = joint_states.ndim
 
         if input_dim == 1:
@@ -133,19 +128,39 @@ class RobotSim2D(RobotSim):
 
         return tcp_coordinates
 
-    def inverse(self, tcp_coordinates: list):
+    def inverse(self, tcp_coordinates):
         """Returns joint states for specified TCP coordinates.
 
-        tcp_coordinates are the (x, y, phi) coordinates of the manipulator.
+        Inputs are the (x, y, phi) coordinates of the manipulator.
+
+        Also accepts batch processing of several TCP coordinates.
+
+        Returns at most two possible solutions for each input.
+        If no solution is found, np.nan is returned.
+
+        Examples:
+        >>> # for a single coordinate
+        >>> robot.inverse([3, -4, 0])
+
+        >>> # for batch of two coordinates
+        >>> robot.inverse([
+                [3, -4, 0],
+                [5, 1, 0.3]])
         """
 
-        if len(tcp_coordinates) != 3:
+        tcp_coordinates = np.array(tcp_coordinates)
+        input_dim = tcp_coordinates.ndim
+
+        if input_dim == 1:
+            tcp_coordinates = np.expand_dims(tcp_coordinates, axis=0)
+
+        if tcp_coordinates.shape[1] != 3:
             raise RuntimeError(
                 "Missing TCP coordinates information: {}". format(tcp_coordinates))
 
-        xtcp = tcp_coordinates[0]
-        ytcp = tcp_coordinates[1]
-        phi = tcp_coordinates[2]
+        xtcp = tcp_coordinates[:, 0]
+        ytcp = tcp_coordinates[:, 1]
+        phi = tcp_coordinates[:, 2]
         l1 = self.len_links[0]
         l2 = self.len_links[1]
         l3 = self.len_links[2]
@@ -154,6 +169,7 @@ class RobotSim2D(RobotSim):
         y2 = ytcp - l3*np.sin(phi)
 
         c2 = (np.power(x2, 2) + np.power(y2, 2) - l1**2 - l2**2) / (2*l1*l2)
+
         s2_1 = np.sqrt(1 - np.power(c2, 2))
         s2_2 = -s2_1
 
@@ -164,43 +180,55 @@ class RobotSim2D(RobotSim):
         theta2_2 = np.arctan2(s2_2, c2)
 
         theta3_1 = phi - theta1_1 - theta2_1
-        theta3_2 = phi - theta1_2 - theta2_1
-        theta3_3 = phi - theta1_1 - theta2_2
-        theta3_4 = phi - theta1_2 - theta2_2
+        theta3_2 = phi - theta1_2 - theta2_2
 
         theta = np.array([
-            [theta1_1, theta2_1, theta3_1],
-            [theta1_2, theta2_1, theta3_2],
-            [theta1_1, theta2_2, theta3_3],
-            [theta1_2, theta2_2, theta3_4],
+            [theta1_1, theta1_2],
+            [theta2_1, theta2_2],
+            [theta3_1, theta3_2],
         ])
 
-        return theta
+        if input_dim == 1:
+            return theta.T.reshape((2, 3))
 
-    def plot_configurations(self, joint_states):
+        return theta.T.reshape((tcp_coordinates.shape[0], 2, 3))
+
+    def plot_configurations(self, joint_states, separate_plots=True):
+        """Plots configurations for specified joint states.
+
+        Also accepts batches of joint states.
+
+        TODO:
+            - improve appearance
+            - fix bugs
+
+        Examples:
+        >>> # for single plot
+        >>> robot.plot_configurations([0, 1, 0])
+
+        >>> # for single plot with two configurations
+        >>> robot.plot_configurations([
+                [0, 1, 0],
+                [1, 0, 1]],
+                separate_plots=False)
+
+        >>> # for plot with two subplots
+        >>> robot.plot_configurations([
+                [0, 1, 0],
+                [1, 0, 1]])
         """
-        """
 
-        if type(joint_states) is int or type(joint_states) is float:
-            joint_states = np.array([[joint_states]])
-        else:
-            joint_states = np.array(joint_states)
+        joint_states = np.array(joint_states)
 
-            if joint_states.ndim == 1:
-                joint_states = np.expand_dims(joint_states, axis=0)
-            elif joint_states.ndim > 2:
-                raise RuntimeError(
-                    "Expected fewer dimensions for joint_states: {}". format(joint_states))
+        if joint_states.ndim == 1:
+            joint_states = joint_states.reshape((1, *joint_states.shape))
+
+        joint_states = joint_states.copy()
+        joint_states.resize(joint_states.shape[0], 3)
 
         joint_coords = np.zeros((joint_states.shape[0], 4, 4))
 
         for i, theta in enumerate(joint_states):
-
-            if theta.shape[0] != self.num_links:
-                raise RuntimeError(
-                    "Missing joint state information: {}". format(joint_states))
-
-            theta.resize(3)
 
             T01 = dh_transformation(0, 0, 0, theta[0])
             T02 = T01 @ dh_transformation(
@@ -220,19 +248,38 @@ class RobotSim2D(RobotSim):
         # import matplotlib only if needed
         plt = importlib.import_module(".pyplot", "matplotlib")
 
-        fig, ax = plt.subplots()
-        ax.grid()
-        robot_length = np.sum(self.len_links)*1.1
-        ax.set_xlim([-robot_length, robot_length])
-        ax.set_ylim([-robot_length, robot_length])
+        if separate_plots and joint_coords.shape[0] > 1:
+            num_plots = joint_states.shape[0]
+            fig, axs = plt.subplots(
+                2, int(np.ceil(num_plots/2)), sharex=True, sharey=True)
+        else:
+            fig, axs = plt.subplots()
+            axs = np.array(axs)
 
-        ax.plot(
-            joint_coords[:, :, 0].flatten(),
-            joint_coords[:, :, 1].flatten(),
-            'or')
+        for i, ax in enumerate(axs.flatten()):
+            ax.grid()
+            robot_length = np.sum(self.len_links)*1.1
+            ax.set_xlim([-robot_length, robot_length])
+            ax.set_ylim([-robot_length, robot_length])
 
-        ax.plot(
-            joint_coords[:, :, 0].flatten(),
-            joint_coords[:, :, 1].flatten(),)
+            if separate_plots:
+                ax.scatter(
+                    joint_coords[i, :, 0].flatten(),
+                    joint_coords[i, :, 1].flatten(),
+                    c='r')
+
+                ax.plot(
+                    joint_coords[i, :, 0].flatten(),
+                    joint_coords[i, :, 1].flatten(),)
+            else:
+                ax.scatter(
+                    joint_coords[:, :, 0].flatten(),
+                    joint_coords[:, :, 1].flatten(),
+                    c='r')
+
+                ax.plot(
+                    joint_coords[:, :, 0].flatten(),
+                    joint_coords[:, :, 1].flatten(),
+                    ':')
 
         plt.show()
