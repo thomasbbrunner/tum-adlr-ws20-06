@@ -4,24 +4,26 @@
 
 \title{Project Proposal in ADLR}
 \author{Thomas Brunner (03675118), Franziska Schwaiger (03658670)}
-\date{November 2020}
 
 \begin{document}
 
 \maketitle
 
-We want to study Invertible Neural Networks \cite{Ardizzone2018} and compare them with other existing model architectures like conditional Variational Autoencoders (cVAE) \cite{Sohn2015} or conditional Generative Adversarial Networks (cGAN) \cite{Mehdi2018}.\\
+\section*{Objective}
 
-After setting up the architectures we want to evaluate these models based on the simple 2D manipulator.
-Our ideas for possible future contributions are:
+\section*{Related Work}
 
-\begin{itemize}
-    \item scaling up the simple 2D manipulator example to 3D space and analyze the suitability of Maximum Mean Discrepancy (MMD) \cite{Gretton2008}
-    \item replace MMD by other methods for comparing two probability distributions (e.g. trainable discriminator)
-    \item study more complex inverse problems from real-world data
-    \item investigate feasibility of following pre-defined end-effector trajectories
-          by generating smooth and continuous \cite{Zhou2019} joint movement
-\end{itemize}
+\section*{Technical Outline}
+
+We address the problem in handling the non-uniqueness of the solution regarding the joint parameters in inverse kinematics by studying generative neural networks. Specifically, we try to estimate the full posterior of the robot joint space with Invertible Neural Networks (INN) \cite{Ardizzone2018}. By introducing additional latent variables in the forward process which follow a certain distribution, INNs also capture the data which is lost during the inverse process resulting in a bijective mapping from TCP coordinates to joint parameters.
+
+In order to analyze the performance of INNs, we simulate the forward kinematics of a planar 3DoF manipulator and generate a dataset which is used for training and testing the performance on estimating the full posterior of the three joint angles.
+
+As a baseline, we also implement a conditional Variational Autoencoder (cVAE) \cite{Sohn2015} which is an extension of VAE where both the input parameters and the latent variables are conditioned on the TCP coordinates.
+
+As INNs use MMD to compare two probability distributions, the authors of \cite{Ardizzone2018} also mention the problem of computing the distance between high-dimensional probability distribtutions, as MMD becomes less effective in this case.
+
+Our contribution is two-fold: First, we want to illustrate this claim by systematically increasing the number of DoF of the planar robot arm and compare the performance of cVAEs and INNs accordingly. Second, we try alternative methods to MMD which also compute the distance between two probability distributions only given samples from these distributions.
 
 \bibliographystyle{plain}
 \bibliography{M335}

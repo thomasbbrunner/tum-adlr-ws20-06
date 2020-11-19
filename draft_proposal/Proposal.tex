@@ -1,0 +1,29 @@
+\documentclass[12pt]{extarticle}
+\usepackage[utf8]{inputenc}
+\usepackage{cite}
+
+\title{Project Proposal in ADLR}
+\author{Thomas Brunner (03675118), Franziska Schwaiger (03658670)}
+\date{November 2020}
+
+\begin{document}
+
+\maketitle
+
+We want to study Invertible Neural Networks \cite{Ardizzone2018} and compare them with other existing model architectures like conditional Variational Autoencoders (cVAE) \cite{Sohn2015} or conditional Generative Adversarial Networks (cGAN) \cite{Mehdi2018}.\\
+
+After setting up the architectures we want to evaluate these models based on the simple 2D manipulator.
+Our ideas for possible future contributions are:
+
+\begin{itemize}
+    \item scaling up the simple 2D manipulator example to 3D space and analyze the suitability of Maximum Mean Discrepancy (MMD) \cite{Gretton2008}
+    \item replace MMD by other methods for comparing two probability distributions (e.g. trainable discriminator)
+    \item study more complex inverse problems from real-world data
+    \item investigate feasibility of following pre-defined end-effector trajectories
+          by generating smooth and continuous \cite{Zhou2019} joint movement
+\end{itemize}
+
+\bibliographystyle{plain}
+\bibliography{M335}
+
+\end{document}

@@ -2,6 +2,13 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
+'''
+ Sources
+ 
+ CVAE paper: 
+ Code: https://github.com/graviraja/pytorch-sample-codes/blob/master/conditional_vae.py
+ '''
+
 class Encoder(nn.Module):
     def __init__(self, X_dim, hidden_dim, latent_dim, num_classes):
 
