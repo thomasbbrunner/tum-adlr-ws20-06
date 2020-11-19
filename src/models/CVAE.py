@@ -4,8 +4,8 @@ import torch.nn.functional as F
 
 '''
  Sources
- 
- CVAE paper: 
+ -------
+ CVAE paper:  Learning structured output representation using deep conditional generative models [Sohn et al 2015]
  Code: https://github.com/graviraja/pytorch-sample-codes/blob/master/conditional_vae.py
  '''
 
@@ -13,7 +13,8 @@ class Encoder(nn.Module):
     def __init__(self, X_dim, hidden_dim, latent_dim, num_classes):
 
         '''
-        Encoder network
+        Encoder network with only fully connected layers and ReLU activations
+
         Args:
             X_dim: number of input variables (joint angles, ect.)
             hidden_dim: number of nodes of the fully connected layers
@@ -24,14 +25,13 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
 
         self.fc1 = nn.Linear(in_features=X_dim + num_classes, out_features=hidden_dim)
+        # mean of latent space
         self.fc_mu = nn.Linear(in_features=hidden_dim, out_features=latent_dim)
+        # deviation of latent space
         self.fc_logvar = nn.Linear(in_features=hidden_dim, out_features=latent_dim)
 
     def forward(self, x):
-
-        # x = x.view(x.size(0), -1)
         x = F.relu(self.fc1(x))
-
         x_mu = self.fc_mu(x)
         x_logvar = self.fc_logvar(x)
 
@@ -41,7 +41,8 @@ class Decoder(nn.Module):
 
     def __init__(self, X_dim, hidden_dim, latent_dim, num_classes):
         '''
-        Decoder network
+        Decoder network with only fully connected layers and ReLU activations
+
         Args:
             X_dim: number of input variables (joint angles, ect.)
             hidden_dim: number of nodes of the fully connected layers
@@ -55,11 +56,8 @@ class Decoder(nn.Module):
 
 
     def forward(self, x):
-
         x = F.relu(self.fc1(x))
         x = torch.sigmoid(self.fc2(x))
-
-        # x = x.view(x.size(0), 28, 28, 1)
         return x
 
 class CVAE(nn.Module):
@@ -67,6 +65,18 @@ class CVAE(nn.Module):
     def __init__(self, X_dim, hidden_dim, latent_dim, num_classes):
 
         '''
+        Conditional Autoencoder with fully connected encoder and decoder
+
+        At the moment, only implemented for MNIST but will modified to fit for robot example
+
+        For robot example, there is no bottleneck as we have 1 latent param z and 2 conditional params (x,y) to the 3
+        input params
+
+        The condition (x,y) is concatenated both with the input space X and the latent space z
+
+        When computing the inverse kinematics, we draw a samples from the distribution of z. concatenate it with
+        the observations (x,y) and feed the concatenated input into the decoder network.
+
         Args:
             X_dim: number of input variables (joint angles, ect.)
             hidden_dim: number of nodes of the fully connected layers
@@ -74,8 +84,8 @@ class CVAE(nn.Module):
             num_classes: For classification in MNIST: 10 classes, for 2D robot: observations (x,y)
         '''
         super(CVAE, self).__init__()
-        self.encoder = Encoder( X_dim, hidden_dim, latent_dim, num_classes)
-        self.decoder = Decoder( X_dim, hidden_dim, latent_dim, num_classes)
+        self.encoder = Encoder(X_dim, hidden_dim, latent_dim, num_classes)
+        self.decoder = Decoder(X_dim, hidden_dim, latent_dim, num_classes)
 
     def forward(self, x, condition):
 
@@ -97,9 +107,12 @@ class CVAE(nn.Module):
         else:
             return mu
 
-    # TODO: save whole model state
+    def generate(self, x, condition):
+        x = torch.cat((x, condition), dim=1)
+        return self.decoder(x)
 
     def save_weights(self, PATH):
+        # TODO: save whole model state
         torch.save(self.state_dict(), PATH)
 
     def load_weights(self, PATH):

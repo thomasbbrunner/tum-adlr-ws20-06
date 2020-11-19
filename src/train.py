@@ -19,16 +19,12 @@ if __name__ == '__main__':
     ####################################################################################################################
     # TO MODIFY
     ####################################################################################################################
-
-    # 2-d latent space, parameter count in same order of magnitude
-    # as in the original VAE paper (VAE paper has about 3x as many)
     X_dim = 28*28
     hidden_dim = 100
     latent_dim = 2
     num_classes = 10
     num_epochs = 30
     batch_size = 128
-    # capacity = 64
     learning_rate = 1e-3
     variational_beta = 1
     use_gpu = False
@@ -54,9 +50,6 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if use_gpu and torch.cuda.is_available() else "cpu")
     cvae = cvae.to(device)
 
-    num_params = sum(p.numel() for p in cvae.parameters() if p.requires_grad)
-    print('Number of parameters: %d' % num_params)
-
     optimizer = torch.optim.Adam(params=cvae.parameters(), lr=learning_rate, weight_decay=1e-5)
 
     ####################################################################################################################
@@ -80,13 +73,13 @@ if __name__ == '__main__':
             # reshape the data into [batch_size, 784]
             image_batch = image_batch.view(image_batch.size(0), -1)
 
-            # convert y into one-hot encoding
+            # convert labels into one-hot encoding
             label_batch = onehot(label_batch.view(-1, 1), num_classes)
 
-            # cvae reconstruction
+            # forward propagation
             image_batch_recon, latent_mu, latent_logvar = cvae(image_batch, label_batch)
 
-            # reconstruction error
+            # reconstruction and KL loss
             loss = VAE_loss(image_batch_recon, image_batch, latent_mu, latent_logvar, variational_beta)
 
             # backpropagation
@@ -103,5 +96,3 @@ if __name__ == '__main__':
         print('Epoch [%d / %d] average reconstruction error: %f' % (epoch + 1, num_epochs, train_loss_avg[-1]))
 
     cvae.save_weights(PATH)
-
-    # TODO: Plot loss

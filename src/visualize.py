@@ -76,4 +76,4 @@ if __name__ == '__main__':
 
     plt.figure()
     plt.imshow(img, cmap='gray')
-    plt.savefig("generated_digit.png")
+    plt.show()
