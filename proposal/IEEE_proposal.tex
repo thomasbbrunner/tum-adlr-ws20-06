@@ -17,10 +17,10 @@
 \title{Project Proposal}
 
 \author{\IEEEauthorblockN{Franziska Schwaiger}
-\IEEEauthorblockA{\textit{Matriculation number: 03658670}}
-\and
-\IEEEauthorblockN{Thomas Brunner}
-\IEEEauthorblockA{\textit{Matriculation number: 03675118}}
+    \IEEEauthorblockA{\textit{Matriculation number: 03658670}}
+    \and
+    \IEEEauthorblockN{Thomas Brunner}
+    \IEEEauthorblockA{\textit{Matriculation number: 03675118}}
 }
 
 \maketitle
@@ -35,29 +35,32 @@ both in planar robotic arms and in complex three-dimensional robotic arms with m
 Real-world robotics applications often involve high-dimensional spaces.
 However current INNs architectures become less effective when scaled up to higher dimesionalities
 due to limitations in their choice of a discriminator \cite{Ardizzone2018}.
+
 Moreover, current implementations of INNs in the field of robotics have focused on theoretical experiments
 and simple simulations in two-dimensional space \cite{Ardizzone2018}.
 
 Due to these limitations, we will investigate how INNs would perform in more complex robotics problems.
 Moreover, we will attempt to propose improvements to these models and look for new techniques to allow
 INNs to operate on higher-dimensional spaces.
+
+The relevance of our work would be that we would determine the effectiveness of INNs
+and similar models in solving inverse kinematics problems in robotics.
+
+If these approaches prove to be successful, they could be used in real-world robotics problems
+and would possibly enable the expansion of the use of more complex robotic systems.
 
 \section*{Related Work}
 
-In this project, we will investigate and implement Invertible Neural Networks \cite{Ardizzone2018}.
-Our goal is to evaluate their viability and usefulness in problems related to robotics.
-More specifically, we want to assess how well INNs can be used to solve inverse kinematics problems
-both in planar robotic arms and in complex three-dimensional robotic arms with multiple degrees of freedom.
+Neural networks have already been used to attempt to solve inverse kinematics problems.
+Examples are conditional Variational Autoencoders (cVAE) \cite{Sohn2015}
+and conditional Generative Adversarial Networks (cGAN) \cite{Mehdi2018}.
 
-Real-world robotics applications often involve high-dimensional spaces.
-However current INNs architectures become less effective when scaled up to higher dimesionalities
-due to limitations in their choice of a discriminator \cite{Ardizzone2018}.
-Moreover, current implementations of INNs in the field of robotics have focused on theoretical experiments
-and simple simulations in two-dimensional space \cite{Ardizzone2018}.
+A comparison between INNs and alternatives has been done before \cite{Kruse2019}.
+However, existing benchmarks use simple problems with planar robots as a metric,
+which do not necesarily translate to real-world robotic applications.
 
-Due to these limitations, we will investigate how INNs would perform in more complex robotics problems.
-Moreover, we will attempt to propose improvements to these models and look for new techniques to allow
-INNs to operate on higher-dimensional spaces.
+In this project we will expand these comparisons and evaluate the performance of INNs and competing models on
+more complex robotics problems.
 
 \section*{Technical Outline}
 
