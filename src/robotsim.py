@@ -73,7 +73,7 @@ class RobotSim2D(RobotSim):
 
         if self.len_links.shape[0] != self.num_links:
             raise RuntimeError(
-                "Missing link length information: {}". format(self.len_links))
+                "Conflicting link lengths: {}". format(self.len_links))
 
         if not np.all(np.greater_equal(self.len_links, 0)):
             raise RuntimeError(
@@ -84,6 +84,10 @@ class RobotSim2D(RobotSim):
 
     def forward(self, joint_states):
         """Returns TCP coordinates for specified joint states.
+
+        TCP coordinates have format (x, y, phi)
+            x,y:  coordinates of TCP
+            phi:  angle of TCP with respect to horizontal in range [0, 2*pi]
 
         Also accepts batch processing of several joint states.
 
@@ -106,7 +110,7 @@ class RobotSim2D(RobotSim):
 
         if joint_states.shape[1] != self.num_links:
             raise RuntimeError(
-                "Missing joint state information: {}". format(joint_states))
+                "Conflicting joint states: {}". format(joint_states))
 
         theta = np.zeros((joint_states.shape[0], 3))
         theta[:, :joint_states.shape[1]] = joint_states
@@ -123,10 +127,13 @@ class RobotSim2D(RobotSim):
             # angle of TCP with respect to horizontal
             theta[:, 0] + theta[:, 1] + theta[:, 2]])
 
+        # limit angle of TCP to range [0, 2*pi]
+        tcp_coordinates[2] = tcp_coordinates[2] % (2*np.pi)
+
         if input_dim == 1:
             return tcp_coordinates.flatten()
 
-        return tcp_coordinates
+        return tcp_coordinates.T
 
     def inverse(self, tcp_coordinates):
         """Returns joint states for specified TCP coordinates.
@@ -226,7 +233,7 @@ class RobotSim2D(RobotSim):
         joint_states = joint_states.copy()
         joint_states.resize(joint_states.shape[0], 3)
 
-        joint_coords = np.zeros((joint_states.shape[0], 4, 4))
+        joint_coords = np.zeros((joint_states.shape[0], 4, 2))
 
         for i, theta in enumerate(joint_states):
 
@@ -242,44 +249,37 @@ class RobotSim2D(RobotSim):
             vtcp = v3 + T03 @ np.array([[self.len_links[2]], [0], [0], [0]])
 
             joint_coords[i] = [
-                v1.flatten(), v2.flatten(),
-                v3.flatten(), vtcp.flatten()]
+                v1[0:2].flatten(), v2[0:2].flatten(),
+                v3[0:2].flatten(), vtcp[0:2].flatten()]
 
         # import matplotlib only if needed
         plt = importlib.import_module(".pyplot", "matplotlib")
 
         if separate_plots and joint_coords.shape[0] > 1:
+            pass
+
             num_plots = joint_states.shape[0]
             fig, axs = plt.subplots(
                 2, int(np.ceil(num_plots/2)), sharex=True, sharey=True)
         else:
-            fig, axs = plt.subplots()
-            axs = np.array(axs)
 
-        for i, ax in enumerate(axs.flatten()):
+            fig, ax = plt.subplots()
+
             ax.grid()
             robot_length = np.sum(self.len_links)*1.1
             ax.set_xlim([-robot_length, robot_length])
             ax.set_ylim([-robot_length, robot_length])
 
-            if separate_plots:
-                ax.scatter(
-                    joint_coords[i, :, 0].flatten(),
-                    joint_coords[i, :, 1].flatten(),
-                    c='r')
+            ax.scatter(
+                joint_coords[:, :, 0].flatten(),
+                joint_coords[:, :, 1].flatten(),
+                c='r')
 
-                ax.plot(
-                    joint_coords[i, :, 0].flatten(),
-                    joint_coords[i, :, 1].flatten(),)
-            else:
-                ax.scatter(
-                    joint_coords[:, :, 0].flatten(),
-                    joint_coords[:, :, 1].flatten(),
-                    c='r')
+            # for arm in joint_coords:
 
-                ax.plot(
-                    joint_coords[:, :, 0].flatten(),
-                    joint_coords[:, :, 1].flatten(),
-                    ':')
+            #     ax.plot(
+            #         arm[:, 0].flatten(),
+            #         arm[:, 1].flatten(),
+            #         'b')
 
         plt.show()
