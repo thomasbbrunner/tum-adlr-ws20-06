@@ -273,13 +273,13 @@ class RobotSim2D(RobotSim):
             ax.scatter(
                 joint_coords[:, :, 0].flatten(),
                 joint_coords[:, :, 1].flatten(),
-                c='r')
+                c='r') #, s=2)
 
-            # for arm in joint_coords:
+            for arm in joint_coords:
 
-            #     ax.plot(
-            #         arm[:, 0].flatten(),
-            #         arm[:, 1].flatten(),
-            #         'b')
+                ax.plot(
+                    arm[:, 0].flatten(),
+                    arm[:, 1].flatten(),
+                    'b')
 
         plt.show()

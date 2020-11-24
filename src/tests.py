@@ -32,7 +32,5 @@ robot.plot_configurations([[1, 2, 3], [-3, -2, -1]])
 
 # dataset.py
 
-robot = RobotSim2D(3, [6, 7, 10])
+robot = RobotSim2D(3, [6, 7, 3])
 dataset = RobotSimDataset(robot, 100)
-
-
