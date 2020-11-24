@@ -2,6 +2,7 @@ import numpy as np
 import pdb
 
 from robotsim import RobotSim2D
+from robotsim_dataset import RobotSimDataset
 
 # robotsim.py
 
@@ -28,3 +29,10 @@ print(robot.inverse([[2, 2, 2], [5, 1, 0.3], [50, 1, 0.3]]))
 #   [        nan         nan         nan]]]
 robot.plot_configurations([1, 2, 3])
 robot.plot_configurations([[1, 2, 3], [-3, -2, -1]])
+
+# dataset.py
+
+robot = RobotSim2D(3, [6, 7, 10])
+dataset = RobotSimDataset(robot, 100)
+
+
