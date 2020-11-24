@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
+from utils import onehot
 
 '''
  Sources
@@ -10,7 +11,7 @@ import torch.nn.functional as F
  '''
 
 class Encoder(nn.Module):
-    def __init__(self, X_dim, hidden_dim, latent_dim, num_classes):
+    def __init__(self, X_dim, hidden_dim, latent_dim, num_cond, classification=True):
 
         '''
         Encoder network with only fully connected layers and ReLU activations
@@ -23,8 +24,11 @@ class Encoder(nn.Module):
         '''
 
         super(Encoder, self).__init__()
+        self.classification = classification
 
-        self.fc1 = nn.Linear(in_features=X_dim + num_classes, out_features=hidden_dim)
+        self.fc1 = nn.Linear(in_features=X_dim + num_cond, out_features=hidden_dim)
+        self.fc2 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
+        self.fc3 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
         # mean of latent space
         self.fc_mu = nn.Linear(in_features=hidden_dim, out_features=latent_dim)
         # deviation of latent space
@@ -32,6 +36,8 @@ class Encoder(nn.Module):
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))
         x_mu = self.fc_mu(x)
         x_logvar = self.fc_logvar(x)
 
@@ -39,7 +45,7 @@ class Encoder(nn.Module):
 
 class Decoder(nn.Module):
 
-    def __init__(self, X_dim, hidden_dim, latent_dim, num_classes):
+    def __init__(self, X_dim, hidden_dim, latent_dim, num_cond, classification=True):
         '''
         Decoder network with only fully connected layers and ReLU activations
 
@@ -51,18 +57,28 @@ class Decoder(nn.Module):
         '''
 
         super(Decoder, self).__init__()
-        self.fc1 = nn.Linear(in_features=latent_dim + num_classes, out_features=hidden_dim)
-        self.fc2 = nn.Linear(in_features=hidden_dim, out_features=X_dim)
+        self.classification = classification
+        self.fc1 = nn.Linear(in_features=latent_dim + num_cond, out_features=hidden_dim)
+        self.fc2 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
+        self.fc3 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
+        self.fc4 = nn.Linear(in_features=hidden_dim, out_features=X_dim)
 
 
     def forward(self, x):
+
         x = F.relu(self.fc1(x))
-        x = torch.sigmoid(self.fc2(x))
+        x = F.relu(self.fc2(x))
+        x = F.relu(self.fc3(x))
+
+        if self.classification:
+            x = torch.sigmoid(self.fc4(x))
+        else:
+            x = self.fc4(x)
         return x
 
 class CVAE(nn.Module):
 
-    def __init__(self, X_dim, hidden_dim, latent_dim, num_classes):
+    def __init__(self, X_dim, hidden_dim, latent_dim, num_cond, classification=True):
 
         '''
         Conditional Autoencoder with fully connected encoder and decoder
@@ -83,11 +99,17 @@ class CVAE(nn.Module):
             latent_dims: number of nodes for additional variable z)
             num_classes: For classification in MNIST: 10 classes, for 2D robot: observations (x,y)
         '''
+
         super(CVAE, self).__init__()
-        self.encoder = Encoder(X_dim, hidden_dim, latent_dim, num_classes)
-        self.decoder = Decoder(X_dim, hidden_dim, latent_dim, num_classes)
+        self.classification = classification
+        self.num_condition = num_cond
+        self.encoder = Encoder(X_dim, hidden_dim, latent_dim, num_cond, classification)
+        self.decoder = Decoder(X_dim, hidden_dim, latent_dim, num_cond, classification)
 
     def forward(self, x, condition):
+
+        if self.classification:
+            condition = onehot(condition.view(-1, 1), self.num_condition)
 
         x = torch.cat((x, condition), dim=1)
 

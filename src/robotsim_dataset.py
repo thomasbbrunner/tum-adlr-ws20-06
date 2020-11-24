@@ -58,4 +58,5 @@ class RobotSimDataset(Dataset):
     def __getitem__(self, item):
         """Returs tuple with joint states and TCP coordinates.
         """
-        return self.joint_values[item], self.tcp_coords[item]
+        # exclude orientation in order to have a latent variable that can be introduced in the CVAE
+        return self.joint_values[item], self.tcp_coords[item][:2]

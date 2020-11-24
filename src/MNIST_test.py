@@ -16,8 +16,6 @@ if __name__ == '__main__':
     The generated image is stored as generated_digit.png in the same folder
     '''
 
-    # TODO: Adapt MNIST sample to 2D robot arm
-
     ####################################################################################################################
     # TO MODIFY
     ####################################################################################################################
@@ -45,7 +43,7 @@ if __name__ == '__main__':
     # BUILD MODEL
     ####################################################################################################################
 
-    cvae = CVAE(X_dim, hidden_dim, latent_dim, num_classes)
+    cvae = CVAE(X_dim, hidden_dim, latent_dim, num_classes, classification=True)
 
     device = torch.device("cuda:0" if use_gpu and torch.cuda.is_available() else "cpu")
     cvae = cvae.to(device)
@@ -67,7 +65,7 @@ if __name__ == '__main__':
 
     print(f'Generating a {y.item()}')
 
-    y = onehot(y, num_classes).to(device, dtype=z.dtype)
+    # y = onehot(y, num_classes).to(device, dtype=z.dtype)
 
     z = torch.cat((z, y), dim=1)
 

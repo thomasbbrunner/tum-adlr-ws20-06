@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from torchvision.datasets import MNIST
 
 from models.CVAE import *
-from losses import VAE_loss
+from losses import VAE_loss_MNIST
 from utils import onehot
 
 
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     # BUILD MODEL
     ####################################################################################################################
 
-    cvae = CVAE(X_dim, hidden_dim, latent_dim, num_classes)
+    cvae = CVAE(X_dim, hidden_dim, latent_dim, num_classes, classification=True)
 
     device = torch.device("cuda:0" if use_gpu and torch.cuda.is_available() else "cpu")
     cvae = cvae.to(device)
@@ -74,13 +74,13 @@ if __name__ == '__main__':
             image_batch = image_batch.view(image_batch.size(0), -1)
 
             # convert labels into one-hot encoding
-            label_batch = onehot(label_batch.view(-1, 1), num_classes)
+            # label_batch = onehot(label_batch.view(-1, 1), num_classes)
 
             # forward propagation
             image_batch_recon, latent_mu, latent_logvar = cvae(image_batch, label_batch)
 
             # reconstruction and KL loss
-            loss = VAE_loss(image_batch_recon, image_batch, latent_mu, latent_logvar, variational_beta)
+            loss = VAE_loss_MNIST(image_batch_recon, image_batch, latent_mu, latent_logvar, variational_beta)
 
             # backpropagation
             optimizer.zero_grad()
