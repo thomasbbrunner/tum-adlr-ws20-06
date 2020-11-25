@@ -101,10 +101,12 @@ class CVAE(nn.Module):
         '''
 
         super(CVAE, self).__init__()
+
         self.classification = classification
         self.num_condition = num_cond
         self.encoder = Encoder(X_dim, hidden_dim, latent_dim, num_cond, classification)
         self.decoder = Decoder(X_dim, hidden_dim, latent_dim, num_cond, classification)
+
 
     def forward(self, x, condition):
 
@@ -129,9 +131,11 @@ class CVAE(nn.Module):
         else:
             return mu
 
-    def generate(self, x, condition):
+
+    def predict(self, x, condition):
         x = torch.cat((x, condition), dim=1)
-        return self.decoder(x)
+        x = self.decoder(x)
+        return x
 
     def save_weights(self, PATH):
         # TODO: save whole model state

@@ -6,6 +6,8 @@ import robotsim
 from robotsim import RobotSim2D
 from losses import VAE_loss_ROBOT_SIM
 
+from utils import *
+
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
@@ -20,15 +22,19 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    X_dim = 3 # number of robot links
-    hidden_dim = 50 # number of neurons per fully connected layer
-    latent_dim = 1
-    num_cond = 2 # (x, y) coordinates of end-effector
-    batch_size = 250
-    variational_beta = 1 / 15
+    X_dim = 3 * 2  # number of robot links
+    hidden_dim = 50  # number of neurons per fully connected layer
+    latent_dim = 2
+    num_cond = 2  # (x, y) coordinates of end-effector
+    num_epochs = 10
+    batch_size = 500
+    learning_rate = 1e-3
+    weight_decay = 1e-4  # 1.6e-5
+    variational_beta = 1 / 4
     use_gpu = False
-    PATH = 'weights/ROBOTSIM_CVAE2'
-    NUM_SAMPLES = 500 # number of samples which are drawn for z to generate joint angles
+    PATH = 'weights/ROBOTSIM_CVAE_SIN_COS'
+
+    NUM_SAMPLES=5
 
     ####################################################################################################################
     # LOAD DATASET
@@ -76,6 +82,9 @@ if __name__ == '__main__':
         joint_batch = joint_batch.float()
         coord_batch = coord_batch.float()
 
+        # apply sine and cosine to joint angles
+        joint_batch = preprocess(joint_batch)
+
         # forward propagation
         with torch.no_grad():
             image_batch_recon, latent_mu, latent_logvar = cvae(joint_batch, coord_batch)
@@ -93,11 +102,6 @@ if __name__ == '__main__':
 
     print('---------------SAMPLE GENERATION---------------')
 
-    '''
-    >> INPUT:  tensor([[1.5867, 6.2832, 5.2677]])
-    >> TCP:  tensor([[2.4286, 7.6212]])
-    '''
-
     input = torch.Tensor([test_dataset.__getitem__(5)[0]])
     tcp = torch.Tensor([test_dataset.__getitem__(5)[1]])
 
@@ -114,10 +118,15 @@ if __name__ == '__main__':
         # create a random latent vector
         z = torch.randn(1, latent_dim).to(device)
         # print('Generated latent variable z: ', z)
-        z = torch.cat((z, tcp), dim=1)
+        # z = torch.cat((z, tcp), dim=1)
 
         with torch.no_grad():
-            recons_joint_angles = cvae.decoder(z)
+            recons_joint_angles = cvae.predict(z, tcp)
+
+        recons_joint_angles = postprocess(recons_joint_angles)
+        print('RECONS: ', recons_joint_angles)
+
+    '''
 
         coord = robot.forward(joint_states=recons_joint_angles.numpy().tolist()[0])
         # print('TCP coordinates after forward kinematics of generated joint angles: ', coord)
@@ -135,5 +144,7 @@ if __name__ == '__main__':
     plt.scatter(_x, _y, c='g')
     plt.scatter(tcp[0][0], tcp[0][1], c='r')
     plt.savefig('coord2.png')
+    
+    '''
 
     print('-----------------------------------------------')

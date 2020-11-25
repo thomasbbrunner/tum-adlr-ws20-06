@@ -9,6 +9,7 @@ from robotsim_dataset import RobotSimDataset
 import robotsim
 
 import matplotlib.pyplot as plt
+from utils import *
 
 
 if __name__ == '__main__':
@@ -21,17 +22,17 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    X_dim = 3 # number of robot links
+    X_dim = 3 * 2 # number of robot links
     hidden_dim = 50 # number of neurons per fully connected layer
-    latent_dim = 1
+    latent_dim = 2
     num_cond = 2 # (x, y) coordinates of end-effector
-    num_epochs = 50
-    batch_size = 250
-    learning_rate = 1e-4
+    num_epochs = 10
+    batch_size = 500
+    learning_rate = 1e-3
     weight_decay = 1e-4 # 1.6e-5
-    variational_beta = 1 / 15
+    variational_beta = 1 / 4
     use_gpu = False
-    PATH = 'weights/ROBOTSIM_CVAE2'
+    PATH = 'weights/ROBOTSIM_CVAE_SIN_COS'
 
     ####################################################################################################################
     # LOAD DATASET
@@ -92,6 +93,9 @@ if __name__ == '__main__':
             joint_batch = joint_batch.float()
             coord_batch = coord_batch.float()
 
+            # apply sine and cosine to joint angles
+            joint_batch = preprocess(joint_batch)
+
             # forward propagation
             # print('FORWARD PASS ...')
             image_batch_recon, latent_mu, latent_logvar = cvae(joint_batch, coord_batch)
@@ -124,4 +128,4 @@ if __name__ == '__main__':
     plt.xlabel('EPOCHS')
     plt.ylabel('AVG LOSS')
     plt.plot(train_loss_avg)
-    plt.savefig('avg_train_loss2.png')
+    plt.savefig('avg_train_loss_SIN_COS.png')
