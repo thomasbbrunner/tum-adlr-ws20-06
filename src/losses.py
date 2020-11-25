@@ -22,7 +22,9 @@ This loss is created for unnormalized inputs without activation function in the 
 '''
 def VAE_loss_ROBOT_SIM(recon_x, x, mu, logvar, variational_beta):
 
-    recon_loss = F.mse_loss(recon_x, x, size_average=False)
+    # try out what is better
+    recon_loss = F.mse_loss(recon_x, x)
+    # recon_loss = F.hinge_embedding_loss(recon_x, x)
 
     # KL-divergence between the prior distribution over latent vectors
     kldivergence = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())

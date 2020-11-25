@@ -11,6 +11,8 @@ import robotsim
 import matplotlib.pyplot as plt
 from utils import *
 
+import yaml
+
 
 if __name__ == '__main__':
 
@@ -19,20 +21,22 @@ if __name__ == '__main__':
     '''
 
     ####################################################################################################################
-    # TO MODIFY
+    # LOAD CONFIG
     ####################################################################################################################
 
-    X_dim = 3 * 2 # number of robot links
-    hidden_dim = 50 # number of neurons per fully connected layer
-    latent_dim = 2
-    num_cond = 2 # (x, y) coordinates of end-effector
-    num_epochs = 10
-    batch_size = 500
-    learning_rate = 1e-3
-    weight_decay = 1e-4 # 1.6e-5
-    variational_beta = 1 / 4
-    use_gpu = False
-    PATH = 'weights/ROBOTSIM_CVAE_SIN_COS'
+    config = load_config('robotsim_cVAE.yaml', 'configs/')
+
+    X_dim = config['input_dim']
+    hidden_dim = config['input_dim']
+    latent_dim = config['latent_dim']
+    num_cond = config['condition_dim']
+    num_epochs = config['num_epochs']
+    batch_size = config['batch_size']
+    learning_rate = config['lr_rate']
+    weight_decay = config['weight_decay']
+    variational_beta = config['variational_beta']
+    use_gpu = config['use_gpu']
+    PATH = config['weight_dir']
 
     ####################################################################################################################
     # LOAD DATASET
@@ -128,4 +132,4 @@ if __name__ == '__main__':
     plt.xlabel('EPOCHS')
     plt.ylabel('AVG LOSS')
     plt.plot(train_loss_avg)
-    plt.savefig('avg_train_loss_SIN_COS.png')
+    plt.savefig('avg_train_loss.png')

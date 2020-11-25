@@ -4,3 +4,4 @@ numpy
 matplotlib
 # GUI toolkit, so matplotlib can display graphics
 PyQt5==5.9.2
+pyyaml

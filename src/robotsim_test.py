@@ -5,10 +5,9 @@ from robotsim_dataset import RobotSimDataset
 import robotsim
 from robotsim import RobotSim2D
 from losses import VAE_loss_ROBOT_SIM
-
 from utils import *
-
 import matplotlib.pyplot as plt
+import yaml
 
 if __name__ == '__main__':
 
@@ -19,22 +18,24 @@ if __name__ == '__main__':
     '''
 
     ####################################################################################################################
-    # TO MODIFY
+    # LOAD CONFIG
     ####################################################################################################################
 
-    X_dim = 3 * 2  # number of robot links
-    hidden_dim = 50  # number of neurons per fully connected layer
-    latent_dim = 2
-    num_cond = 2  # (x, y) coordinates of end-effector
-    num_epochs = 10
-    batch_size = 500
-    learning_rate = 1e-3
-    weight_decay = 1e-4  # 1.6e-5
-    variational_beta = 1 / 4
-    use_gpu = False
-    PATH = 'weights/ROBOTSIM_CVAE_SIN_COS'
+    config = load_config('robotsim_cVAE.yaml', 'configs/')
 
-    NUM_SAMPLES=5
+    X_dim = config['input_dim']
+    hidden_dim = config['input_dim']
+    latent_dim = config['latent_dim']
+    num_cond = config['condition_dim']
+    num_epochs = config['num_epochs']
+    batch_size = config['batch_size']
+    learning_rate = config['lr_rate']
+    weight_decay = config['weight_decay']
+    variational_beta = config['variational_beta']
+    use_gpu = config['use_gpu']
+    PATH = config['weight_dir']
+
+    NUM_SAMPLES = config['num_samples']
 
     ####################################################################################################################
     # LOAD DATASET
@@ -114,26 +115,15 @@ if __name__ == '__main__':
     _x = []
     _y = []
     for i in range(NUM_SAMPLES):
-
         # create a random latent vector
         z = torch.randn(1, latent_dim).to(device)
-        # print('Generated latent variable z: ', z)
-        # z = torch.cat((z, tcp), dim=1)
-
         with torch.no_grad():
             recons_joint_angles = cvae.predict(z, tcp)
-
-        recons_joint_angles = postprocess(recons_joint_angles)
-        print('RECONS: ', recons_joint_angles)
-
-    '''
-
-        coord = robot.forward(joint_states=recons_joint_angles.numpy().tolist()[0])
-        # print('TCP coordinates after forward kinematics of generated joint angles: ', coord)
-        # points.append(recons_joint_angles.numpy().tolist()[0])
+        preds = postprocess(recons_joint_angles)
+        # print('PREDS OF JOINT ANGLES: ', preds)
+        coord = robot.forward(joint_states=preds.numpy().tolist()[0])
         _x.append(coord[0])
         _y.append(coord[1])
-
 
     # red: gt (x,y)
     # green: (x, y) of generated joint angles
@@ -143,8 +133,6 @@ if __name__ == '__main__':
     plt.ylabel('Y')
     plt.scatter(_x, _y, c='g')
     plt.scatter(tcp[0][0], tcp[0][1], c='r')
-    plt.savefig('coord2.png')
-    
-    '''
+    plt.savefig('TCP_coordinates.png')
 
     print('-----------------------------------------------')

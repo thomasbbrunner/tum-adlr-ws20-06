@@ -37,7 +37,7 @@ class RobotSimDataset(Dataset):
         # otherwise we get duplicate entries (0 and 2*pi are the same).
         # Array is repeated for each link to generate meshgrid.
         angle_range = np.resize(
-            np.linspace(0, 2*np.pi, res, endpoint=False),
+            np.linspace(-np.pi, np.pi, res, endpoint=False),
             (robot_sim.num_links, res))
 
         self.joint_values = np.array(

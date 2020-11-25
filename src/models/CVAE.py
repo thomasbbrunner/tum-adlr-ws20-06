@@ -71,9 +71,11 @@ class Decoder(nn.Module):
         x = F.relu(self.fc3(x))
 
         if self.classification:
+            # force input to be between [0, 1]
             x = torch.sigmoid(self.fc4(x))
         else:
-            x = self.fc4(x)
+            # force input to be between [-1, 1]
+            x = torch.tanh(self.fc4(x))
         return x
 
 class CVAE(nn.Module):
