@@ -127,7 +127,7 @@ class RobotSim2D(RobotSim):
             # angle of TCP with respect to horizontal
             theta[:, 0] + theta[:, 1] + theta[:, 2]])
 
-        # limit angle of TCP to range [0, 2*pi]
+        # limit angle of TCP to range [0, 2*pi)
         tcp_coordinates[2] = tcp_coordinates[2] % (2*np.pi)
 
         if input_dim == 1:
