@@ -6,6 +6,7 @@ import robotsim
 from robotsim import RobotSim2D
 from losses import VAE_loss_ROBOT_SIM
 from utils import *
+import numpy as np
 import matplotlib.pyplot as plt
 import yaml
 
@@ -34,8 +35,6 @@ if __name__ == '__main__':
     variational_beta = config['variational_beta']
     use_gpu = config['use_gpu']
     PATH = config['weight_dir']
-
-    NUM_SAMPLES = config['num_samples']
 
     ####################################################################################################################
     # LOAD DATASET
@@ -107,42 +106,48 @@ if __name__ == '__main__':
 
     print('---------------SAMPLE GENERATION---------------')
 
-    input = torch.Tensor([test_dataset.__getitem__(5)[0]])
-    tcp = torch.Tensor([test_dataset.__getitem__(5)[1]])
-
-    print('INPUT: ', input)
-    print('TCP: ', tcp[0])
-
+    # Create robot with 3DoF
     robot = robotsim.RobotSim2D(3, [3, 3, 3])
-    # robot.plot_configurations(joint_states=input.numpy())
 
+    # Specify initial joint angles
+    input = torch.Tensor([[-np.pi / 4, np.pi / 2, -np.pi / 4]])
+
+    # compute resulting tcp coordinates
+    tcp = robot.forward(joint_states=input.numpy())
+    tcp_x = tcp[0][0]
+    tcp_y = tcp[0][1]
+    tcp = torch.Tensor([[tcp_x, tcp_y]])
+    print('tcp coordinates: ', tcp)
+
+    # Plot ground truth configuration
+    robot.plot_configurations(joint_states=input.numpy(), path='figures/gt_configurations.png', separate_plots=False)
+
+    # Generate joints angles from predefined tcp coordinates
     _x = []
     _y = []
-    for i in range(NUM_SAMPLES):
+    preds_joints = []
+
+    for i in range(config['num_samples_config']):
         # create a random latent vector
         z = torch.randn(1, latent_dim).to(device)
         with torch.no_grad():
             recons_joint_angles = cvae.predict(z, tcp)
         preds = postprocess(recons_joint_angles)
-        # print('PREDS OF JOINT ANGLES: ', preds)
+        preds_joints.append(preds.numpy().tolist()[0])
+
+        # Compute tcp coordinates resulting by performing forward kinematics on the generated joint angles
         coord = robot.forward(joint_states=preds.numpy().tolist()[0])
         _x.append(coord[0])
         _y.append(coord[1])
 
-    # red: gt (x,y)
-    # green: (x, y) of generated joint angles
-    fig = plt.figure()
-    plt.title('TCP coordinates of generated joint angles')
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.scatter(_x, _y, c='g')
-    plt.scatter(tcp[0][0], tcp[0][1], c='r')
-    plt.savefig('figures/TCP_coordinates.png')
+    # Plot generated configurations
+    preds_joints = np.array(preds_joints)
+    robot.plot_configurations(joint_states=preds_joints, path='figures/generated_configurations.png', separate_plots=False)
 
     # visualise latent space
     input = []
     tcp = []
-    for i in range(NUM_SAMPLES):
+    for i in range(config['num_samples_latent']):
         input.append(test_dataset.__getitem__(i)[0])
         tcp.append(test_dataset.__getitem__(i)[1])
 
@@ -155,13 +160,10 @@ if __name__ == '__main__':
 
     # apply sine and cosine to joint angles
     input = preprocess(input)
-    # print(tcp)
 
     # forward propagation
     with torch.no_grad():
         z = cvae.visualise_z(input, tcp)
-
-    # print(z)
 
     fig = plt.figure()
     plt.title('Latent space')

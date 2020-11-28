@@ -200,7 +200,7 @@ class RobotSim2D(RobotSim):
 
         return theta.T.reshape((tcp_coordinates.shape[0], 2, 3))
 
-    def plot_configurations(self, joint_states, separate_plots=True):
+    def plot_configurations(self, joint_states, path, separate_plots=True):
         """Plots configurations for specified joint states.
 
         Also accepts batches of joint states.
@@ -270,16 +270,16 @@ class RobotSim2D(RobotSim):
             ax.set_xlim([-robot_length, robot_length])
             ax.set_ylim([-robot_length, robot_length])
 
-            ax.scatter(
-                joint_coords[:, :, 0].flatten(),
-                joint_coords[:, :, 1].flatten(),
-                c='r') #, s=2)
-
             for arm in joint_coords:
-
                 ax.plot(
                     arm[:, 0].flatten(),
                     arm[:, 1].flatten(),
-                    'b')
+                    c='b')
 
-        plt.show()
+            ax.scatter(
+                joint_coords[:, :, 0].flatten(),
+                joint_coords[:, :, 1].flatten(),
+                c='r', s=8)
+
+        plt.savefig(path)
+        # plt.show()
