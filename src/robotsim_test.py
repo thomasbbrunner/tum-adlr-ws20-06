@@ -36,11 +36,14 @@ if __name__ == '__main__':
     use_gpu = config['use_gpu']
     PATH = config['weight_dir']
 
+    dof = '3DOF'
+
     ####################################################################################################################
     # LOAD DATASET
     ####################################################################################################################
 
     robot = robotsim.RobotSim2D(3, [3, 3, 3])
+    # robot = robotsim.RobotSim2D(2, [3, 2])
 
     # INPUT: 3 joint angles
     # OUTPUT: (x,y) coordinate of end-effector
@@ -60,8 +63,8 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if use_gpu and torch.cuda.is_available() else "cpu")
     cvae = cvae.to(device)
 
-    cvae.load_weights(PATH)
-    # epoch, loss = cvae.load_checkpoint(PATH=config['checkpoint_dir'] + 'CVAE_epoch_10')
+    # cvae.load_weights(PATH)
+    epoch, loss = cvae.load_checkpoint(PATH=config['checkpoint_dir'] + 'CVAE_2DOF_epoch_10')
 
     # print('EPOCH: ', epoch)
     # print('LOSS: ', loss)
@@ -106,11 +109,9 @@ if __name__ == '__main__':
 
     print('---------------SAMPLE GENERATION---------------')
 
-    # Create robot with 3DoF
-    robot = robotsim.RobotSim2D(3, [3, 3, 3])
-
     # Specify initial joint angles
-    input = torch.Tensor([[-np.pi / 4, np.pi / 2, -np.pi / 4]])
+    # input = torch.Tensor([[-np.pi / 4, np.pi / 2, -np.pi / 4]])
+    input = torch.Tensor([[-np.pi / 4, np.pi / 2]])
 
     # compute resulting tcp coordinates
     tcp = robot.forward(joint_states=input.numpy())
@@ -120,7 +121,7 @@ if __name__ == '__main__':
     print('tcp coordinates: ', tcp)
 
     # Plot ground truth configuration
-    robot.plot_configurations(joint_states=input.numpy(), path='figures/gt_configurations.png', separate_plots=False)
+    robot.plot_configurations(joint_states=input.numpy(), path='figures/gt_configurations_' + str(dof) + '.png', separate_plots=False)
 
     # Generate joints angles from predefined tcp coordinates
     _x = []
@@ -142,7 +143,7 @@ if __name__ == '__main__':
 
     # Plot generated configurations
     preds_joints = np.array(preds_joints)
-    robot.plot_configurations(joint_states=preds_joints, path='figures/generated_configurations.png', separate_plots=False)
+    robot.plot_configurations(joint_states=preds_joints, path='figures/generated_configurations_' + str(dof) + '.png', separate_plots=False)
 
     # visualise latent space
     input = []
@@ -170,6 +171,6 @@ if __name__ == '__main__':
     plt.xlabel('Z1')
     plt.ylabel('Z2')
     plt.scatter(z[:, 0], z[:, 1], c='g')
-    plt.savefig('figures/Latent_space.png')
+    plt.savefig('figures/Latent_space_' + str(dof) + '.png')
 
     print('-----------------------------------------------')

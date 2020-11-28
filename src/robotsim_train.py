@@ -39,11 +39,14 @@ if __name__ == '__main__':
     use_gpu = config['use_gpu']
     PATH = config['weight_dir']
 
+    dof = '3DOF'
+
     ####################################################################################################################
     # LOAD DATASET
     ####################################################################################################################
 
     robot = robotsim.RobotSim2D(3, [3, 3, 3])
+    # robot = robotsim.RobotSim2D(2, [3, 2])
 
     # INPUT: 3 joint angles
     # OUTPUT: (x,y) coordinate of end-effector
@@ -115,7 +118,7 @@ if __name__ == '__main__':
         scheduler.step()
 
         if epoch > 1 and epoch % config['checkpoint_epoch'] == 0:
-            cvae.save_checkpoint(epoch=epoch, optimizer=optimizer, loss=loss, PATH=config['checkpoint_dir'] + 'CVAE_epoch_' + str(epoch))
+            cvae.save_checkpoint(epoch=epoch, optimizer=optimizer, loss=loss, PATH=config['checkpoint_dir'] + 'CVAE_' + str(dof) + '_epoch_' + str(epoch))
 
         train_loss_avg[-1] /= num_batches
         print('Epoch [%d / %d] average reconstruction error: %f' % (epoch + 1, num_epochs, train_loss_avg[-1]))
@@ -127,4 +130,4 @@ if __name__ == '__main__':
     plt.xlabel('EPOCHS')
     plt.ylabel('AVG LOSS')
     plt.plot(train_loss_avg)
-    plt.savefig('figures/avg_train_loss.png')
+    plt.savefig('figures/avg_train_loss_' + str(dof) + '.png')

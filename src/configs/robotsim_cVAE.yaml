@@ -1,10 +1,10 @@
 # Settings
-weight_dir : 'weights/ROBOTSIM_CVAE_SIN_COS'
+weight_dir : 'weights/ROBOTSIM_CVAE_2DOF'
 checkpoint_dir: 'checkpoints/'
 
 # Network parameters
-input_dim: 6 # 2*3 = 2 * number of joints
-hidden_dim: 50 # number of neurons per fully connected layer
+input_dim: 4 # 2*3 = 2 * number of joints
+hidden_dim: 100 # number of neurons per fully connected layer
 latent_dim: 2
 condition_dim: 2 # (x, y) coordinates of end-effector
 use_gpu: False
@@ -18,9 +18,9 @@ variational_beta: 0.25 # for weighting KLdivergence/reconstruction loss
 checkpoint_epoch: 10
 
 # lr-scheduler
-step_size: 15
-gamma: 0.1
+step_size: 20
+gamma: 0.01
 
 # Testing
-num_samples_config: 50
+num_samples_config: 200
 num_samples_latent: 1000
