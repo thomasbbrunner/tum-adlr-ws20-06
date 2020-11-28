@@ -62,6 +62,10 @@ if __name__ == '__main__':
     cvae = cvae.to(device)
 
     cvae.load_weights(PATH)
+    # epoch, loss = cvae.load_checkpoint(PATH=config['checkpoint_dir'] + 'CVAE_epoch_10')
+
+    # print('EPOCH: ', epoch)
+    # print('LOSS: ', loss)
 
     # set to evaluation mode
     cvae.eval()
@@ -133,7 +137,7 @@ if __name__ == '__main__':
     plt.ylabel('Y')
     plt.scatter(_x, _y, c='g')
     plt.scatter(tcp[0][0], tcp[0][1], c='r')
-    plt.savefig('TCP_coordinates.png')
+    plt.savefig('figures/TCP_coordinates.png')
 
     # visualise latent space
     input = []
@@ -151,7 +155,7 @@ if __name__ == '__main__':
 
     # apply sine and cosine to joint angles
     input = preprocess(input)
-    print(tcp)
+    # print(tcp)
 
     # forward propagation
     with torch.no_grad():
@@ -164,6 +168,6 @@ if __name__ == '__main__':
     plt.xlabel('Z1')
     plt.ylabel('Z2')
     plt.scatter(z[:, 0], z[:, 1], c='g')
-    plt.savefig('Latent_space.png')
+    plt.savefig('figures/Latent_space.png')
 
     print('-----------------------------------------------')

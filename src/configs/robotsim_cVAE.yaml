@@ -1,5 +1,6 @@
 # Settings
 weight_dir : 'weights/ROBOTSIM_CVAE_SIN_COS'
+checkpoint_dir: 'checkpoints/'
 
 # Network parameters
 input_dim: 6 # 2*3 = 2 * number of joints
@@ -9,11 +10,16 @@ condition_dim: 2 # (x, y) coordinates of end-effector
 use_gpu: False
 
 # Training
-num_epochs: 10
+num_epochs: 40
 batch_size: 250
 lr_rate: 0.001
 weight_decay: 0.0001
 variational_beta: 0.25 # for weighting KLdivergence/reconstruction loss
+checkpoint_epoch: 10
+
+# lr-scheduler
+step_size: 15
+gamma: 0.1
 
 # Testing
-num_samples: 100
+num_samples: 5000

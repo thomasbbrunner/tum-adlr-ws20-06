@@ -147,6 +147,27 @@ class CVAE(nn.Module):
         x = self.decoder(x)
         return x
 
+    def save_checkpoint(self, epoch, optimizer, loss, PATH):
+        torch.save({
+            'epoch': epoch,
+            'model_state_dict': self.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'loss': loss,
+        }, PATH)
+
+    def load_checkpoint(self, PATH, optimizer=None):
+        checkpoint = torch.load(PATH)
+        self.load_state_dict(checkpoint['model_state_dict'])
+        epoch = checkpoint['epoch']
+        loss = checkpoint['loss']
+        if not optimizer == None:
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            return optimizer, epoch, loss
+        else:
+            return epoch, loss
+
+
+
     def save_weights(self, PATH):
         # TODO: save whole model state
         torch.save(self.state_dict(), PATH)

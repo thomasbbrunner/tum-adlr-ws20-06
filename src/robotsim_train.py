@@ -17,13 +17,13 @@ if __name__ == '__main__':
     Trains a conditional autoencoder on the robotsim dataset
     '''
 
+    # TODO: Implement random search for hyperparameter optimization
+    # TODO: Implement validation
+    # TODO: Visualise robot
+
     ####################################################################################################################
     # LOAD CONFIG
     ####################################################################################################################
-
-    # TODO: implement learning rate decay (lr-schedule)
-    # TODO: implement checkpoints
-    # TODO: Implement random search
 
     config = load_config('robotsim_cVAE.yaml', 'configs/')
 
@@ -47,26 +47,17 @@ if __name__ == '__main__':
 
     # INPUT: 3 joint angles
     # OUTPUT: (x,y) coordinate of end-effector
-    # dataset = RobotSimDataset(robot, 100)
     dataset = RobotSimDataset(robot, 100)
 
     # train test split
-    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 300000])
-
-    # print('LENGTH OF DATASET: ', train_dataset.__len__())
-    # print('ITEM 5 OF DATASET: ', train_dataset.__getitem__(5))
+    train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 150000, 150000])
 
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    val_dataloader = DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
 
     ####################################################################################################################
     # BUILD MODEL
     ####################################################################################################################
-
-    # TODO: Implement learning rate decay
-    # TODO: Implement checkpoints
-    # TODO: Change prior distribution
-    # TODO: Consider joint limits
-    # TODO: Perform Random Search for Hyperparameters
 
     cvae = CVAE(X_dim, hidden_dim, latent_dim, num_cond, classification=False)
 
@@ -74,6 +65,9 @@ if __name__ == '__main__':
     cvae = cvae.to(device)
 
     optimizer = torch.optim.Adam(params=cvae.parameters(), lr=learning_rate, weight_decay=weight_decay)
+
+    # define learning rate scheduler
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=config['step_size'], gamma=config['gamma'])
 
     ####################################################################################################################
     # TRAINING
@@ -102,26 +96,26 @@ if __name__ == '__main__':
             joint_batch = preprocess(joint_batch)
 
             # forward propagation
-            # print('FORWARD PASS ...')
             image_batch_recon, latent_mu, latent_logvar = cvae(joint_batch, coord_batch)
 
-            # print('joint_batch: ', joint_batch[0, :])
-            # print('image_batch_recon: ', image_batch_recon[0, :])
-
-            # print('COMPUTE LOSS ...')
             # reconstruction and KL loss
             loss = VAE_loss_ROBOT_SIM(image_batch_recon, joint_batch, latent_mu, latent_logvar, variational_beta)
 
             # backpropagation
             optimizer.zero_grad()
             loss.backward()
-            # print('BACKWARD PASS ...')
 
             # one step of the optimizer
             optimizer.step()
 
             train_loss_avg[-1] += loss.item()
             num_batches += 1
+
+        # perform step of lr-scheduler
+        scheduler.step()
+
+        if epoch > 1 and epoch % config['checkpoint_epoch'] == 0:
+            cvae.save_checkpoint(epoch=epoch, optimizer=optimizer, loss=loss, PATH=config['checkpoint_dir'] + 'CVAE_epoch_' + str(epoch))
 
         train_loss_avg[-1] /= num_batches
         print('Epoch [%d / %d] average reconstruction error: %f' % (epoch + 1, num_epochs, train_loss_avg[-1]))
@@ -133,4 +127,4 @@ if __name__ == '__main__':
     plt.xlabel('EPOCHS')
     plt.ylabel('AVG LOSS')
     plt.plot(train_loss_avg)
-    plt.savefig('avg_train_loss.png')
+    plt.savefig('figures/avg_train_loss.png')
