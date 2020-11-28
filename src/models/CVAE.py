@@ -133,6 +133,14 @@ class CVAE(nn.Module):
         else:
             return mu
 
+    def visualise_z(self, x, condition):
+        if self.classification:
+            condition = onehot(condition.view(-1, 1), self.num_condition)
+        x = torch.cat((x, condition), dim=1)
+        latent_mu, latent_logvar = self.encoder(x)
+        latent = self.latent_sample(latent_mu, latent_logvar)
+        return latent
+
 
     def predict(self, x, condition):
         x = torch.cat((x, condition), dim=1)

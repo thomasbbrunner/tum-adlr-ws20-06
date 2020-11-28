@@ -11,9 +11,6 @@ import robotsim
 import matplotlib.pyplot as plt
 from utils import *
 
-import yaml
-
-
 if __name__ == '__main__':
 
     '''
@@ -24,10 +21,14 @@ if __name__ == '__main__':
     # LOAD CONFIG
     ####################################################################################################################
 
+    # TODO: implement learning rate decay (lr-schedule)
+    # TODO: implement checkpoints
+    # TODO: Implement random search
+
     config = load_config('robotsim_cVAE.yaml', 'configs/')
 
     X_dim = config['input_dim']
-    hidden_dim = config['input_dim']
+    hidden_dim = config['hidden_dim']
     latent_dim = config['latent_dim']
     num_cond = config['condition_dim']
     num_epochs = config['num_epochs']

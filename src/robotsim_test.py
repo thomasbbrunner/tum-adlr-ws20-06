@@ -24,7 +24,7 @@ if __name__ == '__main__':
     config = load_config('robotsim_cVAE.yaml', 'configs/')
 
     X_dim = config['input_dim']
-    hidden_dim = config['input_dim']
+    hidden_dim = config['hidden_dim']
     latent_dim = config['latent_dim']
     num_cond = config['condition_dim']
     num_epochs = config['num_epochs']
@@ -134,5 +134,36 @@ if __name__ == '__main__':
     plt.scatter(_x, _y, c='g')
     plt.scatter(tcp[0][0], tcp[0][1], c='r')
     plt.savefig('TCP_coordinates.png')
+
+    # visualise latent space
+    input = []
+    tcp = []
+    for i in range(NUM_SAMPLES):
+        input.append(test_dataset.__getitem__(i)[0])
+        tcp.append(test_dataset.__getitem__(i)[1])
+
+    input = torch.Tensor(input)
+    tcp = torch.Tensor(tcp)
+
+    # forward pass only accepts float
+    input = input.float()
+    tcp = tcp.float()
+
+    # apply sine and cosine to joint angles
+    input = preprocess(input)
+    print(tcp)
+
+    # forward propagation
+    with torch.no_grad():
+        z = cvae.visualise_z(input, tcp)
+
+    # print(z)
+
+    fig = plt.figure()
+    plt.title('Latent space')
+    plt.xlabel('Z1')
+    plt.ylabel('Z2')
+    plt.scatter(z[:, 0], z[:, 1], c='g')
+    plt.savefig('Latent_space.png')
 
     print('-----------------------------------------------')
