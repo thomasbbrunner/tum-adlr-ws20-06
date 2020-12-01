@@ -64,3 +64,9 @@ class RobotSimDataset(Dataset):
         """
         # exclude orientation in order to have a latent variable that can be introduced in the CVAE
         return self.joint_values[item], self.tcp_coords[item][:2]
+
+
+if __name__ == "__main__":
+
+    robot = robotsim.RobotSim2D(3, [6, 7, 3])
+    dataset = RobotSimDataset(robot, 100)

@@ -1,6 +1,6 @@
 
 from abc import ABC, abstractmethod
-import importlib
+import matplotlib.pyplot as plt
 import numpy as np
 import pdb
 
@@ -87,7 +87,8 @@ class RobotSim2D(RobotSim):
 
         TCP coordinates have format (x, y, phi)
             x,y:  coordinates of TCP
-            phi:  angle of TCP with respect to horizontal in range [0, 2*pi]
+            phi:  angle of TCP with respect to 
+                  horizontal in range [-pi, pi).
 
         Also accepts batch processing of several joint states.
 
@@ -128,7 +129,10 @@ class RobotSim2D(RobotSim):
             theta[:, 0] + theta[:, 1] + theta[:, 2]])
 
         # limit angle of TCP to range [0, 2*pi)
-        tcp_coordinates[2] = tcp_coordinates[2] % (2*np.pi)
+        # tcp_coordinates[2] = tcp_coordinates[2] % (2*np.pi)
+
+        # limit angle of TCP to range [-pi, pi)
+        tcp_coordinates[2] = (tcp_coordinates[2] + np.pi) % (2*np.pi) - np.pi
 
         if input_dim == 1:
             return tcp_coordinates.flatten()
@@ -200,10 +204,14 @@ class RobotSim2D(RobotSim):
 
         return theta.T.reshape((tcp_coordinates.shape[0], 2, 3))
 
-    def plot_configurations(self, joint_states, path, separate_plots=True):
+    def plot_configurations(self, joint_states, path=None, separate_plots=True, show=False):
         """Plots configurations for specified joint states.
 
         Also accepts batches of joint states.
+
+        If a path is provided, the plot is saved to an image.
+
+        Plot is only shown if "show" is set.
 
         TODO:
             - improve appearance
@@ -225,13 +233,13 @@ class RobotSim2D(RobotSim):
                 [1, 0, 1]])
         """
 
-        joint_states = np.array(joint_states)
+        joint_states = np.atleast_2d(np.array(joint_states))
 
-        if joint_states.ndim == 1:
-            joint_states = joint_states.reshape((1, *joint_states.shape))
-
-        joint_states = joint_states.copy()
-        joint_states.resize(joint_states.shape[0], 3)
+        _joint_states = np.zeros((joint_states.shape[0], 3))
+        _joint_states[
+            :joint_states.shape[0],
+            :joint_states.shape[1]] = joint_states
+        joint_states = _joint_states
 
         joint_coords = np.zeros((joint_states.shape[0], 4, 2))
 
@@ -252,19 +260,28 @@ class RobotSim2D(RobotSim):
                 v1[0:2].flatten(), v2[0:2].flatten(),
                 v3[0:2].flatten(), vtcp[0:2].flatten()]
 
-        # import matplotlib only if needed
-        plt = importlib.import_module(".pyplot", "matplotlib")
+        if separate_plots:
 
-        if separate_plots and joint_coords.shape[0] > 1:
-            pass
+            for arm in joint_coords:
 
-            num_plots = joint_states.shape[0]
-            fig, axs = plt.subplots(
-                2, int(np.ceil(num_plots/2)), sharex=True, sharey=True)
+                fig, ax = plt.subplots()
+                ax.grid()
+                robot_length = np.sum(self.len_links)*1.1
+                ax.set_xlim([-robot_length, robot_length])
+                ax.set_ylim([-robot_length, robot_length])
+
+                ax.plot(
+                    arm[:, 0].flatten(),
+                    arm[:, 1].flatten(),
+                    c='b')
+
+                ax.scatter(
+                    arm[:, 0].flatten(),
+                    arm[:, 1].flatten(),
+                    c='r', s=8)
         else:
 
             fig, ax = plt.subplots()
-
             ax.grid()
             robot_length = np.sum(self.len_links)*1.1
             ax.set_xlim([-robot_length, robot_length])
@@ -281,5 +298,45 @@ class RobotSim2D(RobotSim):
                 joint_coords[:, :, 1].flatten(),
                 c='r', s=8)
 
-        plt.savefig(path)
-        # plt.show()
+        if path:
+            plt.savefig(path)
+
+        elif show:
+            plt.show()
+
+
+if __name__ == "__main__":
+
+    # functionality tests
+
+    # 2 DoF
+    robot = RobotSim2D(2, [3, 2])
+    print(robot.forward([0, 1]))
+    print(robot.forward([[0, 1], [1, 0], [1, 1]]))
+    print(robot.inverse([[1, 1, 1], [1, 1, 0]]))
+
+    robot.plot_configurations([0, 1], separate_plots=False)
+    robot.plot_configurations([1, 0], separate_plots=True)
+    robot.plot_configurations([[0, 1], [1, 0]], separate_plots=False)
+    robot.plot_configurations([[0, 1], [1, 0]], separate_plots=True)
+
+    # 3 DoF
+    robot = RobotSim2D(3, [3, 3, 3])
+    print(robot.forward([0, 1, 1]))
+    print(robot.forward([[0, 1, 1], [1, 0, 1], [1, 1, 0]]))
+    print(robot.inverse([3, -4, 0]))
+    # # [[-2.411865    1.68213734  0.72972766]
+    # #  [-0.72972766 -1.68213734  2.411865  ]]
+    print(robot.inverse([[2, 2, 2], [5, 1, 0.3], [50, 1, 0.3]]))
+    # # [[[-1.2030684   1.9652703   1.2377981 ]
+    # #   [ 0.7622019  -1.9652703   3.2030684 ]]
+    # #  [[-1.15352504  2.41326677 -0.95974173]
+    # #   [ 1.25974173 -2.41326677  1.45352504]]
+    # #  [[        nan         nan         nan]
+    # #   [        nan         nan         nan]]]
+    robot.plot_configurations([1, 2, 3], separate_plots=False)
+    robot.plot_configurations([-3, -2, -1], separate_plots=True)
+    robot.plot_configurations([[1, 2, 3], [-3, -2, -1]], separate_plots=False)
+    robot.plot_configurations([[1, 2, 3], [-3, -2, -1]], separate_plots=True)
+
+    plt.show()
