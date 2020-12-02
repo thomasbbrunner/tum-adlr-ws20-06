@@ -125,6 +125,7 @@ class CVAE(nn.Module):
         return x_recon, latent_mu, latent_logvar
 
     def latent_sample(self, mu, logvar):
+        '''
         if self.training:
             # the reparameterization trick
             std = logvar.mul(0.5).exp_()
@@ -132,6 +133,12 @@ class CVAE(nn.Module):
             return eps.mul(std).add_(mu)
         else:
             return mu
+        '''
+        # the reparameterization trick
+        std = logvar.mul(0.5).exp_()
+        eps = torch.empty_like(std).normal_()
+        return eps.mul(std).add_(mu)
+
 
     def visualise_z(self, x, condition):
         if self.classification:

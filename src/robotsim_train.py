@@ -38,19 +38,24 @@ if __name__ == '__main__':
     variational_beta = config['variational_beta']
     use_gpu = config['use_gpu']
     PATH = config['weight_dir']
-
-    dof = '3DOF'
+    dof = config['dof']
 
     ####################################################################################################################
     # LOAD DATASET
     ####################################################################################################################
 
-    robot = robotsim.RobotSim2D(3, [3, 3, 3])
-    # robot = robotsim.RobotSim2D(2, [3, 2])
-
-    # INPUT: 3 joint angles
-    # OUTPUT: (x,y) coordinate of end-effector
-    dataset = RobotSimDataset(robot, 100)
+    if dof == '2DOF':
+        robot = robotsim.RobotSim2D(2, [3, 2])
+        # INPUT: 2 joint angles
+        # OUTPUT: (x,y) coordinate of end-effector
+        dataset = RobotSimDataset(robot, 1000)
+    elif dof == '3DOF':
+        robot = robotsim.RobotSim2D(3, [3, 3, 3])
+        # INPUT: 3 joint angles
+        # OUTPUT: (x,y) coordinate of end-effector
+        dataset = RobotSimDataset(robot, 100)
+    else:
+        raise Exception('Number of degrees of freedom ot supported')
 
     # train test split
     train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 150000, 150000])
