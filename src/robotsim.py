@@ -214,6 +214,8 @@ class RobotSim2D(RobotSim):
         In this case, step and num_samples are applied to 
         each set of TCP coordinates.
 
+        Based on approximate Bayesian computation.
+
         Args:
             tcp_coordinates: (x, y) coordinates of TCP.
             step: specifies the step size between samples.
@@ -399,11 +401,11 @@ if __name__ == "__main__":
     robot.plot_configurations([[1, 2, 3], [-3, -2, -1]], separate_plots=False)
     robot.plot_configurations([[1, 2, 3], [-3, -2, -1]], separate_plots=True)
 
-    joint_states = robot.full_inverse([7, 3], num_samples=20)
+    joint_states = robot.inverse_sampling([7, 3], num_samples=20)
     robot.plot_configurations(joint_states, separate_plots=False)
-    joint_states = robot.full_inverse([7, 3], num_samples=400)
+    joint_states = robot.inverse_sampling([7, 3], num_samples=400)
     robot.plot_configurations(joint_states, separate_plots=False)
-    joint_states = robot.full_inverse(
+    joint_states = robot.inverse_sampling(
         [[7, 3], [-7, -3], [7, -3]], num_samples=100)
     robot.plot_configurations(joint_states, separate_plots=False)
 
