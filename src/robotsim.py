@@ -87,7 +87,7 @@ class RobotSim2D(RobotSim):
 
         TCP coordinates have format (x, y, phi)
             x,y:  coordinates of TCP
-            phi:  angle of TCP with respect to 
+            phi:  angle of TCP with respect to
                   horizontal in range [-pi, pi).
 
         Also accepts batch processing of several joint states.
@@ -204,6 +204,61 @@ class RobotSim2D(RobotSim):
 
         return theta.T.reshape((tcp_coordinates.shape[0], 2, 3))
 
+    def inverse_sampling(self, tcp_coordinates, step=None, num_samples=None):
+        """Generates samples of inverse kinematics 
+        based on (x, y) TCP coordinates.
+
+        You must provide either step or num_samples, but not both!
+
+        Also accepts batch processing of several TCP coordinates.
+        In this case, step and num_samples are applied to 
+        each set of TCP coordinates.
+
+        Args:
+            tcp_coordinates: (x, y) coordinates of TCP.
+            step: specifies the step size between samples.
+            num_samples: specifies number of samples to generate.
+
+        Examples:
+        >>> # for a single coordinate and step
+        >>> robot.full_inverse([7, 3], step=0.1)
+
+        >>> # for a single coordinate and number of samples
+        >>> robot.full_inverse([7, 3], num_samples=20)
+
+        >>> # for batch of three coordinates and total of 300 samples
+        >>> robot.full_inverse(
+                [[7, 3], [-7, -3], [7, -3]], num_samples=100)
+        """
+
+        if ((step is None and num_samples is None) or
+                (step is not None and num_samples is not None)):
+            raise RuntimeError(
+                "Please provide either a step or a num_samples value.")
+
+        if step is not None:
+            angles = np.arange(-np.pi, np.pi, step)
+        elif num_samples is not None:
+            angles = np.linspace(-np.pi, np.pi, num_samples)
+
+        tcp_coordinates = np.repeat(
+            np.atleast_2d(tcp_coordinates),
+            angles.shape[0],
+            axis=0)
+
+        angles = np.resize(angles, (tcp_coordinates.shape[0], 1))
+        tcp_coordinates = np.hstack((tcp_coordinates, angles))
+
+        joint_states = self.inverse(tcp_coordinates)
+
+        # remove invalid solutions
+        joint_states = joint_states[~np.isnan(joint_states)]
+
+        # stack solutions into 2D array
+        joint_states = np.reshape(joint_states, (-1, 3))
+
+        return joint_states
+
     def plot_configurations(self, joint_states, path=None, separate_plots=True, show=False):
         """Plots configurations for specified joint states.
 
@@ -287,11 +342,16 @@ class RobotSim2D(RobotSim):
             ax.set_xlim([-robot_length, robot_length])
             ax.set_ylim([-robot_length, robot_length])
 
+            # attempt at automatic transparency
+            alpha = np.clip(
+                np.exp(-0.008*joint_coords.shape[0]),
+                0.01, 1)
+
             for arm in joint_coords:
                 ax.plot(
                     arm[:, 0].flatten(),
                     arm[:, 1].flatten(),
-                    c='b')
+                    c='b', alpha=alpha)
 
             ax.scatter(
                 joint_coords[:, :, 0].flatten(),
@@ -301,7 +361,7 @@ class RobotSim2D(RobotSim):
         if path:
             plt.savefig(path)
 
-        elif show:
+        if show:
             plt.show()
 
 
@@ -338,5 +398,13 @@ if __name__ == "__main__":
     robot.plot_configurations([-3, -2, -1], separate_plots=True)
     robot.plot_configurations([[1, 2, 3], [-3, -2, -1]], separate_plots=False)
     robot.plot_configurations([[1, 2, 3], [-3, -2, -1]], separate_plots=True)
+
+    joint_states = robot.full_inverse([7, 3], num_samples=20)
+    robot.plot_configurations(joint_states, separate_plots=False)
+    joint_states = robot.full_inverse([7, 3], num_samples=400)
+    robot.plot_configurations(joint_states, separate_plots=False)
+    joint_states = robot.full_inverse(
+        [[7, 3], [-7, -3], [7, -3]], num_samples=100)
+    robot.plot_configurations(joint_states, separate_plots=False)
 
     plt.show()
