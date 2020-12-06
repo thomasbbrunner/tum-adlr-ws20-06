@@ -118,7 +118,8 @@ if __name__ == '__main__':
         input = torch.Tensor([[-np.pi / 3, np.pi / 3]])
     elif dof == '3DOF':
         # Specify initial joint angles
-        input = torch.Tensor([[-np.pi / 4, np.pi / 2, -np.pi / 4]])
+        # input = torch.Tensor([[-np.pi / 4, np.pi / 2, -np.pi / 4]])
+        input = torch.Tensor([[0, 0, 0]])
     else:
         raise Exception('Number of degrees of freedom ot supported')
 

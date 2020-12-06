@@ -31,3 +31,17 @@ def VAE_loss_ROBOT_SIM(recon_x, x, mu, logvar, variational_beta):
 
     return recon_loss + variational_beta * kldivergence
 
+def INN_loss_ROBOT_SIM(simulation_y, y):
+
+    # L_y
+    # For forward iteration, the deviation between simulation outcomes and network predictions are penalized
+    simulation_loss = F.mse_loss(simulation_y, y, reduction='sum')
+
+    # L_z
+    # Loss for latent variable computed by Maximum Mean Discrepancy (MMD)
+    # Penalizes mismatch between joint distribution of network outputs and the product of marginal distributions of
+    # simulation outcomes and latents
+
+    # L_x
+
+    return simulation_loss

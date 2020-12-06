@@ -75,7 +75,8 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(params=cvae.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
     # define learning rate scheduler
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=config['step_size'], gamma=config['gamma'])
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=config['step_size'],
+                                                gamma=config['gamma'])
 
     ####################################################################################################################
     # TRAINING

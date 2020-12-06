@@ -26,9 +26,17 @@ class Encoder(nn.Module):
         super(Encoder, self).__init__()
         self.classification = classification
 
+        '''
+        self.fc_layers = []
+        self.fc_layers.append(nn.Linear(in_features=X_dim + num_cond, out_features=hidden_dim))
+        for i in range(num_layers)-1:
+            self.fc_layers.append(nn.Linear(in_features=hidden_dim, out_features=hidden_dim))
+        '''
+
         self.fc1 = nn.Linear(in_features=X_dim + num_cond, out_features=hidden_dim)
         self.fc2 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
         self.fc3 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
+
         # mean of latent space
         self.fc_mu = nn.Linear(in_features=hidden_dim, out_features=latent_dim)
         # deviation of latent space
