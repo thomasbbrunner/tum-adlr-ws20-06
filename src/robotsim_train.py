@@ -15,22 +15,22 @@ from train_loader import *
 
 if __name__ == '__main__':
 
-    '''
-    Trains a conditional autoencoder on the robotsim dataset
-    '''
-
     ####################################################################################################################
-    # LOAD CONFIG
+    # TO MODIFY
     ####################################################################################################################
-
-    # config = load_config('robotsim_cVAE.yaml', 'configs/')
-    config = load_config('robotsim_INN.yaml', 'configs/')
 
     model_name = 'INN'
 
     ####################################################################################################################
     # LOAD DATASET
     ####################################################################################################################
+
+    if model_name == 'CVAE':
+        config = load_config('robotsim_cVAE.yaml', 'configs/')
+    elif model_name == 'INN':
+        config = load_config('robotsim_INN.yaml', 'configs/')
+    else:
+        raise Exception('Model not supported')
 
     if config['dof'] == '2DOF':
         robot = robotsim.Robot2D2DoF([3, 2])
@@ -55,10 +55,13 @@ if __name__ == '__main__':
     # BUILD MODEL
     ####################################################################################################################
 
-    # model = CVAE(config['input_dim'], config['hidden_dim'], config['latent_dim'], config['condition_dim'],
-    #              classification=False)
-
-    model = INN(input_dim=config['input_dim'], hidden_dim=config['hidden_dim'])
+    if model_name == 'CVAE':
+        model = CVAE(config['input_dim'], config['hidden_dim'], config['latent_dim'], config['condition_dim'],
+                     classification=False)
+    elif model_name == 'INN':
+        model = INN(input_dim=config['input_dim'], hidden_dim=config['hidden_dim'])
+    else:
+        raise Exception('Model not supported')
 
     device = torch.device("cuda:0" if config['use_gpu'] and torch.cuda.is_available() else "cpu")
     model = model.to(device)
@@ -67,8 +70,12 @@ if __name__ == '__main__':
     # TRAINING
     ####################################################################################################################
 
-    # train_loss_avg = train_CVAE(model=model, config=config, dataloader=train_dataloader, device=device)
-    train_loss_avg = train_INN(model=model, config=config, dataloader=train_dataloader, device=device)
+    if model_name == 'CVAE':
+        train_loss_avg = train_CVAE(model=model, config=config, dataloader=train_dataloader, device=device)
+    elif model_name == 'INN':
+        train_loss_avg = train_INN(model=model, config=config, dataloader=train_dataloader, device=device)
+    else:
+        raise Exception('Model not supported')
 
     model.save_weights(config['weight_dir'])
 

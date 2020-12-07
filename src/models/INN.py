@@ -132,6 +132,30 @@ class INN(nn.Module):
 
         return x
 
+    def predict(self, x, tcp, config, device):
+
+        y_noise_scale = 1e-1
+        zeros_noise_scale = 5e-2
+
+        # Insert noise
+        # Padding in case yz_dim < total_dim
+
+        pad_yz = zeros_noise_scale * torch.randn(config['batch_size'], config['total_dim'] -
+                                                 config['output_dim'] - config['latent_dim'], device=device)
+
+        y = tcp + y_noise_scale * torch.randn(config['batch_size'], config['output_dim'], dtype=torch.float,
+                                                  device=device)
+
+        # Sample z from standard normal distribution
+        z = torch.randn(config['batch_size'], config['latent_dim'], device=device)
+
+        y_inv = torch.cat((z, pad_yz, y), dim=1)
+
+        with torch.no_grad():
+            output_inv = self.forward(y_inv, inverse=True)
+
+        return output_inv
+
     def save_checkpoint(self, epoch, optimizer, loss, PATH):
         torch.save({
             'epoch': epoch,

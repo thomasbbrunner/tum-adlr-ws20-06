@@ -157,7 +157,7 @@ class CVAE(nn.Module):
         return latent
 
 
-    def predict(self, x, condition):
+    def predict(self, x, condition, config, device):
         x = torch.cat((x, condition), dim=1)
         x = self.decoder(x)
         return x
