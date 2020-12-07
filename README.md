@@ -2,6 +2,12 @@
 
 - run build.sh to install requirements
 
-- TODO: implement rejection sampling for robotsim for comparing with cVAE
-- TODO: implement random search for hyperparameter optimization
-    Source: https://docs.ray.io/en/master/tune/
+## TODOs:
+- [x] implement cVAE model
+- [x] implement planar robot simulation with 2 and 3 DoF
+- [x] implement paper's robot simulation
+- [ ] implement rejection sampling for robotsim for comparing with cVAE
+- [ ] implement random search for hyperparameter optimization (https://docs.ray.io/en/master/tune/)
+- [ ] implement measure of how well model works (area where 95 percentile of samples lie)
+- [ ] evaluate incorporating atan2 into the network (instead of tanh)
+- [ ] implement INN model
