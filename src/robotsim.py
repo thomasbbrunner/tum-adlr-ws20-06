@@ -95,6 +95,10 @@ class RobotSim(ABC):
     def _get_joint_coords(self, joint_states):
         pass
 
+    @abstractmethod
+    def get_joint_samples(self, num_samples, random=False):
+        pass
+
     @staticmethod
     def wrap(angles):
         """Wraps angles to [-pi, pi) range."""
@@ -292,6 +296,20 @@ class Robot2D2DoF(RobotSim):
 
         return self.sim._get_joint_coords(joint_states)
 
+    def get_joint_samples(self, num_samples, random=False):
+
+        if random:
+            joint_samples = self.random_gen.uniform(
+                -np.pi, np.pi, (self.NUM_DOF, num_samples))
+
+        else:
+            joint_samples = np.linspace(
+                -np.pi, np.pi, num_samples, endpoint=False)
+            joint_samples = np.resize(
+                joint_samples, (self.NUM_DOF, num_samples))
+
+        return joint_samples
+
 
 class Robot2D3DoF(RobotSim):
     """Simulation of 2D robotic arm with three revolute joints.
@@ -392,11 +410,6 @@ class Robot2D3DoF(RobotSim):
 
     def inverse_sampling(self, tcp_coordinates, step=None, num_samples=None, random=False):
 
-        if ((step is None and num_samples is None) or
-                (step is not None and num_samples is not None)):
-            raise RuntimeError(
-                "Please provide either a step or a num_samples value.")
-
         if step:
             tcp_angles = np.arange(-np.pi, np.pi, step)
         elif num_samples and not random:
@@ -443,6 +456,20 @@ class Robot2D3DoF(RobotSim):
             0, 1)
 
         return joint_coords
+
+    def get_joint_samples(self, num_samples, random=False):
+
+        if random:
+            joint_samples = self.random_gen.uniform(
+                -np.pi, np.pi, (self.NUM_DOF, num_samples))
+
+        else:
+            joint_samples = np.linspace(
+                -np.pi, np.pi, num_samples, endpoint=False)
+            joint_samples = np.resize(
+                joint_samples, (self.NUM_DOF, num_samples))
+
+        return joint_samples
 
 
 class Robot2D4DoF(RobotSim):
@@ -549,6 +576,24 @@ class Robot2D4DoF(RobotSim):
         joint_coords[:, :, 1] += np.reshape(joint_states[:, 0], (-1, 1))
 
         return joint_coords
+
+    def get_joint_samples(self, num_samples, random=False):
+
+        if random:
+            joint_samples = np.vstack((
+                self.random_gen.uniform(
+                    -self.length, self.length, (1, num_samples)),
+                self.random_gen.uniform(
+                    -np.pi, np.pi, (3, num_samples))))
+
+        else:
+            joint_samples = np.vstack((
+                np.linspace(-self.length, self.length, num_samples),
+                np.resize(
+                    np.linspace(-np.pi, np.pi, num_samples, endpoint=False),
+                    (3, num_samples))))
+
+        return joint_samples
 
 
 if __name__ == "__main__":

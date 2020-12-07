@@ -1,5 +1,7 @@
 
+import matplotlib.pyplot as plt
 import numpy as np
+import pdb
 from torch.utils.data import Dataset, DataLoader
 
 import robotsim
@@ -7,10 +9,14 @@ import robotsim
 
 class RobotSimDataset(Dataset):
     """
-    TODO: randomization
+    TODO: 
+        * check distribution of samples in cartesian space
+            (uniform in angle space, but not in cartesian!)
+            (plot in heatmap mode)
+        * randomization
     """
 
-    def __init__(self, robot_sim, res=100):
+    def __init__(self, robot, num_samples=100):
         """Dataset for robot simulation.
 
         Dataset is generated on demand. 
@@ -20,39 +26,32 @@ class RobotSimDataset(Dataset):
         and requires 48 MB of memory 
         (for 3 links).
 
-        Parameters:
-        robot_sim: instance of RobotSim
-        res: number of evenly spaced samples 
-            for each joint state in range [0 to 2*pi]
+        Total number of samples is num_samples^(num_dof).
+
+        Args:
+            robot: instance of RobotSim
+            num_samples: number of evenly spaced samples for each joint.
 
         Example usage:
         # creation of dataset for planar 3DoF robot
         # with 100*100*100 samples
-        >>> robot = robotsim.RobotSim2D(3, [3, 3, 3])
+        >>> robot = robotsim.Robot2D3DoF([3, 3, 3])
         >>> dataset = RobotSimDataset(robot, 100)
         """
 
-        # Uniformly spaced values in angle space.
-        # Endpoint must not be included,
-        # otherwise we get duplicate entries (0 and 2*pi are the same).
-        # Array is repeated for each link to generate meshgrid.
-        angle_range = np.resize(
-            np.linspace(-np.pi, np.pi, res, endpoint=False),
-            (robot_sim.num_links, res))
+        joint_samples = robot.get_joint_samples(num_samples)
 
-        self.joint_values = np.array(
-            np.meshgrid(*angle_range)).T.reshape(-1, robot_sim.num_links)
+        # compute all possible permutations of the joint samples
+        self.joint_states = np.array(
+            np.meshgrid(*joint_samples)).T.reshape(-1, robot.NUM_DOF)
 
-        self.tcp_coords = robot_sim.forward(self.joint_values)
+        self.tcp_coords = robot.forward(self.joint_states)
 
-        if self.tcp_coords.shape[0] != self.joint_values.shape[0]:
+        if self.tcp_coords.shape[0] != self.joint_states.shape[0]:
             raise RuntimeError(
                 "Inconsistent sizes in dataset contents.")
 
         self.len = self.tcp_coords.shape[0]
-
-        # visulization of dataset
-        # robot_sim.plot_configurations(self.joint_values, separate_plots=False)
 
     def __len__(self):
         """Returns number of samples in dataset.
@@ -62,11 +61,34 @@ class RobotSimDataset(Dataset):
     def __getitem__(self, item):
         """Returs tuple with joint states and TCP coordinates.
         """
-        # exclude orientation in order to have a latent variable that can be introduced in the CVAE
-        return self.joint_values[item], self.tcp_coords[item][:2]
+        # exclude tcp orientation
+        return self.joint_states[item], self.tcp_coords[item][:2]
+
+    def plot(self, show=False):
+
+        fig, ax = plt.subplots()
+        ax.grid()
+        ax.scatter(
+            self.tcp_coords[:, 0],
+            self.tcp_coords[:, 1],
+            c='r', s=2)
+
+        if show:
+            plt.show()
 
 
 if __name__ == "__main__":
 
-    robot = robotsim.RobotSim2D(3, [6, 7, 3])
-    dataset = RobotSimDataset(robot, 100)
+    robot = robotsim.Robot2D2DoF([3, 2])
+    dataset = RobotSimDataset(robot, 10)
+    dataset.plot()
+
+    robot = robotsim.Robot2D3DoF([3, 2, 3])
+    dataset = RobotSimDataset(robot, 10)
+    dataset.plot()
+
+    robot = robotsim.Robot2D4DoF([3, 2, 3])
+    dataset = RobotSimDataset(robot, 10)
+    dataset.plot()
+
+    plt.show()
