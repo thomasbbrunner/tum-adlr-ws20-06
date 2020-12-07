@@ -3,7 +3,6 @@ from torch.utils.data import DataLoader
 from models.CVAE import *
 from robotsim_dataset import RobotSimDataset
 import robotsim
-from robotsim import RobotSim2D
 from losses import VAE_loss_ROBOT_SIM
 from utils import *
 import numpy as np
@@ -42,12 +41,12 @@ if __name__ == '__main__':
     ####################################################################################################################
 
     if dof == '2DOF':
-        robot = robotsim.RobotSim2D(2, [3, 2])
+        robot = robotsim.Robot2D2DoF([3, 2])
         # INPUT: 2 joint angles
         # OUTPUT: (x,y) coordinate of end-effector
         dataset = RobotSimDataset(robot, 1000)
     elif dof == '3DOF':
-        robot = robotsim.RobotSim2D(3, [3, 3, 3])
+        robot = robotsim.Robot2D3DoF([3, 3, 3])
         # INPUT: 3 joint angles
         # OUTPUT: (x,y) coordinate of end-effector
         dataset = RobotSimDataset(robot, 100)
@@ -125,13 +124,13 @@ if __name__ == '__main__':
 
     # compute resulting tcp coordinates
     tcp = robot.forward(joint_states=input.numpy())
-    tcp_x = tcp[0][0]
-    tcp_y = tcp[0][1]
+    tcp_x = tcp[0]
+    tcp_y = tcp[1]
     tcp = torch.Tensor([[tcp_x, tcp_y]])
     print('tcp coordinates: ', tcp)
 
     # Plot ground truth configuration
-    robot.plot_configurations(joint_states=input.numpy(), path='figures/gt_configurations_' + str(dof) + '.png', separate_plots=False)
+    robot.plot(joint_states=input.numpy(), path='figures/gt_configurations_' + str(dof) + '.png', separate_plots=False)
 
     # Generate joints angles from predefined tcp coordinates
     _x = []
@@ -153,7 +152,7 @@ if __name__ == '__main__':
 
     # Plot generated configurations
     preds_joints = np.array(preds_joints)
-    robot.plot_configurations(joint_states=preds_joints, path='figures/generated_configurations_' + str(dof) + '.png', separate_plots=False)
+    robot.plot(joint_states=preds_joints, path='figures/generated_configurations_' + str(dof) + '.png', separate_plots=False)
 
     # visualise latent space
     input = []

@@ -45,12 +45,12 @@ if __name__ == '__main__':
     ####################################################################################################################
 
     if dof == '2DOF':
-        robot = robotsim.RobotSim2D(2, [3, 2])
+        robot = robotsim.Robot2D2DoF([3, 2])
         # INPUT: 2 joint angles
         # OUTPUT: (x,y) coordinate of end-effector
         dataset = RobotSimDataset(robot, 1000)
     elif dof == '3DOF':
-        robot = robotsim.RobotSim2D(3, [3, 3, 3])
+        robot = robotsim.Robot2D3DoF([3, 3, 3])
         # INPUT: 3 joint angles
         # OUTPUT: (x,y) coordinate of end-effector
         dataset = RobotSimDataset(robot, 100)
