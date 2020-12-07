@@ -35,15 +35,17 @@ class RobotSim(ABC):
         pass
 
     @abstractmethod
-    def inverse(self, tcp_coordinates):
+    def inverse(self, tcp_coordinates, squeeze=True):
         """Returns joint states for specified TCP coordinates.
-
-        Inputs are the (x, y, phi) coordinates of the manipulator.
 
         Also accepts batch processing of several TCP coordinates.
 
         Returns at most two possible solutions for each input.
         If no solution is found, np.nan is returned.
+
+        Args:
+            tcp_coordinates: (x, y, phi) coordinates of TCP.
+            squeeze: remove single-dimensional entries from output array.
 
         Examples:
         >>> # for a single coordinate
@@ -90,11 +92,20 @@ class RobotSim(ABC):
         pass
 
     @abstractmethod
-    def get_joint_coords(self, joint_states):
+    def _get_joint_coords(self, joint_states):
         pass
 
     @staticmethod
-    def dh_transformation(alpha, a, d, theta, squeeze_dims=True):
+    def wrap(angles):
+        """Wraps angles to [-pi, pi) range."""
+        # wrap angles to range [-pi, pi)
+        return (angles + np.pi) % (2*np.pi) - np.pi
+
+        # wrap angles to range [0, 2*pi)
+        # return angles % (2*np.pi)
+
+    @staticmethod
+    def dh_transformation(alpha, a, d, theta, squeeze=True):
         """Returns transformation matrix between two frames
         according to the Denavit-Hartenberg convention presented
         in 'Introduction to Robotics' by Craig.
@@ -139,7 +150,7 @@ class RobotSim(ABC):
         # fix dimensions
         transformation = np.rollaxis(transformation, 2)
 
-        if squeeze_dims:
+        if squeeze:
             transformation = np.squeeze(transformation)
 
         return transformation
@@ -169,7 +180,7 @@ class RobotSim(ABC):
                 [1, 0, 1]])
         """
 
-        joint_coords = self.get_joint_coords(joint_states)
+        joint_coords = self._get_joint_coords(joint_states)
 
         if separate_plots:
 
@@ -178,6 +189,7 @@ class RobotSim(ABC):
                 fig, ax = plt.subplots()
                 ax.grid()
                 # TODO rethink plot limits
+                # "heatmap" function instead?
                 robot_length = np.sum(self.len_links)*1.1
                 ax.set_xlim([-robot_length, robot_length])
                 ax.set_ylim([-robot_length, robot_length])
@@ -211,10 +223,11 @@ class RobotSim(ABC):
                     arm[:, 1].flatten(),
                     c='b', alpha=alpha)
 
-            # ax.scatter(
-            #     joint_coords[:, :, 0].flatten(),
-            #     joint_coords[:, :, 1].flatten(),
-            #     c='r', s=8)
+            # TODO create heatmap plot method
+            ax.scatter(
+                joint_coords[:, :, 0].flatten(),
+                joint_coords[:, :, 1].flatten(),
+                c='r', s=8)
 
         if path:
             plt.savefig(path)
@@ -236,42 +249,48 @@ class Robot2D2DoF(RobotSim):
     >>> robot = Robot2DoF([3, 2])
     """
 
+    NUM_DOF = 2
+
     def __init__(self, len_links):
         self.sim = Robot2D3DoF([*len_links, 0])
         self.len_links = self.sim.len_links
 
-    def forward(self, joint_states):
+    def forward(self, joint_states, squeeze=True):
 
         joint_states = np.atleast_2d(joint_states)
         joint_states = np.hstack(
             (joint_states, np.zeros((joint_states.shape[0], 1))))
 
-        return self.sim.forward(joint_states)
+        return self.sim.forward(joint_states, squeeze)
 
-    def inverse(self, tcp_coordinates):
+    def inverse(self, tcp_coordinates, squeeze=True):
 
-        joint_states = self.sim.inverse(tcp_coordinates)
+        joint_states = self.sim.inverse(tcp_coordinates, squeeze=False)
 
-        # TODO remove zero values for joint 3
+        # remove solutions for joint 3
+        joint_states = np.atleast_3d(joint_states)[:, :, :2]
 
-        return joint_states
-
-    def inverse_sampling(self, tcp_coordinates, step=None, num_samples=None):
-
-        joint_states = self.sim.inverse_sampling(
-            tcp_coordinates, step, num_samples)
-
-        # TODO remove zero values for joint 3
+        if squeeze:
+            joint_states = np.squeeze(joint_states)
 
         return joint_states
 
-    def get_joint_coords(self, joint_states):
+    def inverse_sampling(self):
+        raise RuntimeError(
+            "This function cannot be implemented.")
 
-        joint_states = np.atleast_2d(joint_states)
+    def _get_joint_coords(self, joint_states):
+
+        joint_states = np.reshape(joint_states, (-1, self.NUM_DOF))
+
+        if joint_states.shape[1] != self.NUM_DOF:
+            raise RuntimeError(
+                "Expected different size for joint_states: {}".format(joint_states))
+
         joint_states = np.hstack(
             (joint_states, np.zeros((joint_states.shape[0], 1))))
 
-        return self.sim.get_joint_coords(joint_states)
+        return self.sim._get_joint_coords(joint_states)
 
 
 class Robot2D3DoF(RobotSim):
@@ -281,13 +300,13 @@ class Robot2D3DoF(RobotSim):
     >>> robot = Robot3DoF([3, 2, 1])
     """
 
-    NUM_LINKS = 3
+    NUM_DOF = 3
 
     def __init__(self, len_links):
 
         self.len_links = np.array(len_links)
 
-        if self.len_links.shape[0] != self.NUM_LINKS:
+        if self.len_links.shape[0] != self.NUM_DOF:
             raise RuntimeError(
                 "Conflicting link lengths: {}". format(self.len_links))
 
@@ -295,15 +314,11 @@ class Robot2D3DoF(RobotSim):
             raise RuntimeError(
                 "Link length has to be non-negative: {}". format(self.len_links))
 
-    def forward(self, joint_states):
+    def forward(self, joint_states, squeeze=True):
 
-        joint_states = np.array(joint_states)
-        input_dim = joint_states.ndim
+        joint_states = np.atleast_2d(joint_states)
 
-        if input_dim == 1:
-            joint_states = np.expand_dims(joint_states, axis=0)
-
-        if joint_states.shape[1] != self.NUM_LINKS:
+        if joint_states.shape[1] != self.NUM_DOF:
             raise RuntimeError(
                 "Conflicting joint states: {}". format(joint_states))
 
@@ -320,26 +335,18 @@ class Robot2D3DoF(RobotSim):
             self.len_links[1]*np.sin(theta[:, 0] + theta[:, 1]) +
             self.len_links[2]*np.sin(theta[:, 0] + theta[:, 1] + theta[:, 2]),
             # angle of TCP with respect to horizontal
-            theta[:, 0] + theta[:, 1] + theta[:, 2]])
+            theta[:, 0] + theta[:, 1] + theta[:, 2]]).T
 
-        # limit angle of TCP to range [0, 2*pi)
-        # tcp_coordinates[2] = tcp_coordinates[2] % (2*np.pi)
+        tcp_coordinates[:, 2] = self.wrap(tcp_coordinates[:, 2])
 
-        # limit angle of TCP to range [-pi, pi)
-        tcp_coordinates[2] = (tcp_coordinates[2] + np.pi) % (2*np.pi) - np.pi
+        if squeeze:
+            tcp_coordinates = np.squeeze(tcp_coordinates)
 
-        if input_dim == 1:
-            return tcp_coordinates.flatten()
+        return tcp_coordinates
 
-        return tcp_coordinates.T
+    def inverse(self, tcp_coordinates, squeeze=True):
 
-    def inverse(self, tcp_coordinates):
-
-        tcp_coordinates = np.array(tcp_coordinates)
-        input_dim = tcp_coordinates.ndim
-
-        if input_dim == 1:
-            tcp_coordinates = np.expand_dims(tcp_coordinates, axis=0)
+        tcp_coordinates = np.atleast_2d(tcp_coordinates)
 
         if tcp_coordinates.shape[1] != 3:
             raise RuntimeError(
@@ -375,25 +382,29 @@ class Robot2D3DoF(RobotSim):
             [theta3_1, theta3_2],
         ])
 
-        # TODO add angle wrapping
+        theta = self.wrap(theta)
+        theta = np.swapaxes(theta, 0, 2)
 
-        if input_dim == 1:
-            return theta.T.reshape((2, 3))
+        if squeeze:
+            theta = np.squeeze(theta)
 
-        return theta.T.reshape((tcp_coordinates.shape[0], 2, 3))
+        return theta
 
-    def inverse_sampling(self, tcp_coordinates, step=None, num_samples=None):
+    def inverse_sampling(self, tcp_coordinates, step=None, num_samples=None, random=False):
 
         if ((step is None and num_samples is None) or
                 (step is not None and num_samples is not None)):
             raise RuntimeError(
                 "Please provide either a step or a num_samples value.")
 
-        if step is not None:
+        if step:
             tcp_angles = np.arange(-np.pi, np.pi, step)
-        elif num_samples is not None:
+        elif num_samples and not random:
             tcp_angles = np.linspace(
                 -np.pi, np.pi, num_samples, endpoint=False)
+        elif num_samples and random:
+            tcp_angles = self.random_gen.uniform(
+                -np.pi, np.pi, num_samples)
 
         tcp_coordinates = np.repeat(
             np.atleast_2d(tcp_coordinates),
@@ -401,7 +412,7 @@ class Robot2D3DoF(RobotSim):
             axis=0)
 
         tcp_angles = np.resize(tcp_angles, (tcp_coordinates.shape[0], 1))
-        tcp_coordinates = np.hstack((tcp_coordinates, tcp_angles))
+        tcp_coordinates = np.hstack((tcp_coordinates[:, :2], tcp_angles))
 
         joint_states = self.inverse(tcp_coordinates)
 
@@ -411,9 +422,9 @@ class Robot2D3DoF(RobotSim):
 
         return joint_states
 
-    def get_joint_coords(self, joint_states):
+    def _get_joint_coords(self, joint_states):
 
-        joint_states = np.atleast_2d(joint_states)
+        joint_states = np.reshape(joint_states, (-1, self.NUM_DOF))
 
         T01 = self.dh_transformation(
             0, 0, 0, joint_states[:, 0], False)
@@ -441,6 +452,8 @@ class Robot2D4DoF(RobotSim):
     >>> robot = Robot2D4DoF([3, 3, 3])
     """
 
+    NUM_DOF = 4
+
     def __init__(self, len_links):
 
         self.sim = Robot2D3DoF(len_links)
@@ -448,12 +461,15 @@ class Robot2D4DoF(RobotSim):
         self.length = np.sum(len_links)
         self.len_links = self.sim.len_links
 
-    def forward(self, joint_states):
+    def forward(self, joint_states, squeeze=True):
 
         joint_states = np.atleast_2d(joint_states)
 
-        tcp_coordinates = self.sim.forward(joint_states[:, 1:])
-        tcp_coordinates[:, 1] += joint_states[:, 0]
+        tcp_coordinates = self.sim.forward(joint_states[:, 1:], squeeze=False)
+        tcp_coordinates[:, 1] += joint_states[:, 0]  # add base height
+
+        if squeeze:
+            tcp_coordinates = np.squeeze(tcp_coordinates)
 
         return tcp_coordinates
 
@@ -468,7 +484,6 @@ class Robot2D4DoF(RobotSim):
             raise RuntimeError(
                 "Please provide either a step or a num_samples value.")
 
-        # TODO test if base height range makes sense
         if step:
             tcp_angles = np.arange(-np.pi, np.pi, step)
             base_heights = np.arange(-self.length, self.length, step)
@@ -526,11 +541,11 @@ class Robot2D4DoF(RobotSim):
 
         return joint_states
 
-    def get_joint_coords(self, joint_states):
+    def _get_joint_coords(self, joint_states):
 
-        joint_states = np.atleast_2d(joint_states)
+        joint_states = np.reshape(joint_states, (-1, self.NUM_DOF))
 
-        joint_coords = self.sim.get_joint_coords(joint_states[:, 1:])
+        joint_coords = self.sim._get_joint_coords(joint_states[:, 1:])
         joint_coords[:, :, 1] += np.reshape(joint_states[:, 0], (-1, 1))
 
         return joint_coords
@@ -538,76 +553,55 @@ class Robot2D4DoF(RobotSim):
 
 if __name__ == "__main__":
 
-    # functionality tests
+    # TODO: functionality tests
     # (1) difficult joint_states
     # (2) do forward pass
     # (3) do inverse pass
     # (4) check if same joint_states
     # (5) compare with reference values
 
-    # Paper's robot
-
-    robot = Robot2D4DoF([2, 2, 2])
-
-    tcp = robot.forward([2, np.pi/3, -np.pi/4, 2*np.pi/3])
-
-    print(tcp)
-
-    tcp = [2, 2]
-
-    joint_states = robot.inverse_sampling(tcp, num_samples=1000, random=True)
-    # print(robot.inverse_sampling([1, 2], num_samples=4))
-
-    pdb.set_trace()
-
-    # pdb.set_trace()
-    print("plotting...")
-
-    robot.plot(joint_states, separate_plots=False)
-
-    # joint_states = robot.inverse_sampling([3.5, 0], num_samples=100)
-    # robot.plot_configurations(joint_states, separate_plots=False)
-
-    plt.show()
-
-if False:
-
     # 2 DoF
+    js = [1, -2.2]
     robot = Robot2D2DoF([3, 2])
-    print(robot.forward([0, 1]))
-    print(robot.forward([[0, 1], [1, 0], [1, 1]]))
-    print(robot.inverse([[1, 1, 1], [1, 1, 0]]))
+    robot.plot(js, separate_plots=True)
 
-    robot.plot([0, 1], separate_plots=False)
-    robot.plot([1, 0], separate_plots=True)
-    robot.plot([[0, 1], [1, 0]], separate_plots=False)
-    robot.plot([[0, 1], [1, 0]], separate_plots=True)
+    tcp = robot.forward(js)
+    js_inv = robot.inverse(tcp)
+    robot.plot(js_inv, separate_plots=False)
+
+    tcp = robot.forward([js, js])
+    js_inv = robot.inverse(tcp)
+    robot.plot(js_inv, separate_plots=False)
 
     # 3 DoF
-    robot = Robot2D3DoF([3, 3, 3])
-    print(robot.forward([0, 1, 1]))
-    print(robot.forward([[0, 1, 1], [1, 0, 1], [1, 1, 0]]))
-    print(robot.inverse([3, -4, 0]))
-    # # [[-2.411865    1.68213734  0.72972766]
-    # #  [-0.72972766 -1.68213734  2.411865  ]]
-    print(robot.inverse([[2, 2, 2], [5, 1, 0.3], [50, 1, 0.3]]))
-    # # [[[-1.2030684   1.9652703   1.2377981 ]
-    # #   [ 0.7622019  -1.9652703   3.2030684 ]]
-    # #  [[-1.15352504  2.41326677 -0.95974173]
-    # #   [ 1.25974173 -2.41326677  1.45352504]]
-    # #  [[        nan         nan         nan]
-    # #   [        nan         nan         nan]]]
-    robot.plot([1, 2, 3], separate_plots=False)
-    robot.plot([-3, -2, -1], separate_plots=True)
-    robot.plot([[1, 2, 3], [-3, -2, -1]], separate_plots=False)
-    robot.plot([[1, 2, 3], [-3, -2, -1]], separate_plots=True)
+    js = [1, -2.2, 0.4]
+    robot = Robot2D3DoF([3, 2, 3])
+    robot.plot(js, separate_plots=True)
 
-    joint_states = robot.inverse_sampling([7, 3], num_samples=20)
-    robot.plot(joint_states, separate_plots=False)
-    joint_states = robot.inverse_sampling([7, 3], num_samples=400)
-    robot.plot(joint_states, separate_plots=False)
-    joint_states = robot.inverse_sampling(
-        [[7, 3], [-7, -3], [7, -3]], num_samples=100)
-    robot.plot(joint_states, separate_plots=False)
+    tcp = robot.forward(js)
+    js_inv = robot.inverse(tcp)
+    robot.plot(js_inv, separate_plots=False)
+    js_sam = robot.inverse_sampling(tcp, num_samples=100)
+    robot.plot(js_sam, separate_plots=False)
 
+    tcp = robot.forward([js, js])
+    js_inv = robot.inverse(tcp)
+    robot.plot(js_inv, separate_plots=False)
+    js_sam = robot.inverse_sampling(tcp, num_samples=100)
+    robot.plot(js_sam, separate_plots=False)
+
+    # 4 DoF
+    js = [2.1, 1, -2.2, 0.4]
+    robot = Robot2D4DoF([3, 2, 3])
+    robot.plot(js, separate_plots=True)
+
+    tcp = robot.forward(js)
+    js_sam = robot.inverse_sampling(tcp, num_samples=50)
+    robot.plot(js_sam, separate_plots=False)
+
+    tcp = robot.forward([js, js])
+    js_sam = robot.inverse_sampling(tcp, num_samples=50)
+    robot.plot(js_sam, separate_plots=False)
+
+    # plots
     plt.show()
