@@ -58,21 +58,25 @@ def VAE_loss_ROBOT_SIM(recon_x, x, mu, logvar, variational_beta):
 
     return recon_loss + variational_beta * kldivergence
 
-def INN_loss_ROBOT_SIM(output, y, config, device):
+def INN_loss_ROBOT_SIM(output, y, output_inv, x, config, device):
 
     # L_y
     # For forward iteration, the deviation between simulation outcomes and network predictions are penalized
     L_y = MSELoss(output[:, :config['output_dim']], y[:, :config['output_dim']])
+    # print('L_y: ', L_y)
 
     # L_z
     # Loss for latent variable computed by Maximum Mean Discrepancy (MMD)
     # Penalizes mismatch between joint distribution of network outputs and the product of marginal distributions of
     # simulation outcomes and latents
     L_z = MMD_loss(output[:, config['output_dim']:], y[:, config['output_dim']:], device)
+    # print('L_z: ', L_z)
 
     # L_x
+    L_x = MMD_loss(output_inv, x, device)
+    # print('L_x: ', L_x)
 
-    return config['weight_Ly'] * L_y + config['weight_Lz'] * L_z
+    return config['weight_Ly'] * L_y + config['weight_Lz'] * L_z + config['weight_Lx'] * L_x
 
 def MSELoss(_y, y):
     return F.mse_loss(_y, y, reduction='sum')

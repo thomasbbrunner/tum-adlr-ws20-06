@@ -26,40 +26,34 @@ class FixedRandomPermutation(nn.Module):
         for i, p in enumerate(self.permutation):
             self.permutation_inv[p] = i
 
-        self.permutation = torch.Tensor(self.permutation)
-        self.permutation_inv = torch.Tensor(self.permutation_inv)
+        self.permutation = torch.LongTensor(self.permutation)
+        self.permutation_inv = torch.LongTensor(self.permutation_inv)
 
     def forward(self, x, inverse=False):
 
-        '''
-
         if not inverse:
-            return [x[0][:, self.permutation]]
+            x = x[:, self.permutation]
         else:
-            return [x[0][:, self.permutation_inv]]
+            x = x[:, self.permutation_inv]
 
-        '''
-
-        # TODO: To implement
-
-        return x[0]
+        return x
 
     def jacobian(self):
         pass
 
 class sub_network(nn.Module):
+
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(sub_network, self).__init__()
         self.fc1 = nn.Linear(in_features=input_dim, out_features=hidden_dim)
-        self.fc2 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
-        self.fc3 = nn.Linear(in_features=hidden_dim, out_features=output_dim)
+        self.fc2 = nn.Linear(in_features=hidden_dim, out_features=output_dim)
+        # self.fc3 = nn.Linear(in_features=hidden_dim, out_features=output_dim)
 
     def forward(self, x):
         x = F.leaky_relu(self.fc1(x))
         x = F.leaky_relu(self.fc2(x))
-        x = F.leaky_relu(self.fc3(x))
+        # x = F.leaky_relu(self.fc3(x))
         return x
-
 
 class AffineCouplingBlock(nn.Module):
     def __init__(self, input_dim, hidden_dim):
@@ -116,22 +110,26 @@ class AffineCouplingBlock(nn.Module):
 
 class INN(nn.Module):
 
-    def __init__(self, input_dim, hidden_dim, output_dim):
+    def __init__(self, input_dim, hidden_dim):
 
         super(INN, self).__init__()
         self.block1 = AffineCouplingBlock(input_dim, hidden_dim)
-        # self.permutation1 = FixedRandomPermutation()
+        self.perm1 = FixedRandomPermutation(input_dim, 1)
         self.block2 = AffineCouplingBlock(input_dim, hidden_dim)
-        # self.permutation2 = FixedRandomPermutation()
+        self.perm2 = FixedRandomPermutation(input_dim, 2)
+        self.block3 = AffineCouplingBlock(input_dim, hidden_dim)
 
     def forward(self, x, inverse=False):
+
         # coupling layer
         x = self.block1(x, inverse)
-
-        # TODO: shuffle components (fixed permutation)
+        # shuffle components (fixed permutation)
         # ensures that every single input variable affects every single output variable
-
+        x = self.perm1(x, inverse)
         x = self.block2(x, inverse)
+        x = self.perm2(x, inverse)
+        x = self.block3(x, inverse)
+
         return x
 
     def save_checkpoint(self, epoch, optimizer, loss, PATH):
@@ -175,3 +173,5 @@ if __name__ == '__main__':
     print('Original x: ', x)
     x_permuted = permutation(x, inverse=False)
     print('Permuted x: ', x_permuted)
+    x_repermuted = permutation(x_permuted, inverse=True)
+    print('x_repermuted x: ', x_repermuted)

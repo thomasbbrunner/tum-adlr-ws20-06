@@ -26,6 +26,8 @@ if __name__ == '__main__':
     # config = load_config('robotsim_cVAE.yaml', 'configs/')
     config = load_config('robotsim_INN.yaml', 'configs/')
 
+    model_name = 'INN'
+
     ####################################################################################################################
     # LOAD DATASET
     ####################################################################################################################
@@ -56,7 +58,7 @@ if __name__ == '__main__':
     # model = CVAE(config['input_dim'], config['hidden_dim'], config['latent_dim'], config['condition_dim'],
     #              classification=False)
 
-    model = INN(input_dim=config['input_dim'], hidden_dim=config['hidden_dim'], output_dim=config['output_dim'])
+    model = INN(input_dim=config['input_dim'], hidden_dim=config['hidden_dim'])
 
     device = torch.device("cuda:0" if config['use_gpu'] and torch.cuda.is_available() else "cpu")
     model = model.to(device)
@@ -75,4 +77,4 @@ if __name__ == '__main__':
     plt.xlabel('EPOCHS')
     plt.ylabel('AVG LOSS')
     plt.plot(train_loss_avg)
-    plt.savefig('figures/avg_train_loss_' + str(config['dof']) + '.png')
+    plt.savefig('figures/avg_train_loss_' + model_name + '_' + str(config['dof']) + '.png')
