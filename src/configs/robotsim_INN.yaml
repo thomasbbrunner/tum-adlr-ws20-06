@@ -1,0 +1,29 @@
+# Settings
+dof: '3DOF'
+weight_dir : 'weights/ROBOTSIM_INN_3DOF'
+checkpoint_dir: 'checkpoints/'
+
+# Network parameters
+total_dim: 6
+input_dim: 6 # 2*3 = 2 * number of joints
+hidden_dim: 128 # number of neurons per fully connected layer
+output_dim: 2
+latent_dim: 2
+use_gpu: False
+
+# Training
+num_epochs: 50
+batch_size: 250
+lr_rate: 0.001
+weight_decay: 0.0001
+checkpoint_epoch: 10
+weight_Ly: 3
+weight_Lz: 300
+
+# lr-scheduler
+step_size: 10
+gamma: 0.5
+
+# Testing
+num_samples_config: 50
+num_samples_latent: 2000

@@ -2,12 +2,50 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from utils import onehot
+import numpy as np
 
 '''
  Sources
  -------
  https://github.com/VLL-HD/FrEIA/blob/master/FrEIA/
+ 
+ https://github.com/VLL-HD/analyzing_inverse_problems
  '''
+
+# Permutes input vector in a random but fixed way
+class FixedRandomPermutation(nn.Module):
+    def __init__(self, input_dim, seed):
+        super(FixedRandomPermutation, self).__init__()
+
+        np.random.seed(seed)
+        self.in_channels = input_dim
+        self.permutation = np.random.permutation(self.in_channels)
+        np.random.seed()
+        self.permutation_inv = np.zeros_like(self.permutation)
+
+        for i, p in enumerate(self.permutation):
+            self.permutation_inv[p] = i
+
+        self.permutation = torch.Tensor(self.permutation)
+        self.permutation_inv = torch.Tensor(self.permutation_inv)
+
+    def forward(self, x, inverse=False):
+
+        '''
+
+        if not inverse:
+            return [x[0][:, self.permutation]]
+        else:
+            return [x[0][:, self.permutation_inv]]
+
+        '''
+
+        # TODO: To implement
+
+        return x[0]
+
+    def jacobian(self):
+        pass
 
 class sub_network(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
@@ -17,9 +55,9 @@ class sub_network(nn.Module):
         self.fc3 = nn.Linear(in_features=hidden_dim, out_features=output_dim)
 
     def forward(self, x):
-        x = F.leaky_relu(self.f1(x))
-        x = F.leaky_relu(self.f2(x))
-        x = F.leaky_relu(self.f3(x))
+        x = F.leaky_relu(self.fc1(x))
+        x = F.leaky_relu(self.fc2(x))
+        x = F.leaky_relu(self.fc3(x))
         return x
 
 
@@ -78,14 +116,22 @@ class AffineCouplingBlock(nn.Module):
 
 class INN(nn.Module):
 
-    def __init__(self, input_dim, condition_dim, hidden_dim, latent_dim):
+    def __init__(self, input_dim, hidden_dim, output_dim):
 
         super(INN, self).__init__()
+        self.block1 = AffineCouplingBlock(input_dim, hidden_dim)
+        # self.permutation1 = FixedRandomPermutation()
+        self.block2 = AffineCouplingBlock(input_dim, hidden_dim)
+        # self.permutation2 = FixedRandomPermutation()
 
-    def forward(self, x):
-        return x
+    def forward(self, x, inverse=False):
+        # coupling layer
+        x = self.block1(x, inverse)
 
-    def inverse(self, x):
+        # TODO: shuffle components (fixed permutation)
+        # ensures that every single input variable affects every single output variable
+
+        x = self.block2(x, inverse)
         return x
 
     def save_checkpoint(self, epoch, optimizer, loss, PATH):
@@ -113,3 +159,19 @@ class INN(nn.Module):
 
     def load_weights(self, PATH):
         self.load_state_dict(torch.load(PATH))
+
+# Testing example
+if __name__ == '__main__':
+
+    # inn = INN(input_dim=6, hidden_dim=128, output_dim=6)
+    permutation = FixedRandomPermutation(input_dim=6, seed=42)
+
+    print(permutation.in_channels)
+    print(permutation.permutation)
+    print(permutation.permutation_inv)
+
+    x = torch.Tensor([[0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5]])
+
+    print('Original x: ', x)
+    x_permuted = permutation(x, inverse=False)
+    print('Permuted x: ', x_permuted)
