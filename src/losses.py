@@ -10,10 +10,17 @@ import torch.nn as nn
 # MMD(F, p, q) = || mu_p - mu_q || **2
 def MMD_loss(x, y, device):
 
-    xx, yy, zz = torch.mm(x,x.t()), torch.mm(y,y.t()), torch.mm(x,y.t())
+    xx, yy, zz = torch.mm(x, x.t()), torch.mm(y, y.t()), torch.mm(x, y.t())
+
+    # print('xx: ', xx)
+    # print('yy: ', yy)
+    # print('zz: ', zz)
 
     rx = (xx.diag().unsqueeze(0).expand_as(xx))
     ry = (yy.diag().unsqueeze(0).expand_as(yy))
+
+    # print('rx: ', rx)
+    # print('ry: ', zz)
 
     dxx = rx.t() + rx - 2.*xx
     dyy = ry.t() + ry - 2.*yy
@@ -29,6 +36,19 @@ def MMD_loss(x, y, device):
         XY += a**2 * (a**2 + dxy)**-1
 
     return torch.mean(XX + YY - 2.*XY)
+
+def compute_MMD(x, _x):
+
+    x_mean = torch.mean(x)
+    _x_mean = torch.mean(_x)
+    h = 0.001
+
+    # multiquadratic kernel
+    # k(x, _x) = 1/(1 + 1/h*h * torch.sum((x - _x) * (x - _x)))
+    kernel_x = 1.00 / (1.00 + 1 / h * h * torch.sum((x - _x) * (x - _x)))
+
+
+
 
 '''
 This loss is created for normalized inputs with sigmoid as the activation function in the last layer of the decoder
@@ -81,3 +101,19 @@ def INN_loss_ROBOT_SIM(output, y, output_inv, x, config, device):
 
 def MSELoss(_y, y):
     return F.mse_loss(_y, y, reduction='sum')
+
+# Testing example
+if __name__ == '__main__':
+
+    use_gpu = False
+    num_samples = 4
+    latent_dim = 2
+
+    device = torch.device("cuda:0" if use_gpu and torch.cuda.is_available() else "cpu")
+
+    x = torch.randn(num_samples, latent_dim, device=device)
+    _x = torch.randn(num_samples, latent_dim, device=device)
+
+    loss = MMD_loss(x, _x, device)
+    print('MMD LOSS: ', loss)
+

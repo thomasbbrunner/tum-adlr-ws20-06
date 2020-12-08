@@ -19,6 +19,7 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
+    # model_name = 'CVAE'
     model_name = 'INN'
 
     ####################################################################################################################
@@ -56,10 +57,9 @@ if __name__ == '__main__':
     ####################################################################################################################
 
     if model_name == 'CVAE':
-        model = CVAE(config['input_dim'], config['hidden_dim'], config['latent_dim'], config['condition_dim'],
-                     classification=False)
+        model = CVAE(config, classification=False)
     elif model_name == 'INN':
-        model = INN(input_dim=config['input_dim'], hidden_dim=config['hidden_dim'])
+        model = INN(config)
     else:
         raise Exception('Model not supported')
 
