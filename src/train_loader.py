@@ -87,8 +87,8 @@ def train_INN(model, config, dataloader, device):
     pad_x = torch.zeros(config['batch_size'], config['total_dim'] - config['input_dim'])
     pad_yz = torch.zeros(config['batch_size'], config['total_dim'] - config['output_dim'] - config['latent_dim'])
 
-    y_noise_scale = 1e-1
-    zeros_noise_scale = 5e-2
+    # y_noise_scale = 1e-1
+    # zeros_noise_scale = 5e-2
 
     for epoch in range(config['num_epochs']):
 
@@ -97,12 +97,11 @@ def train_INN(model, config, dataloader, device):
 
         # If MMD on x-space is present from the start, the model can get stuck.
         # Instead, ramp it up exponetially.
-        loss_factor = min(1., 2. * 0.002 ** (1. - (float(epoch) / config['num_epochs'])))
+        # loss_factor = min(1., 2. * 0.002 ** (1. - (float(epoch) / config['num_epochs'])))
 
         for x, y in dataloader:
 
             x, y = x.to(device), y.to(device)
-
             # forward pass only accepts float
             x = x.float()
             y = y.float()
@@ -118,13 +117,13 @@ def train_INN(model, config, dataloader, device):
 
             # Insert noise
             # Padding in case xdim < total dim or yz_dim < total_dim
-            pad_x = zeros_noise_scale * torch.randn(config['batch_size'], config['total_dim'] -
+            pad_x = config['zeros_noise_scale'] * torch.randn(config['batch_size'], config['total_dim'] -
                                                     config['input_dim'], device=device)
 
-            pad_yz = zeros_noise_scale * torch.randn(config['batch_size'], config['total_dim'] -
+            pad_yz = config['zeros_noise_scale'] * torch.randn(config['batch_size'], config['total_dim'] -
                                                      config['output_dim'] - config['latent_dim'], device=device)
 
-            y += y_noise_scale * torch.randn(config['batch_size'], config['output_dim'], dtype=torch.float,
+            y += config['y_noise_scale'] * torch.randn(config['batch_size'], config['output_dim'], dtype=torch.float,
                                              device=device)
 
             # Sample z from standard normal distribution

@@ -10,4 +10,9 @@
 - [ ] implement random search for hyperparameter optimization (https://docs.ray.io/en/master/tune/)
 - [ ] implement measure of how well model works (area where 95 percentile of samples lie)
 - [ ] evaluate incorporating atan2 into the network (instead of tanh)
-- [ ] implement INN model
+- [x] implement basic INN model
+- [ ] implement jacobians of INN model
+- [ ] debug INN model
+- [ ] implement predict method of INN model
+- [ ] implement backward training of INN model
+- [ ] debug MMD loss

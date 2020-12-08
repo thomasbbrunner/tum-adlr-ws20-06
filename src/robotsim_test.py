@@ -24,15 +24,19 @@ if __name__ == '__main__':
     # LOAD CONFIG
     ####################################################################################################################
 
-    config = load_config('robotsim_cVAE.yaml', 'configs/')
-    # config = load_config('robotsim_INN.yaml', 'configs/')
-
-    model_name = 'CVAE'
-    # model_name = 'INN'
+    # model_name = 'CVAE'
+    model_name = 'INN'
 
     ####################################################################################################################
     # LOAD DATASET
     ####################################################################################################################
+
+    if model_name == 'CVAE':
+        config = load_config('robotsim_cVAE.yaml', 'configs/')
+    elif model_name == 'INN':
+        config = load_config('robotsim_INN.yaml', 'configs/')
+    else:
+        raise Exception('Model not supported')
 
     if config['dof'] == '2DOF':
         robot = robotsim.Robot2D2DoF([3, 2])
@@ -56,14 +60,18 @@ if __name__ == '__main__':
     # BUILD MODEL
     ####################################################################################################################
 
-    model = CVAE(config['input_dim'], config['hidden_dim'], config['latent_dim'], config['condition_dim'], classification=False)
-    # model = INN(input_dim=config['input_dim'], hidden_dim=config['hidden_dim'])
+    if model_name == 'CVAE':
+        model = CVAE(config, classification=False)
+    elif model_name == 'INN':
+        model = INN(config)
+    else:
+        raise Exception('Model not supported')
 
     device = torch.device("cuda:0" if config['use_gpu'] and torch.cuda.is_available() else "cpu")
     model = model.to(device)
 
-    model.load_weights(config['weight_dir'])
-    # epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + 'CVAE_2DOF_epoch_10')
+    # model.load_weights(config['weight_dir'])
+    epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + model_name + '_' + config['dof'] + '_epoch_20')
 
     # set to evaluation mode
     model.eval()
@@ -72,8 +80,12 @@ if __name__ == '__main__':
     # TEST MODEL
     ####################################################################################################################
 
-    test_CVAE(model, config, test_dataloader, device)
-    # test_INN(model, config, test_dataloader, device)
+    if model_name == 'CVAE':
+        test_CVAE(model, config, test_dataloader, device)
+    elif model_name == 'INN':
+        test_INN(model, config, test_dataloader, device)
+    else:
+        raise Exception('Model not supported')
 
     ####################################################################################################################
     # VISUALISATION
@@ -109,52 +121,44 @@ if __name__ == '__main__':
     preds_joints = []
 
     for i in range(config['num_samples_config']):
-        # create a random latent vector
-        z = torch.randn(1, config['latent_dim']).to(device)
-        with torch.no_grad():
-            recons_joint_angles = model.predict(z, tcp, config, device)
-        preds = postprocess(recons_joint_angles)
-        preds_joints.append(preds.numpy().tolist()[0])
 
-        # Compute tcp coordinates resulting by performing forward kinematics on the generated joint angles
-        coord = robot.forward(joint_states=preds.numpy().tolist()[0])
-        _x.append(coord[0])
-        _y.append(coord[1])
+        pred_joint_angles = model.predict(tcp, device)
+        # print('pred_joint_angles: ', pred_joint_angles)
+        preds = postprocess(pred_joint_angles)
+        preds_joints.append(preds.numpy().tolist()[0])
 
     # Plot generated configurations
     preds_joints = np.array(preds_joints)
     robot.plot(joint_states=preds_joints, path='figures/generated_configurations_' + model_name + '_' + str(config['dof']) + '.png', separate_plots=False)
 
-    '''
+    if model_name == 'CVAE':
+        # visualise latent space
+        input = []
+        tcp = []
+        for i in range(config['num_samples_latent']):
+            input.append(test_dataset.__getitem__(i)[0])
+            tcp.append(test_dataset.__getitem__(i)[1])
 
-    # visualise latent space
-    input = []
-    tcp = []
-    for i in range(config['num_samples_latent']):
-        input.append(test_dataset.__getitem__(i)[0])
-        tcp.append(test_dataset.__getitem__(i)[1])
+        input = torch.Tensor(input)
+        tcp = torch.Tensor(tcp)
 
-    input = torch.Tensor(input)
-    tcp = torch.Tensor(tcp)
+        # forward pass only accepts float
+        input = input.float()
+        tcp = tcp.float()
 
-    # forward pass only accepts float
-    input = input.float()
-    tcp = tcp.float()
+        # apply sine and cosine to joint angles
+        input = preprocess(input)
 
-    # apply sine and cosine to joint angles
-    input = preprocess(input)
+        # forward propagation
+        with torch.no_grad():
+            z = model.visualise_z(input, tcp)
 
-    # forward propagation
-    with torch.no_grad():
-        z = model.visualise_z(input, tcp)
+        fig = plt.figure()
+        plt.title('Latent space')
+        plt.xlabel('Z1')
+        plt.ylabel('Z2')
+        plt.scatter(z[:, 0], z[:, 1], c='g')
+        plt.savefig('figures/Latent_space_' + str(config['dof']) + '.png')
 
-    fig = plt.figure()
-    plt.title('Latent space')
-    plt.xlabel('Z1')
-    plt.ylabel('Z2')
-    plt.scatter(z[:, 0], z[:, 1], c='g')
-    plt.savefig('figures/Latent_space_' + str(config['dof']) + '.png')
-    
-    '''
 
     print('-----------------------------------------------')

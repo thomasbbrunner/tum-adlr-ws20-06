@@ -9,6 +9,7 @@ import torch.nn as nn
 # in a reproducing kernel Hilbert space F:
 # MMD(F, p, q) = || mu_p - mu_q || **2
 def MMD_loss(x, y, device):
+
     xx, yy, zz = torch.mm(x,x.t()), torch.mm(y,y.t()), torch.mm(x,y.t())
 
     rx = (xx.diag().unsqueeze(0).expand_as(xx))

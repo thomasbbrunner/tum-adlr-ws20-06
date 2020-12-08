@@ -110,47 +110,64 @@ class AffineCouplingBlock(nn.Module):
 
 class INN(nn.Module):
 
-    def __init__(self, input_dim, hidden_dim):
+    def __init__(self, config):
 
         super(INN, self).__init__()
-        self.block1 = AffineCouplingBlock(input_dim, hidden_dim)
-        self.perm1 = FixedRandomPermutation(input_dim, 1)
-        self.block2 = AffineCouplingBlock(input_dim, hidden_dim)
-        self.perm2 = FixedRandomPermutation(input_dim, 2)
-        self.block3 = AffineCouplingBlock(input_dim, hidden_dim)
+        self.total_dim = config['total_dim']
+        self.input_dim = config['input_dim']
+        self.output_dim = config['output_dim']
+        self.hidden_dim = config['hidden_dim']
+        self.latent_dim = config['latent_dim']
+        self.batch_size = config['batch_size']
+        self.y_noise_scale = config['y_noise_scale']
+        self.zeros_noise_scale = config['zeros_noise_scale']
+
+        self.block1 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
+        self.perm1 = FixedRandomPermutation(self.input_dim, 1)
+        self.block2 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
+        self.perm2 = FixedRandomPermutation(self.input_dim, 2)
+        self.block3 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
 
     def forward(self, x, inverse=False):
 
-        # coupling layer
-        x = self.block1(x, inverse)
-        # shuffle components (fixed permutation)
-        # ensures that every single input variable affects every single output variable
-        x = self.perm1(x, inverse)
-        x = self.block2(x, inverse)
-        x = self.perm2(x, inverse)
-        x = self.block3(x, inverse)
+        if not inverse:
+            # coupling layer
+            x = self.block1(x, inverse)
+            # shuffle components (fixed permutation)
+            # ensures that every single input variable affects every single output variable
+            x = self.perm1(x, inverse)
+            x = self.block2(x, inverse)
+            x = self.perm2(x, inverse)
+            x = self.block3(x, inverse)
+
+        else:
+            # coupling layer
+            x = self.block3(x, inverse)
+            # shuffle components (fixed permutation)
+            # ensures that every single input variable affects every single output variable
+            x = self.perm2(x, inverse)
+            x = self.block2(x, inverse)
+            x = self.perm1(x, inverse)
+            x = self.block1(x, inverse)
+            # TODO: Force INN to output between -1 and 1
+            # TODO: Implement backward training in order to train the network to output between -1 and 1
+            # TODO: How to make this OP invertible?
+            x = torch.tanh(x)
 
         return x
 
-    def predict(self, x, tcp, config, device):
-
-        y_noise_scale = 1e-1
-        zeros_noise_scale = 5e-2
-
-        # Insert noise
-        # Padding in case yz_dim < total_dim
-
-        pad_yz = zeros_noise_scale * torch.randn(config['batch_size'], config['total_dim'] -
-                                                 config['output_dim'] - config['latent_dim'], device=device)
-
-        y = tcp + y_noise_scale * torch.randn(config['batch_size'], config['output_dim'], dtype=torch.float,
-                                                  device=device)
+    def predict(self, tcp, device):
 
         # Sample z from standard normal distribution
-        z = torch.randn(config['batch_size'], config['latent_dim'], device=device)
+        z = torch.randn(tcp.size()[0], self.latent_dim, device=device)
 
-        y_inv = torch.cat((z, pad_yz, y), dim=1)
+        # Padding in case yz_dim < total_dim
+        # pad_yz = self.zeros_noise_scale * torch.randn(self.batch_size, self.total_dim -
+        #                                          self.input_dim - self.latent_dim, device=device)
+        pad_yz = torch.zeros(tcp.size()[0], self.total_dim - self.output_dim - self.latent_dim, device=device)
 
+        # Perform inverse kinematics
+        y_inv = torch.cat((z, pad_yz, tcp), dim=1)
         with torch.no_grad():
             output_inv = self.forward(y_inv, inverse=True)
 

@@ -88,7 +88,7 @@ class Decoder(nn.Module):
 
 class CVAE(nn.Module):
 
-    def __init__(self, X_dim, hidden_dim, latent_dim, num_cond, classification=True):
+    def __init__(self, config, classification=True):
 
         '''
         Conditional Autoencoder with fully connected encoder and decoder
@@ -103,19 +103,18 @@ class CVAE(nn.Module):
         When computing the inverse kinematics, we draw a samples from the distribution of z. concatenate it with
         the observations (x,y) and feed the concatenated input into the decoder network.
 
-        Args:
-            X_dim: number of input variables (joint angles, ect.)
-            hidden_dim: number of nodes of the fully connected layers
-            latent_dims: number of nodes for additional variable z)
-            num_classes: For classification in MNIST: 10 classes, for 2D robot: observations (x,y)
         '''
 
         super(CVAE, self).__init__()
 
+        self.latent_dim = config['latent_dim']
+        self.X_dim = config['input_dim']
+        self.hidden_dim = config['hidden_dim']
+
         self.classification = classification
-        self.num_condition = num_cond
-        self.encoder = Encoder(X_dim, hidden_dim, latent_dim, num_cond, classification)
-        self.decoder = Decoder(X_dim, hidden_dim, latent_dim, num_cond, classification)
+        self.num_condition = config['condition_dim']
+        self.encoder = Encoder(self.X_dim, self.hidden_dim, self.latent_dim, self.num_condition, classification)
+        self.decoder = Decoder(self.X_dim, self.hidden_dim, self.latent_dim, self.num_condition, classification)
 
 
     def forward(self, x, condition):
@@ -157,9 +156,13 @@ class CVAE(nn.Module):
         return latent
 
 
-    def predict(self, x, condition, config, device):
-        x = torch.cat((x, condition), dim=1)
-        x = self.decoder(x)
+    def predict(self, tcp, device):
+
+        # Sample z from standard normal distribution
+        z = torch.randn(tcp.size()[0], self.latent_dim, device=device)
+        x = torch.cat((z, tcp), dim=1)
+        with torch.no_grad():
+            x = self.decoder(x)
         return x
 
     def save_checkpoint(self, epoch, optimizer, loss, PATH):
@@ -180,8 +183,6 @@ class CVAE(nn.Module):
             return optimizer, epoch, loss
         else:
             return epoch, loss
-
-
 
     def save_weights(self, PATH):
         # TODO: save whole model state
