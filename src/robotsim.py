@@ -193,7 +193,6 @@ class RobotSim(ABC):
                 fig, ax = plt.subplots()
                 ax.grid()
                 # TODO rethink plot limits
-                # "heatmap" function instead?
                 robot_length = np.sum(self.len_links)*1.1
                 ax.set_xlim([-robot_length, robot_length])
                 ax.set_ylim([-robot_length, robot_length])
@@ -216,22 +215,49 @@ class RobotSim(ABC):
             ax.set_xlim([-robot_length, robot_length])
             ax.set_ylim([-robot_length, robot_length])
 
-            # attempt at automatic transparency
-            alpha = np.clip(
-                np.exp(-0.008*joint_coords.shape[0]),
-                0.01, 1)
-
+            # TODO improve performance
+            # one call to plot -> add 'None' between arm configurations
             for arm in joint_coords:
                 ax.plot(
                     arm[:, 0].flatten(),
                     arm[:, 1].flatten(),
-                    c='b', alpha=alpha)
+                    c='b')
 
-            # TODO create heatmap plot method
             ax.scatter(
                 joint_coords[:, :, 0].flatten(),
                 joint_coords[:, :, 1].flatten(),
                 c='r', s=8)
+
+        if path:
+            plt.savefig(path)
+
+        if show:
+            plt.show()
+
+    def plot_heatmap(self, joint_states, transparency=None, path=None, show=False):
+        # TODO docstring
+        # TODO fix examples in docstrings
+
+        joint_coords = self._get_joint_coords(joint_states)
+
+        fig, ax = plt.subplots()
+        ax.grid()
+        # TODO rethink plot limits
+        robot_length = np.sum(self.len_links)*1.1
+        ax.set_xlim([-robot_length, robot_length])
+        ax.set_ylim([-robot_length, robot_length])
+
+        if not transparency:
+            # attempt at automatic transparency
+            transparency = np.clip(
+                np.exp(-0.008*joint_coords.shape[0]),
+                0.01, 1)
+
+        for arm in joint_coords:
+            ax.plot(
+                arm[:, 0].flatten(),
+                arm[:, 1].flatten(),
+                c='b', alpha=transparency)
 
         if path:
             plt.savefig(path)
@@ -626,27 +652,29 @@ if __name__ == "__main__":
     tcp = robot.forward(js)
     js_inv = robot.inverse(tcp)
     robot.plot(js_inv, separate_plots=False)
-    js_sam = robot.inverse_sampling(tcp, num_samples=100)
-    robot.plot(js_sam, separate_plots=False)
+    js_sam = robot.inverse_sampling(tcp, num_samples=500)
+    robot.plot_heatmap(
+        js_sam, path="./figures/robotsim_inverse_sampling_2D3DoF", transparency=0.09)
 
     tcp = robot.forward([js, js])
     js_inv = robot.inverse(tcp)
     robot.plot(js_inv, separate_plots=False)
     js_sam = robot.inverse_sampling(tcp, num_samples=100)
     robot.plot(js_sam, separate_plots=False)
-    #
+
     # 4 DoF
     js = [2.1, 1, -2.2, 0.4]
     robot = Robot2D4DoF([3, 2, 3])
     robot.plot(js, separate_plots=True)
 
     tcp = robot.forward(js)
-    js_sam = robot.inverse_sampling(tcp, num_samples=50)
-    robot.plot(js_sam, separate_plots=False)
+    js_sam = robot.inverse_sampling(tcp, num_samples=150)
+    robot.plot_heatmap(
+        js_sam, path="./figures/robotsim_inverse_sampling_2D4DoF", transparency=0.002)
 
     tcp = robot.forward([js, js])
     js_sam = robot.inverse_sampling(tcp, num_samples=50)
     robot.plot(js_sam, separate_plots=False)
 
     # plots
-    plt.show()
+    # plt.show()

@@ -64,7 +64,7 @@ class RobotSimDataset(Dataset):
         # exclude tcp orientation
         return self.joint_states[item], self.tcp_coords[item][:2]
 
-    def plot(self, show=False):
+    def plot(self, path=None, show=False):
 
         fig, ax = plt.subplots()
         ax.grid()
@@ -73,22 +73,27 @@ class RobotSimDataset(Dataset):
             self.tcp_coords[:, 1],
             c='r', s=2)
 
+        if path:
+            plt.savefig(path)
+
         if show:
             plt.show()
 
 
 if __name__ == "__main__":
 
-    robot = robotsim.Robot2D2DoF([3, 2])
+    robot = robotsim.Robot2D2DoF([3, 3])
     dataset = RobotSimDataset(robot, 10)
-    dataset.plot()
+    dataset.plot(path="./figures/dataset_example_2D2DoF")
 
-    robot = robotsim.Robot2D3DoF([3, 2, 3])
+    # TODO check repeated samples in dataset
+
+    robot = robotsim.Robot2D3DoF([3, 3, 3])
     dataset = RobotSimDataset(robot, 10)
-    dataset.plot()
+    dataset.plot(path="./figures/dataset_example_2D3DoF")
 
-    robot = robotsim.Robot2D4DoF([3, 2, 3])
+    robot = robotsim.Robot2D4DoF([3, 3, 3])
     dataset = RobotSimDataset(robot, 10)
-    dataset.plot()
+    dataset.plot(path="./figures/dataset_example_2D4DoF")
 
-    plt.show()
+    # plt.show()
