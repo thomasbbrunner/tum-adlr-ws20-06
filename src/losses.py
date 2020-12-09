@@ -37,18 +37,43 @@ def MMD_loss(x, y, device):
 
     return torch.mean(XX + YY - 2.*XY)
 
-def compute_MMD(x, _x):
+def compute_k(x, y):
 
-    x_mean = torch.mean(x)
-    _x_mean = torch.mean(_x)
-    h = 0.001
+    xx, yy, zz = torch.mm(x, x.t()), torch.mm(y, y.t()), torch.mm(x, y.t())
 
-    # multiquadratic kernel
-    # k(x, _x) = 1/(1 + 1/h*h * torch.sum((x - _x) * (x - _x)))
-    kernel_x = 1.00 / (1.00 + 1 / h * h * torch.sum((x - _x) * (x - _x)))
+    h = 1.2
+
+    x_minus_y = x - y
+    norm = torch.norm(x_minus_y, dim=0)
+
+    print('size of norm: ', norm.size())
+
+    return 1.0 / (h * h + norm)
+
+
+def compute_k_multiscale(x, y):
+
+    samples = x.size()[0]
+    h = 1.2
+
+    x_minus_y = torch.zeros(size=(samples, samples))
+
+    for i in range(samples):
+        for j in range(samples):
+            x_minus_y[i, j] = torch.norm(x[i, :] - y[j, :])
+            x_minus_y[i, j] = 1.0 / (h * h + x_minus_y[i, j])
+
+    return x_minus_y
 
 
 
+def compute_MMD(x, y):
+
+    kernel_xx = compute_k_multiscale(x, x)
+    kernel_xy = compute_k_multiscale(x, y)
+    kernel_yy = compute_k_multiscale(y, y)
+
+    return torch.mean(kernel_xx + kernel_yy - 2. * kernel_xy)
 
 '''
 This loss is created for normalized inputs with sigmoid as the activation function in the last layer of the decoder
@@ -114,6 +139,8 @@ if __name__ == '__main__':
     x = torch.randn(num_samples, latent_dim, device=device)
     _x = torch.randn(num_samples, latent_dim, device=device)
 
-    loss = MMD_loss(x, _x, device)
-    print('MMD LOSS: ', loss)
+    kernel = compute_k(x, _x)
+
+    # loss = MMD_loss(x, _x, device)
+    # print('MMD LOSS: ', loss)
 

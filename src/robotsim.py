@@ -23,12 +23,12 @@ class RobotSim(ABC):
         Also accepts batch processing of several joint states.
 
         Examples:
-        >>> # for a single state and a robot with three joints
-        >>> robot.forward(
+        # >>> # for a single state and a robot with three joints
+        # >>> robot.forward(
                 [0, 1, 0])
 
-        >>> # for batch of two states and a robot with three joints
-        >>> robot.forward([
+        # >>> # for batch of two states and a robot with three joints
+        # >>> robot.forward([
                 [0, 1, 0],
                 [1, 0, 1]])
         """
@@ -48,11 +48,11 @@ class RobotSim(ABC):
             squeeze: remove single-dimensional entries from output array.
 
         Examples:
-        >>> # for a single coordinate
-        >>> robot.inverse([3, -4, 0])
-
-        >>> # for batch of two coordinates
-        >>> robot.inverse([
+        # >>> # for a single coordinate
+        # >>> robot.inverse([3, -4, 0])
+        #
+        # >>> # for batch of two coordinates
+        # >>> robot.inverse([
                 [3, -4, 0],
                 [5, 1, 0.3]])
         """
@@ -79,14 +79,14 @@ class RobotSim(ABC):
             random: pick samples randomly or in fix distances.
 
         Examples:
-        >>> # for a single coordinate and step
-        >>> robot.full_inverse([7, 3], step=0.1)
-
-        >>> # for a single coordinate and number of samples
-        >>> robot.full_inverse([7, 3], num_samples=20)
-
-        >>> # for batch of three coordinates and total of 300 samples
-        >>> robot.full_inverse(
+        # >>> # for a single coordinate and step
+        # >>> robot.full_inverse([7, 3], step=0.1)
+        #
+        # >>> # for a single coordinate and number of samples
+        # >>> robot.full_inverse([7, 3], num_samples=20)
+        #
+        # >>> # for batch of three coordinates and total of 300 samples
+        # >>> robot.full_inverse(
                 [[7, 3], [-7, -3], [7, -3]], num_samples=100)
         """
         pass
@@ -169,17 +169,17 @@ class RobotSim(ABC):
         Plot is only shown if "show" is set.
 
         Examples:
-        >>> # for single plot
-        >>> robot.plot_configurations([0, 1, 0])
+        # >>> # for single plot
+        # >>> robot.plot_configurations([0, 1, 0])
 
-        >>> # for single plot with two configurations
-        >>> robot.plot([
+        # >>> # for single plot with two configurations
+        # >>> robot.plot([
                 [0, 1, 0],
                 [1, 0, 1]],
                 separate_plots=False)
 
-        >>> # for 2 plots for each configuration
-        >>> robot.plot([
+        # >>> # for 2 plots for each configuration
+        # >>> robot.plot([
                 [0, 1, 0],
                 [1, 0, 1]])
         """
@@ -250,7 +250,7 @@ class Robot2D2DoF(RobotSim):
     """Simulation of 2D robotic arm with two revolute joints.
 
     Examples:
-    >>> robot = Robot2DoF([3, 2])
+    # >>> robot = Robot2DoF([3, 2])
     """
 
     NUM_DOF = 2
@@ -315,7 +315,7 @@ class Robot2D3DoF(RobotSim):
     """Simulation of 2D robotic arm with three revolute joints.
 
     Examples:
-    >>> robot = Robot3DoF([3, 2, 1])
+    # >>> robot = Robot3DoF([3, 2, 1])
     """
 
     NUM_DOF = 3
@@ -476,7 +476,7 @@ class Robot2D4DoF(RobotSim):
     """Simulation of 2D robotic arm with a prismatic and three revolute joints.
 
     Examples:
-    >>> robot = Robot2D4DoF([3, 3, 3])
+    # >>> robot = Robot2D4DoF([3, 3, 3])
     """
 
     NUM_DOF = 4
@@ -634,7 +634,7 @@ if __name__ == "__main__":
     robot.plot(js_inv, separate_plots=False)
     js_sam = robot.inverse_sampling(tcp, num_samples=100)
     robot.plot(js_sam, separate_plots=False)
-
+    #
     # 4 DoF
     js = [2.1, 1, -2.2, 0.4]
     robot = Robot2D4DoF([3, 2, 3])

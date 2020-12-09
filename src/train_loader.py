@@ -117,13 +117,17 @@ def train_INN(model, config, dataloader, device):
 
             # Insert noise
             # Padding in case xdim < total dim or yz_dim < total_dim
-            pad_x = config['zeros_noise_scale'] * torch.randn(config['batch_size'], config['total_dim'] -
-                                                    config['input_dim'], device=device)
 
-            pad_yz = config['zeros_noise_scale'] * torch.randn(config['batch_size'], config['total_dim'] -
-                                                     config['output_dim'] - config['latent_dim'], device=device)
+            batch_size = config['batch_size']
+            diff = config['total_dim'] - config['input_dim']
+            pad = config['total_dim'] - config['output_dim'] - config['latent_dim']
+            zeros_noise_scale = 5e-2
+            y_noise_scale = 1e-1
+            pad_x = zeros_noise_scale * torch.randn(batch_size, diff, device=device)
 
-            y += config['y_noise_scale'] * torch.randn(config['batch_size'], config['output_dim'], dtype=torch.float,
+            pad_yz = zeros_noise_scale * torch.randn(batch_size, pad, device=device)
+
+            y += y_noise_scale * torch.randn(config['batch_size'], config['output_dim'], dtype=torch.float,
                                              device=device)
 
             # Sample z from standard normal distribution
@@ -145,10 +149,12 @@ def train_INN(model, config, dataloader, device):
             output_short = torch.cat((output[:, :config['latent_dim']], output[:, -config['output_dim']:].data), dim=1)
 
             L_y = MSELoss(output[:, config['latent_dim']:], y[:, config['latent_dim']:])
-            # print('L_y: ', config['weight_Ly'] * L_y)
+            print('L_y: ', config['weight_Ly'] * L_y)
 
             L_z = MMD_loss(output_short, y_short, device)
-            # print('L_z: ', config['weight_Lz'] * L_z)
+            # L_z = compute_MMD(output_short, y_short)
+            print('L_z: ', config['weight_Lz'] * L_z)
+            print('L_z without weighting: ', L_z)
 
             loss_forward = config['weight_Ly'] * L_y + config['weight_Lz'] * L_z
 
