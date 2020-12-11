@@ -1,13 +1,13 @@
 # Settings
-dof: '3DOF'
-weight_dir : 'weights/ROBOTSIM_INN_3DOF'
+dof: '2DOF'
+weight_dir : 'weights/ROBOTSIM_INN_2DOF'
 checkpoint_dir: 'checkpoints/'
 
 # Network parameters
 y_noise_scale : 1e-1
 zeros_noise_scale : 5e-2
-total_dim: 6
-input_dim: 6 # 2*3 = 2 * number of joints
+total_dim: 4
+input_dim: 4 # 2*3 = 2 * number of joints
 hidden_dim: 128 # number of neurons per fully connected layer
 output_dim: 2
 latent_dim: 2
@@ -19,12 +19,12 @@ batch_size: 250
 lr_rate: 0.001
 weight_decay: 0.0001
 checkpoint_epoch: 10
-weight_Ly: 0.01
-weight_Lz: 600.0
-weight_Lx: 400.0
+weight_Ly: 1.0
+weight_Lz: 50.0
+weight_Lx: 4000.0
 
 # lr-scheduler
-step_size: 10
+step_size: 15
 gamma: 0.1
 
 # Testing

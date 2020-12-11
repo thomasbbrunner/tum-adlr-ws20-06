@@ -5,11 +5,13 @@ from utils import onehot
 import numpy as np
 
 '''
+
  Sources
  -------
  https://github.com/VLL-HD/FrEIA/blob/master/FrEIA/
  
  https://github.com/VLL-HD/analyzing_inverse_problems
+ 
  '''
 
 # Permutes input vector in a random but fixed way
@@ -46,13 +48,13 @@ class sub_network(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(sub_network, self).__init__()
         self.fc1 = nn.Linear(in_features=input_dim, out_features=hidden_dim)
-        self.fc2 = nn.Linear(in_features=hidden_dim, out_features=output_dim)
-        # self.fc3 = nn.Linear(in_features=hidden_dim, out_features=output_dim)
+        self.fc2 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
+        self.fc3 = nn.Linear(in_features=hidden_dim, out_features=output_dim)
 
     def forward(self, x):
         x = F.leaky_relu(self.fc1(x))
         x = F.leaky_relu(self.fc2(x))
-        # x = F.leaky_relu(self.fc3(x))
+        x = F.leaky_relu(self.fc3(x))
         return x
 
 class AffineCouplingBlock(nn.Module):
@@ -99,14 +101,7 @@ class AffineCouplingBlock(nn.Module):
         return torch.cat((v1, v2), 1)
 
     def jacobian(self, inverse=False):
-
-        # Perform forward kinematics
-        if not inverse:
-            pass
-
-        # Perform inverse kinematics
-        else:
-            pass
+        pass
 
 class INN(nn.Module):
 
@@ -125,8 +120,16 @@ class INN(nn.Module):
         self.block1 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
         self.perm1 = FixedRandomPermutation(self.input_dim, 1)
         self.block2 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
-        self.perm2 = FixedRandomPermutation(self.input_dim, 2)
-        self.block3 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
+
+        # self.perm2 = FixedRandomPermutation(self.input_dim, 2)
+        # self.block3 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
+        # self.perm3 = FixedRandomPermutation(self.input_dim, 3)
+        # self.block4 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
+        # self.perm4 = FixedRandomPermutation(self.input_dim, 4)
+        # self.block5 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
+        # self.perm5 = FixedRandomPermutation(self.input_dim, 5)
+        # self.block6 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
+
 
     def forward(self, x, inverse=False):
 
@@ -135,24 +138,21 @@ class INN(nn.Module):
             x = self.block1(x, inverse)
             # shuffle components (fixed permutation)
             # ensures that every single input variable affects every single output variable
-            x = self.perm1(x, inverse)
-            x = self.block2(x, inverse)
-            x = self.perm2(x, inverse)
-            x = self.block3(x, inverse)
+            x = self.block2(self.perm1(x, inverse), inverse)
+            # x = self.block3(self.perm2(x, inverse), inverse)
+            # x = self.block4(self.perm3(x, inverse), inverse)
+            # x = self.block5(self.perm4(x, inverse), inverse)
+            # x = self.block6(self.perm5(x, inverse), inverse)
+
 
         else:
-            # coupling layer
-            x = self.block3(x, inverse)
-            # shuffle components (fixed permutation)
-            # ensures that every single input variable affects every single output variable
-            x = self.perm2(x, inverse)
             x = self.block2(x, inverse)
-            x = self.perm1(x, inverse)
-            x = self.block1(x, inverse)
-            # TODO: Force INN to output between -1 and 1
-            # TODO: Implement backward training in order to train the network to output between -1 and 1
-            # TODO: How to make this OP invertible?
-            x = torch.tanh(x)
+            # x = self.block6(x, inverse)
+            # x = self.block5(self.perm5(x, inverse), inverse)
+            # x = self.block4(self.perm4(x, inverse), inverse)
+            # x = self.block3(self.perm3(x, inverse), inverse)
+            # x = self.block2(self.perm2(x, inverse), inverse)
+            x = self.block1(self.perm1(x, inverse), inverse)
 
         return x
 
