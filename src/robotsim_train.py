@@ -37,12 +37,12 @@ if __name__ == '__main__':
         robot = robotsim.Robot2D2DoF([3, 2])
         # INPUT: 2 joint angles
         # OUTPUT: (x,y) coordinate of end-effector
-        dataset = RobotSimDataset(robot, 1000)
+        dataset = RobotSimDataset(robot, 1e6)
     elif config['dof'] == '3DOF':
         robot = robotsim.Robot2D3DoF([3, 3, 3])
         # INPUT: 3 joint angles
         # OUTPUT: (x,y) coordinate of end-effector
-        dataset = RobotSimDataset(robot, 100)
+        dataset = RobotSimDataset(robot, 1e6)
     else:
         raise Exception('Number of degrees of freedom not supported')
 

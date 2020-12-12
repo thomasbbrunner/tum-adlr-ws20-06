@@ -96,8 +96,11 @@ class RobotSim(ABC):
         pass
 
     @abstractmethod
-    def get_joint_samples(self, num_samples, random=False):
+    def get_joint_ranges(self):
         pass
+
+    def get_length(self):
+        return self._length
 
     @staticmethod
     def wrap(angles):
@@ -193,9 +196,9 @@ class RobotSim(ABC):
                 fig, ax = plt.subplots()
                 ax.grid()
                 # TODO rethink plot limits
-                robot_length = np.sum(self.len_links)*1.1
-                ax.set_xlim([-robot_length, robot_length])
-                ax.set_ylim([-robot_length, robot_length])
+                plot_limit = np.sum(self.get_length())*1.1
+                ax.set_xlim([-plot_limit, plot_limit])
+                ax.set_ylim([-plot_limit, plot_limit])
 
                 ax.plot(
                     arm[:, 0].flatten(),
@@ -211,9 +214,9 @@ class RobotSim(ABC):
             fig, ax = plt.subplots()
             ax.grid()
             # TODO rethink plot limits
-            robot_length = np.sum(self.len_links)*1.1
-            ax.set_xlim([-robot_length, robot_length])
-            ax.set_ylim([-robot_length, robot_length])
+            plot_limit = np.sum(self.get_length())*1.1
+            ax.set_xlim([-plot_limit, plot_limit])
+            ax.set_ylim([-plot_limit, plot_limit])
 
             # TODO improve performance
             # one call to plot -> add 'None' between arm configurations
@@ -243,9 +246,9 @@ class RobotSim(ABC):
         fig, ax = plt.subplots()
         ax.grid()
         # TODO rethink plot limits
-        robot_length = np.sum(self.len_links)*1.1
-        ax.set_xlim([-robot_length, robot_length])
-        ax.set_ylim([-robot_length, robot_length])
+        plot_limit = np.sum(self.get_length())*1.1
+        ax.set_xlim([-plot_limit, plot_limit])
+        ax.set_ylim([-plot_limit, plot_limit])
 
         if not transparency:
             # attempt at automatic transparency
@@ -282,8 +285,9 @@ class Robot2D2DoF(RobotSim):
     NUM_DOF = 2
 
     def __init__(self, len_links):
-        self.sim = Robot2D3DoF([*len_links, 0])
-        self.len_links = self.sim.len_links
+        self._sim = Robot2D3DoF([*len_links, 0])
+        self._len_links = self._sim._len_links
+        self._length = np.sum(self._len_links)
 
     def forward(self, joint_states, squeeze=True):
 
@@ -291,11 +295,11 @@ class Robot2D2DoF(RobotSim):
         joint_states = np.hstack(
             (joint_states, np.zeros((joint_states.shape[0], 1))))
 
-        return self.sim.forward(joint_states, squeeze)
+        return self._sim.forward(joint_states, squeeze)
 
     def inverse(self, tcp_coordinates, squeeze=True):
 
-        joint_states = self.sim.inverse(tcp_coordinates, squeeze=False)
+        joint_states = self._sim.inverse(tcp_coordinates, squeeze=False)
 
         # remove solutions for joint 3
         joint_states = np.atleast_3d(joint_states)[:, :, :2]
@@ -320,21 +324,14 @@ class Robot2D2DoF(RobotSim):
         joint_states = np.hstack(
             (joint_states, np.zeros((joint_states.shape[0], 1))))
 
-        return self.sim._get_joint_coords(joint_states)
+        return self._sim._get_joint_coords(joint_states)
 
-    def get_joint_samples(self, num_samples, random=False):
+    def get_joint_ranges(self):
 
-        if random:
-            joint_samples = self.random_gen.uniform(
-                -np.pi, np.pi, (self.NUM_DOF, num_samples))
-
-        else:
-            joint_samples = np.linspace(
-                -np.pi, np.pi, num_samples, endpoint=False)
-            joint_samples = np.resize(
-                joint_samples, (self.NUM_DOF, num_samples))
-
-        return joint_samples
+        return np.array([
+            [-np.pi, np.pi],
+            [-np.pi, np.pi],
+        ])
 
 
 class Robot2D3DoF(RobotSim):
@@ -348,15 +345,16 @@ class Robot2D3DoF(RobotSim):
 
     def __init__(self, len_links):
 
-        self.len_links = np.array(len_links)
+        self._len_links = np.array(len_links)
+        self._length = np.sum(self._len_links)
 
-        if self.len_links.shape[0] != self.NUM_DOF:
+        if self._len_links.shape[0] != self.NUM_DOF:
             raise RuntimeError(
-                "Conflicting link lengths: {}". format(self.len_links))
+                "Conflicting link lengths: {}". format(self._len_links))
 
-        if not np.all(np.greater_equal(self.len_links, 0)):
+        if not np.all(np.greater_equal(self._len_links, 0)):
             raise RuntimeError(
-                "Link length has to be non-negative: {}". format(self.len_links))
+                "Link length has to be non-negative: {}". format(self._len_links))
 
     def forward(self, joint_states, squeeze=True):
 
@@ -371,13 +369,13 @@ class Robot2D3DoF(RobotSim):
 
         tcp_coordinates = np.array([
             # x-coordinate of TCP
-            self.len_links[0]*np.cos(theta[:, 0]) +
-            self.len_links[1]*np.cos(theta[:, 0] + theta[:, 1]) +
-            self.len_links[2]*np.cos(theta[:, 0] + theta[:, 1] + theta[:, 2]),
+            self._len_links[0]*np.cos(theta[:, 0]) +
+            self._len_links[1]*np.cos(theta[:, 0] + theta[:, 1]) +
+            self._len_links[2]*np.cos(theta[:, 0] + theta[:, 1] + theta[:, 2]),
             # y-coordinate of TCP
-            self.len_links[0]*np.sin(theta[:, 0]) +
-            self.len_links[1]*np.sin(theta[:, 0] + theta[:, 1]) +
-            self.len_links[2]*np.sin(theta[:, 0] + theta[:, 1] + theta[:, 2]),
+            self._len_links[0]*np.sin(theta[:, 0]) +
+            self._len_links[1]*np.sin(theta[:, 0] + theta[:, 1]) +
+            self._len_links[2]*np.sin(theta[:, 0] + theta[:, 1] + theta[:, 2]),
             # angle of TCP with respect to horizontal
             theta[:, 0] + theta[:, 1] + theta[:, 2]]).T
 
@@ -399,9 +397,9 @@ class Robot2D3DoF(RobotSim):
         xtcp = tcp_coordinates[:, 0]
         ytcp = tcp_coordinates[:, 1]
         phi = tcp_coordinates[:, 2]
-        l1 = self.len_links[0]
-        l2 = self.len_links[1]
-        l3 = self.len_links[2]
+        l1 = self._len_links[0]
+        l2 = self._len_links[1]
+        l3 = self._len_links[2]
 
         x2 = xtcp - l3*np.cos(phi)
         y2 = ytcp - l3*np.sin(phi)
@@ -468,11 +466,11 @@ class Robot2D3DoF(RobotSim):
         T01 = self.dh_transformation(
             0, 0, 0, joint_states[:, 0], False)
         T02 = T01 @ self.dh_transformation(
-            0, self.len_links[0], 0, joint_states[:, 1], False)
+            0, self._len_links[0], 0, joint_states[:, 1], False)
         T03 = T02 @ self.dh_transformation(
-            0, self.len_links[1], 0, joint_states[:, 2], False)
+            0, self._len_links[1], 0, joint_states[:, 2], False)
         Ttcp = T03 @ self.dh_transformation(
-            0, self.len_links[2], 0, 0, False)
+            0, self._len_links[2], 0, 0, False)
 
         # last column of T contains vector to each joint
         # dimensions: (num_inputs, joints, coords)
@@ -483,19 +481,13 @@ class Robot2D3DoF(RobotSim):
 
         return joint_coords
 
-    def get_joint_samples(self, num_samples, random=False):
+    def get_joint_ranges(self):
 
-        if random:
-            joint_samples = self.random_gen.uniform(
-                -np.pi, np.pi, (self.NUM_DOF, num_samples))
-
-        else:
-            joint_samples = np.linspace(
-                -np.pi, np.pi, num_samples, endpoint=False)
-            joint_samples = np.resize(
-                joint_samples, (self.NUM_DOF, num_samples))
-
-        return joint_samples
+        return np.array([
+            [-np.pi, np.pi],
+            [-np.pi, np.pi],
+            [-np.pi, np.pi],
+        ])
 
 
 class Robot2D4DoF(RobotSim):
@@ -509,16 +501,15 @@ class Robot2D4DoF(RobotSim):
 
     def __init__(self, len_links):
 
-        self.sim = Robot2D3DoF(len_links)
+        self._sim = Robot2D3DoF(len_links)
 
-        self.length = np.sum(len_links)
-        self.len_links = self.sim.len_links
+        self._length = np.sum(self._sim._len_links)
 
     def forward(self, joint_states, squeeze=True):
 
         joint_states = np.atleast_2d(joint_states)
 
-        tcp_coordinates = self.sim.forward(joint_states[:, 1:], squeeze=False)
+        tcp_coordinates = self._sim.forward(joint_states[:, 1:], squeeze=False)
         tcp_coordinates[:, 1] += joint_states[:, 0]  # add base height
 
         if squeeze:
@@ -537,26 +528,31 @@ class Robot2D4DoF(RobotSim):
             raise RuntimeError(
                 "Please provide either a step or a num_samples value.")
 
-        if step:
-            tcp_angles = np.arange(-np.pi, np.pi, step)
-            base_heights = np.arange(-self.length, self.length, step)
+        if not random:
+            if step:
+                tcp_angles = np.arange(-np.pi, np.pi, step)
+                base_heights = np.arange(-self._length, self._length, step)
 
-        elif num_samples and not random:
-            tcp_angles = np.linspace(
-                -np.pi, np.pi, num_samples, endpoint=False)
-            base_heights = np.linspace(
-                -self.length, self.length, num_samples)
+            elif num_samples and not random:
+                tcp_angles = np.linspace(
+                    -np.pi, np.pi, num_samples, endpoint=False)
+                base_heights = np.linspace(
+                    -self._length, self._length, num_samples)
 
-        elif num_samples and random:
-            tcp_angles = self.random_gen.uniform(
-                -np.pi, np.pi, num_samples)
-            base_heights = self.random_gen.uniform(
-                -self.length, self.length, num_samples)
+            tcp_angles = np.repeat(tcp_angles, base_heights.shape[0])
+            base_heights = np.resize(base_heights, tcp_angles.shape[0])
+            sampling_vars = np.vstack((tcp_angles, base_heights)).T
+
+        elif random and num_samples:
+            sampling_vars = self.random_gen.uniform(
+                [-np.pi,  -self._length], [np.pi,  self._length],
+                (num_samples**2, 2))
+
+        else:
+            raise RuntimeError(
+                "Unsupported combination of input parameters.")
 
         tcp_coordinates = np.atleast_2d(tcp_coordinates)
-        tcp_angles = np.repeat(tcp_angles, base_heights.shape[0])
-        base_heights = np.resize(base_heights, tcp_angles.shape[0])
-        sampling_vars = np.vstack((tcp_angles, base_heights)).T
 
         tcp_coordinates = np.repeat(
             tcp_coordinates,
@@ -575,7 +571,7 @@ class Robot2D4DoF(RobotSim):
         tcp_coordinates = np.vstack(
             (tcp_coordinates[:, 0], sampling_vars[:, 1], sampling_vars[:, 0])).T
 
-        joint_states = self.sim.inverse(tcp_coordinates)
+        joint_states = self._sim.inverse(tcp_coordinates)
         joint_states = np.reshape(joint_states, (-1, 3))
 
         # add tcp shift and base height back into states
@@ -598,28 +594,19 @@ class Robot2D4DoF(RobotSim):
 
         joint_states = np.reshape(joint_states, (-1, self.NUM_DOF))
 
-        joint_coords = self.sim._get_joint_coords(joint_states[:, 1:])
+        joint_coords = self._sim._get_joint_coords(joint_states[:, 1:])
         joint_coords[:, :, 1] += np.reshape(joint_states[:, 0], (-1, 1))
 
         return joint_coords
 
-    def get_joint_samples(self, num_samples, random=False):
+    def get_joint_ranges(self):
 
-        if random:
-            joint_samples = np.vstack((
-                self.random_gen.uniform(
-                    -self.length, self.length, (1, num_samples)),
-                self.random_gen.uniform(
-                    -np.pi, np.pi, (3, num_samples))))
-
-        else:
-            joint_samples = np.vstack((
-                np.linspace(-self.length, self.length, num_samples),
-                np.resize(
-                    np.linspace(-np.pi, np.pi, num_samples, endpoint=False),
-                    (3, num_samples))))
-
-        return joint_samples
+        return np.array([
+            [-self._length, self._length],
+            [-np.pi, np.pi],
+            [-np.pi, np.pi],
+            [-np.pi, np.pi],
+        ])
 
 
 if __name__ == "__main__":
@@ -655,6 +642,9 @@ if __name__ == "__main__":
     js_sam = robot.inverse_sampling(tcp, num_samples=500)
     robot.plot_heatmap(
         js_sam, path="./figures/robotsim_inverse_sampling_2D3DoF", transparency=0.09)
+    js_sam = robot.inverse_sampling(tcp, num_samples=500, random=True)
+    robot.plot_heatmap(
+        js_sam, path="./figures/robotsim_inverse_sampling_2D3DoF_random", transparency=0.09)
 
     tcp = robot.forward([js, js])
     js_inv = robot.inverse(tcp)
@@ -671,10 +661,12 @@ if __name__ == "__main__":
     js_sam = robot.inverse_sampling(tcp, num_samples=150)
     robot.plot_heatmap(
         js_sam, path="./figures/robotsim_inverse_sampling_2D4DoF", transparency=0.002)
+    js_sam = robot.inverse_sampling(tcp, num_samples=150, random=True)
+    robot.plot_heatmap(
+        js_sam, path="./figures/robotsim_inverse_sampling_2D4DoF_random", transparency=0.002)
 
     tcp = robot.forward([js, js])
     js_sam = robot.inverse_sampling(tcp, num_samples=50)
     robot.plot(js_sam, separate_plots=False)
 
-    # plots
     # plt.show()
