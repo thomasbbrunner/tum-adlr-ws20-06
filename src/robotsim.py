@@ -528,26 +528,31 @@ class Robot2D4DoF(RobotSim):
             raise RuntimeError(
                 "Please provide either a step or a num_samples value.")
 
-        if step:
-            tcp_angles = np.arange(-np.pi, np.pi, step)
-            base_heights = np.arange(-self._length, self._length, step)
+        if not random:
+            if step:
+                tcp_angles = np.arange(-np.pi, np.pi, step)
+                base_heights = np.arange(-self._length, self._length, step)
 
-        elif num_samples and not random:
-            tcp_angles = np.linspace(
-                -np.pi, np.pi, num_samples, endpoint=False)
-            base_heights = np.linspace(
-                -self._length, self._length, num_samples)
+            elif num_samples and not random:
+                tcp_angles = np.linspace(
+                    -np.pi, np.pi, num_samples, endpoint=False)
+                base_heights = np.linspace(
+                    -self._length, self._length, num_samples)
 
-        elif num_samples and random:
-            tcp_angles = self.random_gen.uniform(
-                -np.pi, np.pi, num_samples)
-            base_heights = self.random_gen.uniform(
-                -self._length, self._length, num_samples)
+            tcp_angles = np.repeat(tcp_angles, base_heights.shape[0])
+            base_heights = np.resize(base_heights, tcp_angles.shape[0])
+            sampling_vars = np.vstack((tcp_angles, base_heights)).T
+
+        elif random and num_samples:
+            sampling_vars = self.random_gen.uniform(
+                [-np.pi,  -self._length], [np.pi,  self._length],
+                (num_samples**2, 2))
+
+        else:
+            raise RuntimeError(
+                "Unsupported combination of input parameters.")
 
         tcp_coordinates = np.atleast_2d(tcp_coordinates)
-        tcp_angles = np.repeat(tcp_angles, base_heights.shape[0])
-        base_heights = np.resize(base_heights, tcp_angles.shape[0])
-        sampling_vars = np.vstack((tcp_angles, base_heights)).T
 
         tcp_coordinates = np.repeat(
             tcp_coordinates,
@@ -637,6 +642,9 @@ if __name__ == "__main__":
     js_sam = robot.inverse_sampling(tcp, num_samples=500)
     robot.plot_heatmap(
         js_sam, path="./figures/robotsim_inverse_sampling_2D3DoF", transparency=0.09)
+    js_sam = robot.inverse_sampling(tcp, num_samples=500, random=True)
+    robot.plot_heatmap(
+        js_sam, path="./figures/robotsim_inverse_sampling_2D3DoF_random", transparency=0.09)
 
     tcp = robot.forward([js, js])
     js_inv = robot.inverse(tcp)
@@ -653,10 +661,12 @@ if __name__ == "__main__":
     js_sam = robot.inverse_sampling(tcp, num_samples=150)
     robot.plot_heatmap(
         js_sam, path="./figures/robotsim_inverse_sampling_2D4DoF", transparency=0.002)
+    js_sam = robot.inverse_sampling(tcp, num_samples=150, random=True)
+    robot.plot_heatmap(
+        js_sam, path="./figures/robotsim_inverse_sampling_2D4DoF_random", transparency=0.002)
 
     tcp = robot.forward([js, js])
     js_sam = robot.inverse_sampling(tcp, num_samples=50)
     robot.plot(js_sam, separate_plots=False)
 
-    # plots
     # plt.show()
