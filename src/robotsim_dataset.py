@@ -32,46 +32,46 @@ class RobotSimDataset(Dataset):
         >>> dataset = RobotSimDataset(robot, 100)
         """
 
-        self.robot = robot
-        self.num_samples = int(num_samples)
-        self.num_dof = self.robot.NUM_DOF
+        self._robot = robot
+        self._num_samples = int(num_samples)
+        self._num_dof = self._robot.NUM_DOF
 
-        joint_ranges = self.robot.get_joint_ranges()
+        joint_ranges = self._robot.get_joint_ranges()
 
         # sample random combinations of joint states
-        self.joint_states = self.random_gen.uniform(
+        self._joint_states = self.random_gen.uniform(
             joint_ranges[:, 0], joint_ranges[:, 1],
-            (self.num_samples, self.num_dof))
+            (self._num_samples, self._num_dof))
 
-        self.tcp_coords = robot.forward(self.joint_states)
+        self._tcp_coords = robot.forward(self._joint_states)
 
-        if self.tcp_coords.shape[0] != self.num_samples:
+        if self._tcp_coords.shape[0] != self._num_samples:
             raise RuntimeError(
                 "Inconsistent sizes in dataset contents.")
 
     def __len__(self):
         """Returns number of samples in dataset.
         """
-        return self.num_samples
+        return self._num_samples
 
     def __getitem__(self, item):
         """Returs tuple with joint states and TCP coordinates.
         """
         # exclude tcp orientation
-        return self.joint_states[item], self.tcp_coords[item][:2]
+        return self._joint_states[item], self._tcp_coords[item][:2]
 
     def plot(self, path=None, show=False):
 
         fig, ax = plt.subplots()
         ax.grid()
         ax.scatter(
-            x=self.tcp_coords[:, 0],
-            y=self.tcp_coords[:, 1],
+            x=self._tcp_coords[:, 0],
+            y=self._tcp_coords[:, 1],
             marker='.', s=1)
 
         ax.set_title(
             "{} DoF Dataset ({} samples)". format(
-                self.num_dof, self.num_samples))
+                self._num_dof, self._num_samples))
         ax.set_xlabel("$x_1$")
         ax.set_ylabel("$x_2$")
 
@@ -86,14 +86,14 @@ class RobotSimDataset(Dataset):
         fig, ax = plt.subplots()
         ax.grid()
         _, _, _, im = ax.hist2d(
-            self.tcp_coords[:, 0],
-            self.tcp_coords[:, 1],
+            self._tcp_coords[:, 0],
+            self._tcp_coords[:, 1],
             bins=bins,
             cmin=1,)
 
         ax.set_title(
             "Dataset {} DoF ({} samples)". format(
-                self.num_dof, self.num_samples))
+                self._num_dof, self._num_samples))
         ax.set_xlabel("$x_1$")
         ax.set_ylabel("$x_2$")
 
@@ -107,8 +107,8 @@ class RobotSimDataset(Dataset):
             plt.show()
 
     def plot_configurations(self, transparency=None, path=None, show=False):
-        self.robot.plot_heatmap(
-            self.joint_states,
+        self._robot.plot_heatmap(
+            self._joint_states,
             transparency, path, show)
 
 
