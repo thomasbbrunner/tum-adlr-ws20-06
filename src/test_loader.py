@@ -77,9 +77,9 @@ def test_INN(model, config, dataloader, device):
             y_short = torch.cat((y[:, :config['latent_dim']], y[:, -config['output_dim']:]), dim=1)
             output_short = torch.cat((output[:, :config['latent_dim']], output[:, -config['output_dim']:].data), dim=1)
 
-            L_y = MSELoss(output[:, config['latent_dim']:], y[:, config['latent_dim']:])
+            L_y = MSE(output[:, config['latent_dim']:], y[:, config['latent_dim']:])
 
-            L_z = MMD_loss(output_short, y_short, device)
+            L_z = MMD(output_short, y_short)
 
             loss_forward = config['weight_Ly'] * L_y + config['weight_Lz'] * L_z
 

@@ -119,13 +119,22 @@ if __name__ == '__main__':
     _x = []
     _y = []
     preds_joints = []
+    preds_joints_valid = []
 
-    for i in range(config['num_samples_config']):
-
-        pred_joint_angles = model.predict(tcp, device)
-        # print('pred_joint_angles: ', pred_joint_angles)
-        preds = postprocess(pred_joint_angles)
-        preds_joints.append(preds.numpy().tolist()[0])
+    if model_name == 'CVAE':
+        for i in range(config['num_samples_config']):
+            pred_joint_angles = model.predict(tcp, device)
+            # print('pred_joint_angles: ', pred_joint_angles)
+            preds = postprocess(pred_joint_angles)
+            preds_joints.append(preds.numpy().tolist()[0])
+    else:
+        for i in range(config['num_samples_config']):
+            pred_joint_angles = model.predict(tcp, device)
+            if torch.any(pred_joint_angles < -1.0) or torch.any(pred_joint_angles > 1.0):
+                continue
+            print('pred_joint_angles: ', pred_joint_angles)
+            preds = postprocess(pred_joint_angles)
+            preds_joints.append(preds.numpy().tolist()[0])
 
     # Plot generated configurations
     preds_joints = np.array(preds_joints)

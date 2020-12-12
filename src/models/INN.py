@@ -48,13 +48,13 @@ class sub_network(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(sub_network, self).__init__()
         self.fc1 = nn.Linear(in_features=input_dim, out_features=hidden_dim)
-        self.fc2 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
-        self.fc3 = nn.Linear(in_features=hidden_dim, out_features=output_dim)
+        self.fc2 = nn.Linear(in_features=hidden_dim, out_features=output_dim)
+        # self.fc3 = nn.Linear(in_features=hidden_dim, out_features=output_dim)
 
     def forward(self, x):
         x = F.leaky_relu(self.fc1(x))
         x = F.leaky_relu(self.fc2(x))
-        x = F.leaky_relu(self.fc3(x))
+        # x = F.leaky_relu(self.fc3(x))
         return x
 
 class AffineCouplingBlock(nn.Module):
