@@ -9,7 +9,8 @@ import torch.nn as nn
 Maximum Mean Discrepancy (MMD)
 source: https://github.com/masa-su/pixyz/blob/master/pixyz/losses/mmd.py
 '''
-def MMD(x, y):
+# def MMD_tmp(x, y, device):
+def MMD(x, y, device):
 
     def inverse_multiquadratic_kernel(x, y):
         h = 1.2
@@ -25,7 +26,8 @@ def MMD(x, y):
 Maximum Mean Discrepancy (MMD) Multiscale
 source: https://github.com/VLL-HD/analyzing_inverse_problems/blob/master/toy_8-modes/toy_8-modes.ipynb
 '''
-def MMD_multiscale(x, y):
+def MMD_multiscale(x, y, device):
+# def MMD(x, y, device):
     xx, yy, zz = torch.mm(x,x.t()), torch.mm(y,y.t()), torch.mm(x,y.t())
 
     rx = (xx.diag().unsqueeze(0).expand_as(xx))
@@ -64,11 +66,6 @@ Binary Cross Entropy
 def Binary_CE(recon_x, x):
     return F.binary_cross_entropy(recon_x, x, size_average=False)
 
-
-
-
-
-
 '''
 This loss is created for normalized inputs with sigmoid as the activation function in the last layer of the decoder
 '''
@@ -97,8 +94,6 @@ def VAE_loss_ROBOT_SIM(recon_x, x, mu, logvar, variational_beta):
     kldivergence = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
     return recon_loss + variational_beta * kldivergence
-
-
 
 # Testing example
 if __name__ == '__main__':

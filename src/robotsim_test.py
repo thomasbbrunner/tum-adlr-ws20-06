@@ -26,6 +26,7 @@ if __name__ == '__main__':
 
     # model_name = 'CVAE'
     model_name = 'INN'
+    robot_dof = '2DOF'
 
     ####################################################################################################################
     # LOAD DATASET
@@ -34,7 +35,12 @@ if __name__ == '__main__':
     if model_name == 'CVAE':
         config = load_config('robotsim_cVAE.yaml', 'configs/')
     elif model_name == 'INN':
-        config = load_config('robotsim_INN.yaml', 'configs/')
+        if robot_dof == '2DOF':
+            config = load_config('robotsim_INN_2DOF.yaml', 'configs/')
+        elif robot_dof == '3DOF':
+            config = load_config('robotsim_INN_3DOF.yaml', 'configs/')
+        else:
+            raise Exception('DOF not supported for this model')
     else:
         raise Exception('Model not supported')
 
@@ -70,8 +76,8 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if config['use_gpu'] and torch.cuda.is_available() else "cpu")
     model = model.to(device)
 
-    # model.load_weights(config['weight_dir'])
-    epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + model_name + '_' + config['dof'] + '_epoch_20')
+    model.load_weights(config['weight_dir'])
+    # epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + model_name + '_' + config['dof'] + '_epoch_20')
 
     # set to evaluation mode
     model.eval()
@@ -113,7 +119,8 @@ if __name__ == '__main__':
     print('tcp coordinates: ', tcp)
 
     # Plot ground truth configuration
-    robot.plot(joint_states=input.numpy(), path='figures/gt_configurations_' + str(config['dof']) + '.png', separate_plots=False)
+    robot.plot(joint_states=input.numpy(), path='figures/gt_configurations_' + str(config['dof']) + '.png',
+               separate_plots=False)
 
     # Generate joints angles from predefined tcp coordinates
     _x = []
@@ -128,17 +135,22 @@ if __name__ == '__main__':
             preds = postprocess(pred_joint_angles)
             preds_joints.append(preds.numpy().tolist()[0])
     else:
+        invalid_preds = 0
         for i in range(config['num_samples_config']):
             pred_joint_angles = model.predict(tcp, device)
             if torch.any(pred_joint_angles < -1.0) or torch.any(pred_joint_angles > 1.0):
+                invalid_preds = invalid_preds + 1
                 continue
-            print('pred_joint_angles: ', pred_joint_angles)
+            # print('pred_joint_angles: ', pred_joint_angles)
             preds = postprocess(pred_joint_angles)
             preds_joints.append(preds.numpy().tolist()[0])
 
+        print('INVALID PREDICTIONS / TOTAL PREDICTIONS: %i / %i' % (invalid_preds, config['num_samples_config']))
+
     # Plot generated configurations
     preds_joints = np.array(preds_joints)
-    robot.plot(joint_states=preds_joints, path='figures/generated_configurations_' + model_name + '_' + str(config['dof']) + '.png', separate_plots=False)
+    robot.plot(joint_states=preds_joints, path='figures/generated_configurations_' + model_name + '_' +
+                                               str(config['dof']) + '.png', separate_plots=False)
 
     if model_name == 'CVAE':
         # visualise latent space
@@ -183,6 +195,5 @@ if __name__ == '__main__':
         # apply sine and cosine to joint angles
         input = preprocess(input)
         model.visualise_z(config, input)
-
 
     print('-----------------------------------------------')

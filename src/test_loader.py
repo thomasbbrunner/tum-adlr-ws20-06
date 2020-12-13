@@ -79,7 +79,7 @@ def test_INN(model, config, dataloader, device):
 
             L_y = MSE(output[:, config['latent_dim']:], y[:, config['latent_dim']:])
 
-            L_z = MMD(output_short, y_short)
+            L_z = MMD(output_short, y_short, device)
 
             loss_forward = config['weight_Ly'] * L_y + config['weight_Lz'] * L_z
 

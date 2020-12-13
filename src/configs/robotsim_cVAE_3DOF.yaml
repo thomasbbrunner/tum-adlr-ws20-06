@@ -1,6 +1,7 @@
 # Settings
+name: 'CVAE'
 dof: '3DOF'
-weight_dir : 'weights/ROBOTSIM_CVAE_3DOF_tmp'
+weight_dir : 'weights/ROBOTSIM_CVAE_3DOF'
 checkpoint_dir: 'checkpoints/'
 
 # Network parameters
@@ -11,16 +12,16 @@ condition_dim: 2 # (x, y) coordinates of end-effector
 use_gpu: False
 
 # Training
-num_epochs: 2
+num_epochs: 30
 batch_size: 250
 lr_rate: 0.001
 weight_decay: 0.0001
-variational_beta: 0.15 # for weighting KLdivergence/reconstruction loss
+variational_beta: 0.067 # for weighting KLdivergence/reconstruction loss
 checkpoint_epoch: 10
 
 # lr-scheduler
 step_size: 10
-gamma: 0.5
+gamma: 0.1
 
 # Testing
 num_samples_config: 50

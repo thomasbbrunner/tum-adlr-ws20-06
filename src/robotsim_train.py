@@ -19,7 +19,6 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    # model_name = 'CVAE'
     model_name = 'INN'
     robot_dof = '2DOF'
 
@@ -72,25 +71,15 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if config['use_gpu'] and torch.cuda.is_available() else "cpu")
     model = model.to(device)
 
-    # show the number of trainable parameters
-
-
     ####################################################################################################################
     # TRAINING
     ####################################################################################################################
 
     if model_name == 'CVAE':
-        train_loss_avg = train_CVAE(model=model, config=config, dataloader=train_dataloader, device=device)
+        train_CVAE(model=model, config=config, dataloader=train_dataloader, device=device)
     elif model_name == 'INN':
-        train_loss_avg = train_INN(model=model, config=config, dataloader=train_dataloader, device=device)
+        train_INN(model=model, config=config, dataloader=train_dataloader, device=device)
     else:
         raise Exception('Model not supported')
 
     model.save_weights(config['weight_dir'])
-
-    fig = plt.figure()
-    plt.title('AVG LOSS HISTORY')
-    plt.xlabel('EPOCHS')
-    plt.ylabel('AVG LOSS')
-    plt.plot(train_loss_avg)
-    plt.savefig('figures/avg_train_loss_' + model_name + '_' + str(config['dof']) + '.png')

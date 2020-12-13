@@ -18,4 +18,3 @@
 - [x] debug MMD loss
 - [x] implement PCA
 - [ ] debug padding
-- [ ] implement abstract model class
