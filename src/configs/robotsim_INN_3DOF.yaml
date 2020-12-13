@@ -1,23 +1,23 @@
 # Settings
-dof: '2DOF'
-weight_dir : 'weights/ROBOTSIM_INN_2DOF'
+dof: '3DOF'
+weight_dir : 'weights/ROBOTSIM_INN_3DOF'
 checkpoint_dir: 'checkpoints/'
 
 # Network parameters
 y_noise_scale : 1e-1
 zeros_noise_scale : 5e-2
-total_dim: 4 # considers padding, as well
-input_dim: 4 # = 2 * number of revolute joints + number of prismatic joints
-hidden_dim: 50 # number of neurons per fully connected layer
+total_dim: 6 # considers padding, as well
+input_dim: 6 # = 2 * number of revolute joints + number of prismatic joints
+hidden_dim: 100 # number of neurons per fully connected layer
 output_dim: 2 # tcp
-latent_dim: 2 # z
+latent_dim: 4 # z
 use_gpu: False
 
 # Training
-num_epochs: 50
+num_epochs: 40
 batch_size: 250
 lr_rate: 0.001
-weight_decay: 0.0001
+weight_decay: 0.00001
 checkpoint_epoch: 10
 
 # loss weights

@@ -12,7 +12,10 @@
 - [ ] evaluate incorporating atan2 into the network (instead of tanh)
 - [x] implement basic INN model
 - [ ] implement jacobians of INN model
-- [ ] debug INN model
-- [ ] implement predict method of INN model
-- [ ] implement backward training of INN model
-- [ ] debug MMD loss
+- [x] debug INN model
+- [x] implement predict method of INN model
+- [x] implement backward training of INN model
+- [x] debug MMD loss
+- [x] implement PCA
+- [ ] debug padding
+- [ ] implement abstract model class

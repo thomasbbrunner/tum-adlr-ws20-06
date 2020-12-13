@@ -16,6 +16,10 @@ def train_CVAE(model, config, dataloader, device):
 
     train_loss_avg = []
 
+    num_trainable_parameters = sum(p.numel() for p in model.parameters())
+
+    print('TRAINABLE PARAMETERS: ', num_trainable_parameters)
+
     optimizer = torch.optim.Adam(params=model.parameters(), lr=config['lr_rate'],
                                  weight_decay=config['weight_decay'])
 
@@ -82,7 +86,13 @@ def train_INN(model, config, dataloader, device):
     train_loss_Lx_avg_unweighted = []
     train_loss_Lxy_avg = []
 
-    optimizer = torch.optim.Adam(params=model.parameters(), lr=config['lr_rate'],
+    # show trainable parameters
+    trainable_parameters = [p for p in model.parameters() if p.requires_grad]
+    num_trainable_parameters = sum(p.numel() for p in model.parameters())
+
+    print('TRAINABLE PARAMETERS: ', num_trainable_parameters)
+
+    optimizer = torch.optim.Adam(params=trainable_parameters, lr=config['lr_rate'],
                                  weight_decay=config['weight_decay'])
     # define learning rate scheduler
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=config['step_size'],

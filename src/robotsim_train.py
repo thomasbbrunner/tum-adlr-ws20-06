@@ -21,6 +21,7 @@ if __name__ == '__main__':
 
     # model_name = 'CVAE'
     model_name = 'INN'
+    robot_dof = '2DOF'
 
     ####################################################################################################################
     # LOAD DATASET
@@ -29,7 +30,12 @@ if __name__ == '__main__':
     if model_name == 'CVAE':
         config = load_config('robotsim_cVAE.yaml', 'configs/')
     elif model_name == 'INN':
-        config = load_config('robotsim_INN.yaml', 'configs/')
+        if robot_dof == '2DOF':
+            config = load_config('robotsim_INN_2DOF.yaml', 'configs/')
+        elif robot_dof == '3DOF':
+            config = load_config('robotsim_INN_3DOF.yaml', 'configs/')
+        else:
+            raise Exception('DOF not supported for this model')
     else:
         raise Exception('Model not supported')
 
@@ -65,6 +71,9 @@ if __name__ == '__main__':
 
     device = torch.device("cuda:0" if config['use_gpu'] and torch.cuda.is_available() else "cpu")
     model = model.to(device)
+
+    # show the number of trainable parameters
+
 
     ####################################################################################################################
     # TRAINING

@@ -169,5 +169,20 @@ if __name__ == '__main__':
         plt.scatter(z[:, 0], z[:, 1], c='g')
         plt.savefig('figures/Latent_space_' + str(config['dof']) + '.png')
 
+    else:
+        # visualise latent space
+        input = []
+        for i in range(config['num_samples_latent']):
+            input.append(test_dataset.__getitem__(i)[0])
+
+        input = torch.Tensor(input)
+
+        # forward pass only accepts float
+        input = input.float()
+
+        # apply sine and cosine to joint angles
+        input = preprocess(input)
+        model.visualise_z(config, input)
+
 
     print('-----------------------------------------------')
