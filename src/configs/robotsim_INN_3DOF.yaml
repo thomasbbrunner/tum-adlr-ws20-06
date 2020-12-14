@@ -22,10 +22,10 @@ weight_decay: 0.0001
 checkpoint_epoch: 10
 
 # loss weights
-weight_Ly: 10.0
-weight_Lz: 1.0
-weight_Lx: 1.0
-weight_Lxy: 200.0
+weight_Ly: 1.0
+weight_Lz: 10.0
+weight_Lx: 100.0
+weight_Lxy: 10.0
 
 # lr-scheduler
 step_size: 20
