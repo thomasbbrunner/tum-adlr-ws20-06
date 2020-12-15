@@ -32,7 +32,7 @@ if __name__ == '__main__':
         if robot_dof == '2DOF':
             config = load_config('robotsim_INN_2DOF.yaml', 'configs/')
         elif robot_dof == '3DOF':
-            config = load_config('robotsim_INN_3DOF.yaml', 'configs/')
+            config = load_config('robotsim_INN_3DOF_3_layers.yaml', 'configs/')
         else:
             raise Exception('DOF not supported for this model')
     else:
@@ -70,6 +70,10 @@ if __name__ == '__main__':
 
     device = torch.device("cuda:0" if config['use_gpu'] and torch.cuda.is_available() else "cpu")
     model = model.to(device)
+
+    # load weights to train further
+    # used lr = 0.0001
+    # model.load_weights(config['weight_dir'])
 
     ####################################################################################################################
     # TRAINING

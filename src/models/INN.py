@@ -49,14 +49,12 @@ class sub_network(nn.Module):
     def __init__(self, input_dim, hidden_dim, output_dim):
         super(sub_network, self).__init__()
         self.fc1 = nn.Linear(in_features=input_dim, out_features=hidden_dim)
-        # self.batchnorm1 = nn.BatchNorm1d(num_features=hidden_dim)
-        # self.fc2 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
+        self.fc2 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
         self.fc3 = nn.Linear(in_features=hidden_dim, out_features=output_dim)
 
     def forward(self, x):
         x = F.leaky_relu(self.fc1(x))
-        # x = self.batchnorm1(x)
-        # x = F.leaky_relu(self.fc2(x))
+        x = F.leaky_relu(self.fc2(x))
         x = F.leaky_relu(self.fc3(x))
         return x
 
@@ -193,7 +191,7 @@ class INN(nn.Module):
             plt.xlabel('Z1')
             plt.ylabel('Z2')
             plt.scatter(z[:, 0], z[:, 1], c='g')
-            plt.savefig('figures/latent_space_INN_' + str(config['dof']) + '.png')
+            plt.savefig('figures/Latent_space_INN_' + str(config['dof']) + '.png')
         else:
             # Perform principal component analysis to project z int 2D space
             U, S, V = torch.pca_lowrank(z, center=False)
@@ -203,7 +201,7 @@ class INN(nn.Module):
             plt.xlabel('Z1')
             plt.ylabel('Z2')
             plt.scatter(z_projected[:, 0], z_projected[:, 1], c='g')
-            plt.savefig('figures/projected_latent_space_INN_' + str(config['dof']) + '.png')
+            plt.savefig('figures/Projected_latent_space_INN_' + str(config['dof']) + '.png')
 
     def save_checkpoint(self, epoch, optimizer, loss, PATH):
         torch.save({

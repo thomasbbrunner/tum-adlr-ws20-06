@@ -1,3 +1,5 @@
+# number of trainable parameters: 21576
+
 # Settings
 name: 'INN'
 dof: '3DOF'
@@ -15,9 +17,9 @@ latent_dim: 4 # z
 use_gpu: False
 
 # Training
-num_epochs: 30
+num_epochs: 20 # 30
 batch_size: 250
-lr_rate: 0.001
+lr_rate: 0.0001 # 0.001
 weight_decay: 0.0001
 checkpoint_epoch: 10
 
@@ -28,7 +30,7 @@ weight_Lx: 100.0
 weight_Lxy: 10.0
 
 # lr-scheduler
-step_size: 20
+step_size: 10 # 20
 gamma: 0.1
 
 # Testing
