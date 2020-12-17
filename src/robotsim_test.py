@@ -25,7 +25,7 @@ if __name__ == '__main__':
     ####################################################################################################################
 
     # model_name = 'CVAE'
-    model_name = 'INN'
+    model_name = 'CVAE'
     robot_dof = '3DOF'
 
     ####################################################################################################################
@@ -33,7 +33,12 @@ if __name__ == '__main__':
     ####################################################################################################################
 
     if model_name == 'CVAE':
-        config = load_config('robotsim_cVAE.yaml', 'configs/')
+        if robot_dof == '2DOF':
+            config = load_config('robotsim_cVAE_2DOF.yaml', 'configs/')
+        elif robot_dof == '3DOF':
+            config = load_config('robotsim_cVAE_3DOF.yaml', 'configs/')
+        else:
+            raise Exception('DOF not supported for this model')
     elif model_name == 'INN':
         if robot_dof == '2DOF':
             config = load_config('robotsim_INN_2DOF.yaml', 'configs/')
@@ -86,12 +91,12 @@ if __name__ == '__main__':
     # TEST MODEL
     ####################################################################################################################
 
-    if model_name == 'CVAE':
-        test_CVAE(model, config, test_dataloader, device)
-    elif model_name == 'INN':
-        test_INN(model, config, test_dataloader, device)
-    else:
-        raise Exception('Model not supported')
+    # if model_name == 'CVAE':
+    #     test_CVAE(model, config, test_dataloader, device)
+    # elif model_name == 'INN':
+    #     test_INN(model, config, test_dataloader, device)
+    # else:
+    #     raise Exception('Model not supported')
 
     ####################################################################################################################
     # VISUALISATION
@@ -151,6 +156,11 @@ if __name__ == '__main__':
     preds_joints = np.array(preds_joints)
     robot.plot(joint_states=preds_joints, path='figures/generated_configurations_' + model_name + '_' +
                                                str(config['dof']) + '.png', separate_plots=False)
+
+    # Plot contour lines enclose the region conaining 97% of the end points
+    resimulation_tcp = robot.forward(joint_states=preds_joints)
+    plot_contour_lines(resimulation_tcp, percentile=0.97)
+
 
     if model_name == 'CVAE':
         # visualise latent space
