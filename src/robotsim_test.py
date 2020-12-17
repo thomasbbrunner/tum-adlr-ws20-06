@@ -159,7 +159,10 @@ if __name__ == '__main__':
 
     # Plot contour lines enclose the region conaining 97% of the end points
     resimulation_tcp = robot.forward(joint_states=preds_joints)
-    plot_contour_lines(resimulation_tcp, percentile=0.97)
+    resimulation_xy = resimulation_tcp[:, :2]
+    tcp_squeezed = torch.squeeze(tcp)
+    print(tcp_squeezed)
+    plot_contour_lines(config, resimulation_xy, gt=tcp_squeezed.numpy(), percentile=0.8)
 
 
     if model_name == 'CVAE':
