@@ -56,9 +56,15 @@ def plot_contour_lines(config, points, gt, percentile=0.97):
 
     # selects
     selected_points = torch.index_select(input=torch.Tensor(points), dim=0, index=torch.LongTensor(idx_k)).numpy()
+    # print('SHAPE OF selected points: ', selected_points.shape)
+    selected_points = np.insert(selected_points, [1], gt, axis=0)
+    # print('SHAPE OF points: ', points.shape)
+
     hull = ConvexHull(selected_points)
+    area = np.around(hull.area, decimals=2)
 
     fig = plt.figure()
+    plt.title('Area of convex hull: ' + str(area))
     plt.axis([6.0, 9.5, -4.0, 4.0])
     plt.scatter(points[:, 0], points[:, 1], c='g')
     plt.scatter(gt[0], gt[1], c='r')
@@ -66,10 +72,6 @@ def plot_contour_lines(config, points, gt, percentile=0.97):
     for simplex in hull.simplices:
         plt.plot(selected_points[simplex, 0], selected_points[simplex, 1], 'k-')
     plt.savefig('figures/q_quantile_of_points_' + config['name'] + '_' + config['dof'] + '.png')
-
-
-
-    # plt.savefif(PATH + '')
 
 # Testing example
 if __name__ == '__main__':

@@ -28,6 +28,8 @@ if __name__ == '__main__':
     model_name = 'CVAE'
     robot_dof = '3DOF'
 
+    percentile = 0.8
+
     ####################################################################################################################
     # LOAD DATASET
     ####################################################################################################################
@@ -162,7 +164,7 @@ if __name__ == '__main__':
     resimulation_xy = resimulation_tcp[:, :2]
     tcp_squeezed = torch.squeeze(tcp)
     print(tcp_squeezed)
-    plot_contour_lines(config, resimulation_xy, gt=tcp_squeezed.numpy(), percentile=0.8)
+    plot_contour_lines(config, resimulation_xy, gt=tcp_squeezed.numpy(), percentile=percentile)
 
 
     if model_name == 'CVAE':
