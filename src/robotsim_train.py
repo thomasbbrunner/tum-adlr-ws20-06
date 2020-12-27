@@ -68,8 +68,10 @@ if __name__ == '__main__':
     else:
         raise Exception('Model not supported')
 
-    device = torch.device("cuda:0" if config['use_gpu'] and torch.cuda.is_available() else "cpu")
+    # device = torch.device("cuda:0" if config['use_gpu'] and torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
+    print("Model built.")
 
     # load weights to train further
     # used lr = 0.0001
@@ -78,7 +80,7 @@ if __name__ == '__main__':
     ####################################################################################################################
     # TRAINING
     ####################################################################################################################
-
+    print('Begin training ...')
     if model_name == 'CVAE':
         train_CVAE(model=model, config=config, dataloader=train_dataloader, device=device)
     elif model_name == 'INN':

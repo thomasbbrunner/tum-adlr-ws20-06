@@ -67,9 +67,9 @@ def train_CVAE(model, config, dataloader, device):
             # one step of the optimizer
             optimizer.step()
 
-            train_loss_avg[-1] += loss.item()
-            recon_loss_avg[-1] += recon_loss.item()
-            kl_loss_avg[-1] += kldivergence.item()
+            train_loss_avg[-1] += loss.detach()
+            recon_loss_avg[-1] += recon_loss.detach()
+            kl_loss_avg[-1] += kldivergence.detach()
             num_batches += 1
 
         # perform step of lr-scheduler
@@ -204,7 +204,7 @@ def train_INN(model, config, dataloader, device):
             L_z = config['weight_Lz'] * MMD(output_short, y_short, device)
             # print('L_z: ', config['weight_Lz'] * L_z)
             loss_forward = L_y + L_z
-            loss = loss_forward.data.item()
+            loss = loss_forward.data.detach()
 
             # backpropagation
             # Do not free intermediate results in order to accumulate grads later from forward and backward
@@ -240,7 +240,7 @@ def train_INN(model, config, dataloader, device):
             # print('L_x: ', config['weight_Lx'] * L_x)
 
             loss_backward = L_x + L_xy
-            loss += loss_backward.data.item()
+            loss += loss_backward.data.detach()
             loss_backward.backward()
 
             for p in model.parameters():
@@ -250,11 +250,11 @@ def train_INN(model, config, dataloader, device):
             optimizer.step()
 
             train_loss_avg[-1] += loss
-            train_loss_Ly_avg[-1] += L_y.data.item()
-            train_loss_Lz_avg[-1] += L_z.data.item()
-            train_loss_Lx_avg[-1] += L_x.data.item()
-            train_loss_Lxy_avg[-1] += L_xy.data.item()
-            train_loss_Lx_avg_unweighted[-1] += UNWEIGHTED_LOSS.data.item()
+            train_loss_Ly_avg[-1] += L_y.data.detach()
+            train_loss_Lz_avg[-1] += L_z.data.detach()
+            train_loss_Lx_avg[-1] += L_x.data.detach()
+            train_loss_Lxy_avg[-1] += L_xy.data.detach()
+            train_loss_Lx_avg_unweighted[-1] += UNWEIGHTED_LOSS.data.detach()
 
             num_batches += 1
 

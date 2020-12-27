@@ -55,7 +55,7 @@ def plot_contour_lines(config, points, gt, percentile=0.97):
     idx_k = idx[:k]
 
     # selects
-    selected_points = torch.index_select(input=torch.Tensor(points), dim=0, index=torch.LongTensor(idx_k)).numpy()
+    selected_points = torch.index_select(input=torch.Tensor(points), dim=0, index=torch.LongTensor(idx_k)).detach()
     # print('SHAPE OF selected points: ', selected_points.shape)
     selected_points = np.insert(selected_points, [1], gt, axis=0)
     # print('SHAPE OF points: ', points.shape)

@@ -28,9 +28,13 @@ class FixedRandomPermutation(nn.Module):
 
         for i, p in enumerate(self.permutation):
             self.permutation_inv[p] = i
+        if torch.cuda.is_available():
+            self.permutation = torch.cuda.LongTensor(self.permutation)
+            self.permutation_inv = torch.cuda.LongTensor(self.permutation_inv)
+        else:
+            self.permutation = torch.LongTensor(self.permutation)
+            self.permutation_inv = torch.LongTensor(self.permutation_inv)
 
-        self.permutation = torch.LongTensor(self.permutation)
-        self.permutation_inv = torch.LongTensor(self.permutation_inv)
 
     def forward(self, x, inverse=False):
 
@@ -160,12 +164,12 @@ class INN(nn.Module):
     def predict(self, tcp, device):
 
         # Sample z from standard normal distribution
-        z = torch.randn(tcp.size()[0], self.latent_dim, device=device)
+        z = torch.randn(tcp.size()[0], self.latent_dim, device=self.device)
 
         # Padding in case yz_dim < total_dim
         # pad_yz = self.zeros_noise_scale * torch.randn(self.batch_size, self.total_dim -
         #                                          self.input_dim - self.latent_dim, device=device)
-        pad_yz = torch.zeros(tcp.size()[0], self.total_dim - self.output_dim - self.latent_dim, device=device)
+        pad_yz = torch.zeros(tcp.size()[0], self.total_dim - self.output_dim - self.latent_dim, device=self.device)
 
         # Perform inverse kinematics
         y_inv = torch.cat((z, pad_yz, tcp), dim=1)

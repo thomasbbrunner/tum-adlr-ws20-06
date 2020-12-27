@@ -80,7 +80,7 @@ if __name__ == '__main__':
     else:
         raise Exception('Model not supported')
 
-    device = torch.device("cuda:0" if config['use_gpu'] and torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model = model.to(device)
 
     model.load_weights(config['weight_dir'])
