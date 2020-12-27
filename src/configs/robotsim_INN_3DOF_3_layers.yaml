@@ -11,14 +11,15 @@ y_noise_scale : 0.001
 zeros_noise_scale : 0.005
 total_dim: 6 # considers padding, as well
 input_dim: 6 # = 2 * number of revolute joints + number of prismatic joints
-hidden_dim: 128 # number of neurons per fully connected layer
+# hidden_dim: 128 # number of neurons per fully connected layer
+hidden_dim: 100 # number of neurons per fully connected layer
 output_dim: 2 # tcp
 latent_dim: 4 # z
 # use_gpu: False
 
 # Training
 num_epochs: 50
-batch_size: 250
+batch_size: 500
 lr_rate: 0.001
 weight_decay: 0.0001
 checkpoint_epoch: 10
@@ -26,7 +27,8 @@ checkpoint_epoch: 10
 # loss weights
 weight_Ly: 1.0
 weight_Lz: 10.0
-weight_Lx: 100.0
+# weight_Lx: 100.0
+weight_Lx: 10.0
 weight_Lxy: 10.0
 
 # lr-scheduler
