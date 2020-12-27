@@ -54,8 +54,8 @@ if __name__ == '__main__':
     # train test split
     train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 150000, 150000])
 
-    train_dataloader = DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True)
-    val_dataloader = DataLoader(val_dataset, batch_size=config['batch_size'], shuffle=True)
+    train_dataloader = DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
+    # val_dataloader = DataLoader(val_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
 
     ####################################################################################################################
     # BUILD MODEL
@@ -68,8 +68,15 @@ if __name__ == '__main__':
     else:
         raise Exception('Model not supported')
 
-    # device = torch.device("cuda:0" if config['use_gpu'] and torch.cuda.is_available() else "cpu")
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    # if you have more than one GPU parallelize the model
+    if torch.cuda.device_count() > 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        model = nn.DataParallel(model)
+
+    # device = torch.device("cuda:0" if config['use_gpu'] and torch.cuda.is_available() else "cpu")
+
     model = model.to(device)
     print("Model built.")
 

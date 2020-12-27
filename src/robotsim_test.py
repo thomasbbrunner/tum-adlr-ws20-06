@@ -24,8 +24,8 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    # model_name = 'CVAE'
     model_name = 'CVAE'
+    # model_name = 'INN'
     robot_dof = '3DOF'
 
     percentile = 0.8
@@ -67,7 +67,7 @@ if __name__ == '__main__':
     # train test split
     train_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 300000])
 
-    test_dataloader = DataLoader(test_dataset, batch_size=config['batch_size'], shuffle=True)
+    test_dataloader = DataLoader(test_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
 
     ####################################################################################################################
     # BUILD MODEL
@@ -81,9 +81,16 @@ if __name__ == '__main__':
         raise Exception('Model not supported')
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    model = model.to(device)
 
+    # if you have more than one GPU parallelize the model
+    if torch.cuda.device_count() > 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        model = nn.DataParallel(model)
+
+    model = model.to(device)
     model.load_weights(config['weight_dir'])
+
+
     # epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + model_name + '_' + config['dof'] + '_epoch_20')
 
     # set to evaluation mode

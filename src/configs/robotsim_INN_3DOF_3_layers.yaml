@@ -19,7 +19,7 @@ latent_dim: 4 # z
 
 # Training
 num_epochs: 50
-batch_size: 500
+batch_size: 1000
 lr_rate: 0.001
 weight_decay: 0.0001
 checkpoint_epoch: 10
@@ -27,8 +27,8 @@ checkpoint_epoch: 10
 # loss weights
 weight_Ly: 1.0
 weight_Lz: 10.0
-# weight_Lx: 100.0
 weight_Lx: 10.0
+# weight_Lx: 10.0
 weight_Lxy: 10.0
 
 # lr-scheduler

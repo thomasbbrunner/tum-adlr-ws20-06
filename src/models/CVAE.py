@@ -189,4 +189,7 @@ class CVAE(nn.Module):
         torch.save(self.state_dict(), PATH)
 
     def load_weights(self, PATH):
-        self.load_state_dict(torch.load(PATH))
+        if torch.cuda.is_available():
+            self.load_state_dict(torch.load(PATH))
+        else:
+            self.load_state_dict(torch.load(PATH, map_location=torch.device('cpu')))

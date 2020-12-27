@@ -164,12 +164,12 @@ class INN(nn.Module):
     def predict(self, tcp, device):
 
         # Sample z from standard normal distribution
-        z = torch.randn(tcp.size()[0], self.latent_dim, device=self.device)
+        z = torch.randn(tcp.size()[0], self.latent_dim, device=device)
 
         # Padding in case yz_dim < total_dim
         # pad_yz = self.zeros_noise_scale * torch.randn(self.batch_size, self.total_dim -
         #                                          self.input_dim - self.latent_dim, device=device)
-        pad_yz = torch.zeros(tcp.size()[0], self.total_dim - self.output_dim - self.latent_dim, device=self.device)
+        pad_yz = torch.zeros(tcp.size()[0], self.total_dim - self.output_dim - self.latent_dim, device=device)
 
         # Perform inverse kinematics
         y_inv = torch.cat((z, pad_yz, tcp), dim=1)
@@ -231,7 +231,13 @@ class INN(nn.Module):
         torch.save(self.state_dict(), PATH)
 
     def load_weights(self, PATH):
-        self.load_state_dict(torch.load(PATH))
+
+        if torch.cuda.is_available():
+            self.load_state_dict(torch.load(PATH))
+        else:
+            self.load_state_dict(torch.load(PATH, map_location=torch.device('cpu')))
+
+
 
 # Testing example
 if __name__ == '__main__':

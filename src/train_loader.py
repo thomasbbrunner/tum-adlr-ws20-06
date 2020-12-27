@@ -78,6 +78,7 @@ def train_CVAE(model, config, dataloader, device):
         if epoch > 1 and epoch % config['checkpoint_epoch'] == 0:
             model.save_checkpoint(epoch=epoch, optimizer=optimizer, loss=loss,
                                   PATH=config['checkpoint_dir'] + 'CVAE_' + str(config['dof']) + '_epoch_' + str(epoch))
+            print('CHECKPOINT SAVED.')
 
         train_loss_avg[-1] /= num_batches
         recon_loss_avg[-1] /= num_batches
@@ -266,6 +267,7 @@ def train_INN(model, config, dataloader, device):
         if epoch > 1 and epoch % config['checkpoint_epoch'] == 0:
             model.save_checkpoint(epoch=epoch, optimizer=optimizer, loss=loss,
                                   PATH=config['checkpoint_dir'] + 'INN_' + str(config['dof']) + '_epoch_' + str(epoch))
+            print('CHECKPOINT SAVED.')
 
         train_loss_avg[-1] /= num_batches
         train_loss_Ly_avg[-1] /= num_batches
