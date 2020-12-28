@@ -79,9 +79,9 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     # if you have more than one GPU parallelize the model
-    if torch.cuda.device_count() > 1:
-        print("Let's use", torch.cuda.device_count(), "GPUs!")
-        model = nn.DataParallel(model)
+    # if torch.cuda.device_count() > 1:
+    #     print("Let's use", torch.cuda.device_count(), "GPUs!")
+    #     model = nn.DataParallel(model)
 
     # device = torch.device("cuda:0" if config['use_gpu'] and torch.cuda.is_available() else "cpu")
 

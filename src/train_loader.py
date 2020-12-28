@@ -43,6 +43,7 @@ def train_CVAE(model, config, dataloader, device):
         for joint_batch, coord_batch in dataloader:
 
             joint_batch = joint_batch.to(device)
+            coord_batch = coord_batch.to(device)
 
             # forward pass only accepts float
             joint_batch = joint_batch.float()
