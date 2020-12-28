@@ -34,6 +34,8 @@ def postprocess(x):
     # arg(x + i*y) = arg(cos(phi) + i*sin(phi)) = arctan(y/x)
     # special cases
 
+    # x = normalize(x)
+
     num_joints = int(x.size()[1] / 2)
     _x = torch.zeros(size=(x.size()[0], num_joints))
 
@@ -41,6 +43,20 @@ def postprocess(x):
         _x[:, i] = torch.atan2(input=x[:, i], other=x[:, num_joints+i])
 
     return _x
+
+def normalize(x):
+
+    num_joints = int(x.size()[1] / 2)
+
+    # to avoid dividing by 0
+    eps = 0.00001
+
+    for i in range(num_joints):
+        length = torch.sqrt(torch.square(x[:, i]) + torch.square(x[:, num_joints + i]))
+        x[:, i] = x[:, i] / (length + eps)
+        x[:, num_joints + i] = x[:, num_joints + i] / (length + eps)
+
+    return x
 
 def plot_contour_lines(config, points, gt, percentile=0.97):
 
@@ -73,6 +89,12 @@ def plot_contour_lines(config, points, gt, percentile=0.97):
         plt.plot(selected_points[simplex, 0], selected_points[simplex, 1], 'k-')
     plt.savefig('figures/q_quantile_of_points_' + config['name'] + '_' + config['dof'] + '.png')
 
+def RMSE(pred, gt):
+    return torch.sqrt(torch.mean(torch.sum(torch.square(pred - gt), dim=1)))
+
+
+
+
 # Testing example
 if __name__ == '__main__':
 
@@ -90,5 +112,10 @@ if __name__ == '__main__':
 
     points = np.random.rand(num_samples, 2)
 
-    plot_contour_lines(points, percentile=percentile)
+    # plot_contour_lines(points, percentile=percentile)
+
+    pred = torch.rand(size=(num_samples, 3), device=device)
+    gt = torch.rand(size=(num_samples, 3), device=device)
+    rmse = RMSE(pred, gt)
+    print(rmse)
 

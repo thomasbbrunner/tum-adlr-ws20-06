@@ -19,7 +19,7 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    model_name = 'INN'
+    model_name = 'CVAE'
     robot_dof = '3DOF'
 
     ####################################################################################################################
@@ -27,14 +27,22 @@ if __name__ == '__main__':
     ####################################################################################################################
 
     if model_name == 'CVAE':
-        config = load_config('robotsim_cVAE.yaml', 'configs/')
+        if robot_dof == '2DOF':
+            config = load_config('robotsim_cVAE_2DOF.yaml', 'configs/')
+        elif robot_dof == '3DOF':
+            config = load_config('robotsim_cVAE_3DOF.yaml', 'configs/')
+        else:
+            raise Exception('DOF not supported for this model')
+
     elif model_name == 'INN':
         if robot_dof == '2DOF':
             config = load_config('robotsim_INN_2DOF.yaml', 'configs/')
         elif robot_dof == '3DOF':
             config = load_config('robotsim_INN_3DOF_3_layers.yaml', 'configs/')
+            # config = load_config('robotsim_INN_3DOF_v1.yaml', 'configs/')
         else:
             raise Exception('DOF not supported for this model')
+
     else:
         raise Exception('Model not supported')
 

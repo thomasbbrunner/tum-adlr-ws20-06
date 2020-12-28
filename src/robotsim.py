@@ -488,6 +488,11 @@ class Robot2D3DoF(RobotSim):
             [-np.pi, np.pi],
             [-np.pi, np.pi],
         ])
+        # return np.array([
+        #     [-np.pi/4, np.pi/4],
+        #     [-np.pi/4, np.pi/4],
+        #     [-np.pi/4, np.pi/4],
+        # ])
 
 
 class Robot2D4DoF(RobotSim):

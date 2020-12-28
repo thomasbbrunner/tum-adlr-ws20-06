@@ -154,13 +154,14 @@ def train_INN(model, config, dataloader, device):
 
         for x, y in dataloader:
 
-        # x = x_orig.clone()
-        # y = y_orig.clone()
+            # x = x_orig.clone()
+            # y = y_orig.clone()
 
             x, y = x.to(device), y.to(device)
             # forward pass only accepts float
             x = x.float()
             y = y.float()
+
             # apply sine and cosine to joint angles
             x = preprocess(x)
 

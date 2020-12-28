@@ -83,14 +83,12 @@ if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     # if you have more than one GPU parallelize the model
-    if torch.cuda.device_count() > 1:
-        print("Let's use", torch.cuda.device_count(), "GPUs!")
-        model = nn.DataParallel(model)
+    # if torch.cuda.device_count() > 1:
+    #     print("Let's use", torch.cuda.device_count(), "GPUs!")
+    #     model = nn.DataParallel(model)
 
     model = model.to(device)
     model.load_weights(config['weight_dir'])
-
-
     # epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + model_name + '_' + config['dof'] + '_epoch_20')
 
     # set to evaluation mode
@@ -107,6 +105,32 @@ if __name__ == '__main__':
     # else:
     #     raise Exception('Model not supported')
 
+    test_rsme_avg = []
+
+    test_rsme_avg.append(0)
+    num_batches = 0
+
+    for joint_batch, tcp_batch in test_dataloader:
+
+        joint_batch = joint_batch.to(device)
+        tcp_batch = tcp_batch.to(device)
+
+        # forward pass only accepts float
+        joint_batch = joint_batch.float()
+        tcp_batch = tcp_batch.float()
+
+        # apply sine and cosine to joint angles
+        joint_batch = preprocess(joint_batch)
+
+        _x = model.predict(tcp_batch, device)
+        rmse = RMSE(_x, joint_batch)
+
+        test_rsme_avg[-1] += rmse.item()
+        num_batches += 1
+
+    test_rsme_avg[-1] /= num_batches
+    print('Average RMSE between gt joints and generated joints: %f' % (test_rsme_avg[-1]))
+
     ####################################################################################################################
     # VISUALISATION
     ####################################################################################################################
@@ -120,8 +144,8 @@ if __name__ == '__main__':
         input = torch.Tensor([[-np.pi / 3, np.pi / 3]])
     elif config['dof'] == '3DOF':
         # Specify initial joint angles
-        # input = torch.Tensor([[-np.pi / 4, np.pi / 2, -np.pi / 4]])
-        input = torch.Tensor([[0, 0, 0]])
+        input = torch.Tensor([[-np.pi / 4, np.pi / 2, -np.pi / 4]])
+        # input = torch.Tensor([[0, 0, 0]])
     else:
         raise Exception('Number of degrees of freedom ot supported')
 
@@ -142,24 +166,30 @@ if __name__ == '__main__':
     preds_joints = []
     preds_joints_valid = []
 
-    if model_name == 'CVAE':
-        for i in range(config['num_samples_config']):
-            pred_joint_angles = model.predict(tcp, device)
-            # print('pred_joint_angles: ', pred_joint_angles)
-            preds = postprocess(pred_joint_angles)
-            preds_joints.append(preds.numpy().tolist()[0])
-    else:
-        invalid_preds = 0
-        for i in range(config['num_samples_config']):
-            pred_joint_angles = model.predict(tcp, device)
-            if torch.any(pred_joint_angles < -1.0) or torch.any(pred_joint_angles > 1.0):
-                invalid_preds = invalid_preds + 1
-                continue
-            # print('pred_joint_angles: ', pred_joint_angles)
-            preds = postprocess(pred_joint_angles)
-            preds_joints.append(preds.numpy().tolist()[0])
+    for i in range(config['num_samples_config']):
+        pred_joint_angles = model.predict(tcp, device)
+        # print('pred_joint_angles: ', pred_joint_angles)
+        preds = postprocess(pred_joint_angles)
+        preds_joints.append(preds.numpy().tolist()[0])
 
-        print('INVALID PREDICTIONS / TOTAL PREDICTIONS: %i / %i' % (invalid_preds, config['num_samples_config']))
+    # if model_name == 'CVAE':
+    #     for i in range(config['num_samples_config']):
+    #         pred_joint_angles = model.predict(tcp, device)
+    #         # print('pred_joint_angles: ', pred_joint_angles)
+    #         preds = postprocess(pred_joint_angles)
+    #         preds_joints.append(preds.numpy().tolist()[0])
+    # else:
+    #     invalid_preds = 0
+    #     for i in range(config['num_samples_config']):
+    #         pred_joint_angles = model.predict(tcp, device)
+    #         if torch.any(pred_joint_angles < -1.0) or torch.any(pred_joint_angles > 1.0):
+    #             invalid_preds = invalid_preds + 1
+    #             continue
+    #         # print('pred_joint_angles: ', pred_joint_angles)
+    #         preds = postprocess(pred_joint_angles)
+    #         preds_joints.append(preds.numpy().tolist()[0])
+    #
+    #     print('INVALID PREDICTIONS / TOTAL PREDICTIONS: %i / %i' % (invalid_preds, config['num_samples_config']))
 
     # Plot generated configurations
     preds_joints = np.array(preds_joints)
