@@ -28,8 +28,8 @@ class RobotSimDataset(Dataset):
             num_samples: number of samples in dataset.
 
         Example usage:
-        >>> robot = robotsim.Robot2D3DoF([3, 3, 3])
-        >>> dataset = RobotSimDataset(robot, 100)
+        robot = robotsim.Robot2D3DoF([3, 3, 3])
+        dataset = RobotSimDataset(robot, 100)
         """
 
         self._robot = robot
@@ -38,10 +38,15 @@ class RobotSimDataset(Dataset):
 
         joint_ranges = self._robot.get_joint_ranges()
 
+        # TODO: Check whether better
         # sample random combinations of joint states
-        self._joint_states = self.random_gen.uniform(
-            joint_ranges[:, 0], joint_ranges[:, 1],
-            (self._num_samples, self._num_dof))
+        # self._joint_states = self.random_gen.uniform(
+        #     joint_ranges[:, 0], joint_ranges[:, 1],
+        #     (self._num_samples, self._num_dof))
+
+        # sample from random normal distribution N(0, std) with std=0.5
+        self._joint_states = np.random.normal(loc=0.0, scale=0.5, size=(self._num_samples, self._num_dof))
+
 
         self._tcp_coords = robot.forward(self._joint_states)
 
@@ -114,21 +119,24 @@ class RobotSimDataset(Dataset):
 
 if __name__ == "__main__":
 
+    # num_samples = 1e6
     num_samples = 1e6
 
-    robot = robotsim.Robot2D2DoF([3, 2])
-    dataset = RobotSimDataset(robot, num_samples)
-    dataset.plot(path="./figures/dataset_2D2DoF")
-    dataset.histogram(path="./figures/dataset_2D2DoF_histogram")
+    # robot = robotsim.Robot2D2DoF([3, 2])
+    # dataset = RobotSimDataset(robot, num_samples)
+    # dataset.plot(path="./figures/dataset_2D2DoF")
+    # dataset.histogram(path="./figures/dataset_2D2DoF_histogram")
 
     robot = robotsim.Robot2D3DoF([3, 2, 3])
     dataset = RobotSimDataset(robot, num_samples)
-    dataset.plot(path="./figures/dataset_2D3DoF")
-    dataset.histogram(path="./figures/dataset_2D3DoF_histogram")
+    # dataset.plot(path="./figures/dataset_2D3DoF")
+    dataset.plot()
+    # dataset.histogram(path="./figures/dataset_2D3DoF_histogram")
+    dataset.histogram()
 
-    robot = robotsim.Robot2D4DoF([3, 2, 3])
-    dataset = RobotSimDataset(robot, num_samples)
-    dataset.plot(path="./figures/dataset_2D4DoF")
-    dataset.histogram(path="./figures/dataset_2D4DoF_histogram")
+    # robot = robotsim.Robot2D4DoF([3, 2, 3])
+    # dataset = RobotSimDataset(robot, num_samples)
+    # dataset.plot(path="./figures/dataset_2D4DoF")
+    # dataset.histogram(path="./figures/dataset_2D4DoF_histogram")
 
-    # plt.show()
+    plt.show()

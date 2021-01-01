@@ -58,7 +58,6 @@ def train_CVAE(model, config, dataloader, device):
             # compute losses
             # recon_loss = F.mse_loss(image_batch_recon, joint_batch, reduction='sum')
             recon_loss = MSE(image_batch_recon, joint_batch, reduction='sum')
-            # kldivergence = -0.5 * torch.sum(1 + latent_logvar - latent_mu.pow(2) - latent_logvar.exp())
             kldivergence = KL_divergence(latent_mu, latent_logvar)
 
 
@@ -99,7 +98,7 @@ def train_CVAE(model, config, dataloader, device):
     plt.ylabel('AVG LOSS')
     plt.plot(train_loss_avg, '-b', label='Total loss')
     # plt.legend()
-    plt.savefig('figures/total_avg_train_loss_CVAE_tmp_' + str(config['dof']) + '.png')
+    plt.savefig('figures/total_avg_train_loss_CVAE_' + str(config['dof']) + '.png')
 
     fig = plt.figure()
     plt.title('AVG LOSS HISTORY FOR RECONSTRUCTION ERROR')
@@ -107,7 +106,7 @@ def train_CVAE(model, config, dataloader, device):
     plt.ylabel('AVG LOSS')
     plt.plot(recon_loss_avg, '-r', label='MSE loss')
     # plt.legend()
-    plt.savefig('figures/recon_avg_train_loss_CVAE_tmp_' + str(config['dof']) + '.png')
+    plt.savefig('figures/recon_avg_train_loss_CVAE_' + str(config['dof']) + '.png')
 
     fig = plt.figure()
     plt.title('AVG LOSS HISTORY FOR KL DIVERGENCE')
@@ -115,7 +114,7 @@ def train_CVAE(model, config, dataloader, device):
     plt.ylabel('AVG LOSS')
     plt.plot(kl_loss_avg, '-k', label='KL loss')
     # plt.legend()
-    plt.savefig('figures/kl_avg_train_loss_CVAE_tmp_' + str(config['dof']) + '.png')
+    plt.savefig('figures/kl_avg_train_loss_CVAE_' + str(config['dof']) + '.png')
 
 ########################################################################################################################
 # TRAIN METHOD FOR INN

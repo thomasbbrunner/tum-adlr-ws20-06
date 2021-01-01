@@ -14,106 +14,71 @@ from test_loader import *
 
 if __name__ == '__main__':
 
-    '''
-    Visualizes the performance of the model
-    For 1 sample TCP coordinate, samples from the latent space are drawn and and the joint angles of the robot are
-    reconstructed and visualized.
-    '''
-
     ####################################################################################################################
     # TO MODIFY
     ####################################################################################################################
 
     model_name = 'INN'
-    # model_name = 'INN'
     robot_dof = '3DOF'
 
-    percentile = 0.8
+    percentile = 0.97
 
     ####################################################################################################################
-    # LOAD DATASET
+    # CHECK FOR VALID INPUT
+    ####################################################################################################################
+
+    if not (model_name == 'CVAE' or model_name == 'INN'):
+        raise Exception('Model not supported')
+
+    if not (robot_dof == '2DOF' or robot_dof == '3DOF'):
+        raise Exception('DOF not supported')
+
+    ####################################################################################################################
+    # LOAD CONFIG AND DATASET, BUILD MODEL
     ####################################################################################################################
 
     if model_name == 'CVAE':
         if robot_dof == '2DOF':
             config = load_config('robotsim_cVAE_2DOF.yaml', 'configs/')
-        elif robot_dof == '3DOF':
-            config = load_config('robotsim_cVAE_3DOF.yaml', 'configs/')
+            robot = robotsim.Robot2D2DoF([3, 2])
+            dataset = RobotSimDataset(robot, 1e4)
         else:
-            raise Exception('DOF not supported for this model')
-    elif model_name == 'INN':
+            config = load_config('robotsim_cVAE_3DOF.yaml', 'configs/')
+            robot = robotsim.Robot2D3DoF([3, 2, 3])
+            dataset = RobotSimDataset(robot, 1e4)
+        model = CVAE(config)
+    else:
         if robot_dof == '2DOF':
             config = load_config('robotsim_INN_2DOF.yaml', 'configs/')
-        elif robot_dof == '3DOF':
-            config = load_config('robotsim_INN_3DOF.yaml', 'configs/')
-        elif robot_dof == '4DOF':
-            config = load_config('robotsim_INN_4DOF.yaml', 'configs/')
+            robot = robotsim.Robot2D2DoF([3, 2])
+            dataset = RobotSimDataset(robot, 1e4)
         else:
-            raise Exception('DOF not supported for this model')
-    else:
-        raise Exception('Model not supported')
+            config = load_config('robotsim_INN_3DOF.yaml', 'configs/')
+            robot = robotsim.Robot2D3DoF([3, 2, 3])
+            dataset = RobotSimDataset(robot, 1e4)
+        model = INN(config)
 
-    if config['dof'] == '2DOF':
-        robot = robotsim.Robot2D2DoF([3, 2])
-        # INPUT: 2 joint angles
-        # OUTPUT: (x,y) coordinate of end-effector
-        dataset = RobotSimDataset(robot, 1e6)
-    elif config['dof'] == '3DOF':
-        robot = robotsim.Robot2D3DoF([3, 3, 3])
-        # INPUT: 3 joint angles
-        # OUTPUT: (x,y) coordinate of end-effector
-        # dataset = RobotSimDataset(robot, 1e6)
-        dataset = RobotSimDataset(robot, 1e4)
-    elif config['dof'] == '4DOF':
-        robot = robotsim.Robot2D4DoF([3, 3, 3])
-        dataset = RobotSimDataset(robot, 1e4)
-    else:
-        raise Exception('Number of degrees of freedom ot supported')
-
-    # train test split
-    # train_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 300000])
     train_dataset, test_dataset = torch.utils.data.random_split(dataset, [7000, 3000])
-
     test_dataloader = DataLoader(test_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
 
-    ####################################################################################################################
-    # BUILD MODEL
-    ####################################################################################################################
-
-    if model_name == 'CVAE':
-        model = CVAE(config)
-    elif model_name == 'INN':
-        model = INN(config)
-    else:
-        raise Exception('Model not supported')
-
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-    # if you have more than one GPU parallelize the model
-    # if torch.cuda.device_count() > 1:
-    #     print("Let's use", torch.cuda.device_count(), "GPUs!")
-    #     model = nn.DataParallel(model)
-
     model = model.to(device)
+
+    # load pre-trained weights
     model.load_weights(config['weight_dir'])
+
+    # load pre-trained weights from checkpoint
     # epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + model_name + '_' + config['dof'] + '_epoch_20')
 
     # set to evaluation mode
     model.eval()
 
     ####################################################################################################################
-    # TEST MODEL
+    # MODEL EVALUATION
     ####################################################################################################################
 
-    # if model_name == 'CVAE':
-    #     test_CVAE(model, config, test_dataloader, device)
-    # elif model_name == 'INN':
-    #     test_INN(model, config, test_dataloader, device)
-    # else:
-    #     raise Exception('Model not supported')
-
+    # Compute RMSE
     test_rsme_avg = []
-
     test_rsme_avg.append(0)
     num_batches = 0
 
@@ -125,9 +90,6 @@ if __name__ == '__main__':
         # forward pass only accepts float
         joint_batch = joint_batch.float()
         tcp_batch = tcp_batch.float()
-
-        # apply sine and cosine to joint angles
-        # joint_batch = preprocess(joint_batch)
 
         _x = model.predict(tcp_batch, device)
         rmse = RMSE(_x, joint_batch)
@@ -142,44 +104,45 @@ if __name__ == '__main__':
     # VISUALISATION
     ####################################################################################################################
 
-    print('---------------SAMPLE GENERATION---------------')
+    # input = None
+    # if config['dof'] == '2DOF':
+    #     input = torch.Tensor([[-np.pi / 6, np.pi / 6]])
+    # else:
+    #     input = torch.Tensor([[-np.pi / 8, np.pi / 8, -np.pi / 8]])
+    #
+    # # compute resulting tcp coordinates
+    # tcp = robot.forward(joint_states=input.detach())
+    # tcp = torch.Tensor([[tcp[0], tcp[1]]])
+    # # print('tcp coordinates: ', tcp)
+    #
+    # # Plot ground truth configuration
+    # robot.plot(joint_states=input.detach(), path='figures/gt_configurations_' + str(config['dof']) + '.png',
+    #            separate_plots=False)
 
-    input = None
-    if config['dof'] == '2DOF':
-        # Specify initial joint angles
-        # input = torch.Tensor([[-np.pi / 4, np.pi / 2]])
-        input = torch.Tensor([[-np.pi / 3, np.pi / 3]])
-    elif config['dof'] == '3DOF':
-        # Specify initial joint angles
-        # input = torch.Tensor([[-np.pi / 4, np.pi / 2, -np.pi / 4]])
-        # input = torch.Tensor([[0, 0, 0]])
-        input = torch.Tensor([[-np.pi / 8, np.pi / 8, -np.pi / 8]])
-    else:
-        raise Exception('Number of degrees of freedom ot supported')
-
-    # compute resulting tcp coordinates
-    tcp = robot.forward(joint_states=input.detach())
-    tcp_x = tcp[0]
-    tcp_y = tcp[1]
-    tcp = torch.Tensor([[tcp_x, tcp_y]])
-    print('tcp coordinates: ', tcp)
-
-    # Plot ground truth configuration
-    robot.plot(joint_states=input.detach(), path='figures/gt_configurations_' + str(config['dof']) + '.png',
-               separate_plots=False)
+    tcp = torch.Tensor([[8.0, 0.0]])
+    # tcp = torch.Tensor([[5.0, -6.0]])
 
     # Generate joints angles from predefined tcp coordinates
-    _x = []
-    _y = []
-    preds_joints = []
-    preds_joints_valid = []
+    _x, _y, preds_joints = [], [], []
 
     for i in range(config['num_samples_config']):
         preds = model.predict(tcp, device)
-        # print(preds.size())
-        # print('pred_joint_angles: ', preds)
-        # preds = postprocess(pred_joint_angles)
         preds_joints.append(preds.detach().tolist()[0])
+
+    # Plot generated configurations
+    preds_joints = np.array(preds_joints)
+    robot.plot(joint_states=preds_joints, path='figures/generated_configurations_' + model_name + '_' +
+                                               str(config['dof']) + '.png', separate_plots=False)
+
+    # Plot contour lines enclose the region conaining 97% of the end points
+    resimulation_tcp = robot.forward(joint_states=preds_joints)
+    resimulation_xy = resimulation_tcp[:, :2]
+
+    tcp_squeezed = torch.squeeze(tcp)
+
+    plot_contour_lines(config, resimulation_xy, gt=tcp_squeezed.numpy(), percentile=percentile)
+
+    ####################################################################################################################
 
     # if model_name == 'CVAE':
     #     for i in range(config['num_samples_config']):
@@ -199,22 +162,6 @@ if __name__ == '__main__':
     #         preds_joints.append(preds.numpy().tolist()[0])
     #
     #     print('INVALID PREDICTIONS / TOTAL PREDICTIONS: %i / %i' % (invalid_preds, config['num_samples_config']))
-
-    # Plot generated configurations
-    preds_joints = np.array(preds_joints)
-    # print(preds_joints.shape)
-    robot.plot(joint_states=preds_joints, path='figures/generated_configurations_' + model_name + '_' +
-                                               str(config['dof']) + '.png', separate_plots=False)
-
-    # Plot contour lines enclose the region conaining 97% of the end points
-    resimulation_tcp = robot.forward(joint_states=preds_joints)
-    print(resimulation_tcp.shape)
-    resimulation_xy = resimulation_tcp[:, :2]
-    print(resimulation_xy.shape)
-    tcp_squeezed = torch.squeeze(tcp)
-    print(tcp_squeezed)
-    plot_contour_lines(config, resimulation_xy, gt=tcp_squeezed.numpy(), percentile=percentile)
-
 
     # if model_name == 'CVAE':
     #     # visualise latent space
@@ -268,5 +215,3 @@ if __name__ == '__main__':
     #     # apply sine and cosine to joint angles
     #     # input = preprocess(input)
     #     model.visualise_z(config, input)
-
-    print('-----------------------------------------------')
