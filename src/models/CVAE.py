@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from utils import onehot
+from utils import *
 
 '''
  Sources
@@ -10,8 +10,26 @@ from utils import onehot
  Code: https://github.com/graviraja/pytorch-sample-codes/blob/master/conditional_vae.py
  '''
 
+class Preprocessor(nn.Module):
+
+    def __init__(self, dof=3):
+        super(Preprocessor, self).__init__()
+        self.dof = dof
+
+    def forward(self, x):
+        return preprocess(x)
+
+class Postprocessor(nn.Module):
+
+    def __init__(self, dof=3):
+        super(Postprocessor, self).__init__()
+        self.dof = dof
+
+    def forward(self, x):
+        return postprocess(x)
+
 class Encoder(nn.Module):
-    def __init__(self, X_dim, hidden_dim, latent_dim, num_cond, classification=True):
+    def __init__(self, X_dim, hidden_dim, latent_dim, num_cond):
 
         '''
         Encoder network with only fully connected layers and ReLU activations
@@ -20,11 +38,9 @@ class Encoder(nn.Module):
             X_dim: number of input variables (joint angles, ect.)
             hidden_dim: number of nodes of the fully connected layers
             latent_dims: number of nodes for additional variable z)
-            num_classes: For classification in MNIST: 10 classes, for 2D robot: observations (x,y)
         '''
 
         super(Encoder, self).__init__()
-        self.classification = classification
 
         '''
         self.fc_layers = []
@@ -36,7 +52,6 @@ class Encoder(nn.Module):
         self.fc1 = nn.Linear(in_features=X_dim + num_cond, out_features=hidden_dim)
         self.fc2 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
         self.fc3 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
-        self.fc4 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
 
         # mean of latent space
         self.fc_mu = nn.Linear(in_features=hidden_dim, out_features=latent_dim)
@@ -47,7 +62,6 @@ class Encoder(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
-        x = F.relu(self.fc4(x))
         x_mu = self.fc_mu(x)
         x_logvar = self.fc_logvar(x)
 
@@ -55,7 +69,7 @@ class Encoder(nn.Module):
 
 class Decoder(nn.Module):
 
-    def __init__(self, X_dim, hidden_dim, latent_dim, num_cond, classification=True):
+    def __init__(self, X_dim, hidden_dim, latent_dim, num_cond):
         '''
         Decoder network with only fully connected layers and ReLU activations
 
@@ -63,16 +77,13 @@ class Decoder(nn.Module):
             X_dim: number of input variables (joint angles, ect.)
             hidden_dim: number of nodes of the fully connected layers
             latent_dims: number of nodes for additional variable z)
-            num_classes: For classification in MNIST: 10 classes, for 2D robot: observations (x,y)
         '''
 
         super(Decoder, self).__init__()
-        self.classification = classification
         self.fc1 = nn.Linear(in_features=latent_dim + num_cond, out_features=hidden_dim)
         self.fc2 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
         self.fc3 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
-        self.fc4 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
-        self.fc5 = nn.Linear(in_features=hidden_dim, out_features=X_dim)
+        self.fc4 = nn.Linear(in_features=hidden_dim, out_features=X_dim)
 
 
     def forward(self, x):
@@ -80,19 +91,16 @@ class Decoder(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
-        x = F.relu(self.fc4(x))
 
-        if self.classification:
-            # force input to be between [0, 1]
-            x = torch.sigmoid(self.fc5(x))
-        else:
-            # force input to be between [-1, 1]
-            x = torch.tanh(self.fc5(x))
+        # force input to be between [-1, 1]
+        # force input to be between [-pi/4, pi/4]
+        x = torch.acos(torch.zeros(1)).item() * 2 / 4 * torch.tanh(self.fc4(x))
+
         return x
 
 class CVAE(nn.Module):
 
-    def __init__(self, config, classification=True):
+    def __init__(self, config):
 
         '''
         Conditional Autoencoder with fully connected encoder and decoder
@@ -115,23 +123,24 @@ class CVAE(nn.Module):
         self.X_dim = config['input_dim']
         self.hidden_dim = config['hidden_dim']
 
-        self.classification = classification
         self.num_condition = config['condition_dim']
-        self.encoder = Encoder(self.X_dim, self.hidden_dim, self.latent_dim, self.num_condition, classification)
-        self.decoder = Decoder(self.X_dim, self.hidden_dim, self.latent_dim, self.num_condition, classification)
+        # self.preprocessor = Preprocessor()
+        self.encoder = Encoder(self.X_dim, self.hidden_dim, self.latent_dim, self.num_condition)
+        self.decoder = Decoder(self.X_dim, self.hidden_dim, self.latent_dim, self.num_condition)
+        # self.postprocessor = Postprocessor()
 
 
     def forward(self, x, condition):
 
-        if self.classification:
-            condition = onehot(condition.view(-1, 1), self.num_condition)
-
+        # x = self.preprocessor(x)
         x = torch.cat((x, condition), dim=1)
 
         latent_mu, latent_logvar = self.encoder(x)
         latent = self.latent_sample(latent_mu, latent_logvar)
         z = torch.cat((latent, condition), dim=1)
         x_recon = self.decoder(z)
+
+        # x_recon = self.postprocessor(x_recon)
 
         return x_recon, latent_mu, latent_logvar
 
@@ -152,11 +161,13 @@ class CVAE(nn.Module):
 
 
     def visualise_z(self, x, condition):
-        if self.classification:
-            condition = onehot(condition.view(-1, 1), self.num_condition)
-        x = torch.cat((x, condition), dim=1)
-        latent_mu, latent_logvar = self.encoder(x)
-        latent = self.latent_sample(latent_mu, latent_logvar)
+
+        with torch.no_grad():
+            # x = self.preprocessor(x)
+            x = torch.cat((x, condition), dim=1)
+            latent_mu, latent_logvar = self.encoder(x)
+            latent = self.latent_sample(latent_mu, latent_logvar)
+
         return latent
 
 
@@ -167,6 +178,8 @@ class CVAE(nn.Module):
         x = torch.cat((z, tcp), dim=1)
         with torch.no_grad():
             x = self.decoder(x)
+            # x = self.postprocessor(x)
+
         return x
 
     def save_checkpoint(self, epoch, optimizer, loss, PATH):

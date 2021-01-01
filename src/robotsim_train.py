@@ -19,7 +19,7 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    model_name = 'CVAE'
+    model_name = 'INN'
     robot_dof = '3DOF'
 
     ####################################################################################################################
@@ -38,8 +38,10 @@ if __name__ == '__main__':
         if robot_dof == '2DOF':
             config = load_config('robotsim_INN_2DOF.yaml', 'configs/')
         elif robot_dof == '3DOF':
-            config = load_config('robotsim_INN_3DOF_3_layers.yaml', 'configs/')
-            # config = load_config('robotsim_INN_3DOF_v1.yaml', 'configs/')
+            # config = load_config('robotsim_INN_3DOF_3_layers.yaml', 'configs/')
+            config = load_config('robotsim_INN_3DOF.yaml', 'configs/')
+        elif robot_dof == '4DOF':
+            config = load_config('robotsim_INN_4DOF.yaml', 'configs/')
         else:
             raise Exception('DOF not supported for this model')
 
@@ -55,22 +57,27 @@ if __name__ == '__main__':
         robot = robotsim.Robot2D3DoF([3, 3, 3])
         # INPUT: 3 joint angles
         # OUTPUT: (x,y) coordinate of end-effector
-        dataset = RobotSimDataset(robot, 1e6)
+        # dataset = RobotSimDataset(robot, 1e6)
+        dataset = RobotSimDataset(robot, 1e4)
+    elif config['dof'] == '4DOF':
+        robot = robotsim.Robot2D4DoF([3, 3, 3])
+        dataset = RobotSimDataset(robot, 1e4)
     else:
         raise Exception('Number of degrees of freedom not supported')
 
     # train test split
-    train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 150000, 150000])
+    # train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 150000, 150000])
+    train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(dataset, [7000, 1500, 1500])
 
     train_dataloader = DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
-    # val_dataloader = DataLoader(val_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
+    val_dataloader = DataLoader(val_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
 
     ####################################################################################################################
     # BUILD MODEL
     ####################################################################################################################
 
     if model_name == 'CVAE':
-        model = CVAE(config, classification=False)
+        model = CVAE(config)
     elif model_name == 'INN':
         model = INN(config)
     else:

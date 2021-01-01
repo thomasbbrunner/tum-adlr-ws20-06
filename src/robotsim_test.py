@@ -24,7 +24,7 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    model_name = 'CVAE'
+    model_name = 'INN'
     # model_name = 'INN'
     robot_dof = '3DOF'
 
@@ -45,7 +45,9 @@ if __name__ == '__main__':
         if robot_dof == '2DOF':
             config = load_config('robotsim_INN_2DOF.yaml', 'configs/')
         elif robot_dof == '3DOF':
-            config = load_config('robotsim_INN_3DOF_3_layers.yaml', 'configs/')
+            config = load_config('robotsim_INN_3DOF.yaml', 'configs/')
+        elif robot_dof == '4DOF':
+            config = load_config('robotsim_INN_4DOF.yaml', 'configs/')
         else:
             raise Exception('DOF not supported for this model')
     else:
@@ -60,12 +62,17 @@ if __name__ == '__main__':
         robot = robotsim.Robot2D3DoF([3, 3, 3])
         # INPUT: 3 joint angles
         # OUTPUT: (x,y) coordinate of end-effector
-        dataset = RobotSimDataset(robot, 1e6)
+        # dataset = RobotSimDataset(robot, 1e6)
+        dataset = RobotSimDataset(robot, 1e4)
+    elif config['dof'] == '4DOF':
+        robot = robotsim.Robot2D4DoF([3, 3, 3])
+        dataset = RobotSimDataset(robot, 1e4)
     else:
         raise Exception('Number of degrees of freedom ot supported')
 
     # train test split
-    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 300000])
+    # train_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 300000])
+    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [7000, 3000])
 
     test_dataloader = DataLoader(test_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
 
@@ -74,7 +81,7 @@ if __name__ == '__main__':
     ####################################################################################################################
 
     if model_name == 'CVAE':
-        model = CVAE(config, classification=False)
+        model = CVAE(config)
     elif model_name == 'INN':
         model = INN(config)
     else:
@@ -120,12 +127,12 @@ if __name__ == '__main__':
         tcp_batch = tcp_batch.float()
 
         # apply sine and cosine to joint angles
-        joint_batch = preprocess(joint_batch)
+        # joint_batch = preprocess(joint_batch)
 
         _x = model.predict(tcp_batch, device)
         rmse = RMSE(_x, joint_batch)
 
-        test_rsme_avg[-1] += rmse.item()
+        test_rsme_avg[-1] += rmse.detach()
         num_batches += 1
 
     test_rsme_avg[-1] /= num_batches
@@ -144,20 +151,21 @@ if __name__ == '__main__':
         input = torch.Tensor([[-np.pi / 3, np.pi / 3]])
     elif config['dof'] == '3DOF':
         # Specify initial joint angles
-        input = torch.Tensor([[-np.pi / 4, np.pi / 2, -np.pi / 4]])
+        # input = torch.Tensor([[-np.pi / 4, np.pi / 2, -np.pi / 4]])
         # input = torch.Tensor([[0, 0, 0]])
+        input = torch.Tensor([[-np.pi / 8, np.pi / 8, -np.pi / 8]])
     else:
         raise Exception('Number of degrees of freedom ot supported')
 
     # compute resulting tcp coordinates
-    tcp = robot.forward(joint_states=input.numpy())
+    tcp = robot.forward(joint_states=input.detach())
     tcp_x = tcp[0]
     tcp_y = tcp[1]
     tcp = torch.Tensor([[tcp_x, tcp_y]])
     print('tcp coordinates: ', tcp)
 
     # Plot ground truth configuration
-    robot.plot(joint_states=input.numpy(), path='figures/gt_configurations_' + str(config['dof']) + '.png',
+    robot.plot(joint_states=input.detach(), path='figures/gt_configurations_' + str(config['dof']) + '.png',
                separate_plots=False)
 
     # Generate joints angles from predefined tcp coordinates
@@ -167,10 +175,11 @@ if __name__ == '__main__':
     preds_joints_valid = []
 
     for i in range(config['num_samples_config']):
-        pred_joint_angles = model.predict(tcp, device)
-        # print('pred_joint_angles: ', pred_joint_angles)
-        preds = postprocess(pred_joint_angles)
-        preds_joints.append(preds.numpy().tolist()[0])
+        preds = model.predict(tcp, device)
+        # print(preds.size())
+        # print('pred_joint_angles: ', preds)
+        # preds = postprocess(pred_joint_angles)
+        preds_joints.append(preds.detach().tolist()[0])
 
     # if model_name == 'CVAE':
     #     for i in range(config['num_samples_config']):
@@ -193,59 +202,71 @@ if __name__ == '__main__':
 
     # Plot generated configurations
     preds_joints = np.array(preds_joints)
+    # print(preds_joints.shape)
     robot.plot(joint_states=preds_joints, path='figures/generated_configurations_' + model_name + '_' +
                                                str(config['dof']) + '.png', separate_plots=False)
 
     # Plot contour lines enclose the region conaining 97% of the end points
     resimulation_tcp = robot.forward(joint_states=preds_joints)
+    print(resimulation_tcp.shape)
     resimulation_xy = resimulation_tcp[:, :2]
+    print(resimulation_xy.shape)
     tcp_squeezed = torch.squeeze(tcp)
     print(tcp_squeezed)
     plot_contour_lines(config, resimulation_xy, gt=tcp_squeezed.numpy(), percentile=percentile)
 
 
-    if model_name == 'CVAE':
-        # visualise latent space
-        input = []
-        tcp = []
-        for i in range(config['num_samples_latent']):
-            input.append(test_dataset.__getitem__(i)[0])
-            tcp.append(test_dataset.__getitem__(i)[1])
-
-        input = torch.Tensor(input)
-        tcp = torch.Tensor(tcp)
-
-        # forward pass only accepts float
-        input = input.float()
-        tcp = tcp.float()
-
-        # apply sine and cosine to joint angles
-        input = preprocess(input)
-
-        # forward propagation
-        with torch.no_grad():
-            z = model.visualise_z(input, tcp)
-
-        fig = plt.figure()
-        plt.title('Latent space')
-        plt.xlabel('Z1')
-        plt.ylabel('Z2')
-        plt.scatter(z[:, 0], z[:, 1], c='g')
-        plt.savefig('figures/Latent_space_' + str(config['dof']) + '.png')
-
-    else:
-        # visualise latent space
-        input = []
-        for i in range(config['num_samples_latent']):
-            input.append(test_dataset.__getitem__(i)[0])
-
-        input = torch.Tensor(input)
-
-        # forward pass only accepts float
-        input = input.float()
-
-        # apply sine and cosine to joint angles
-        input = preprocess(input)
-        model.visualise_z(config, input)
+    # if model_name == 'CVAE':
+    #     # visualise latent space
+    #     input = []
+    #     tcp = []
+    #     for i in range(config['num_samples_latent']):
+    #         input.append(test_dataset.__getitem__(i)[0])
+    #         tcp.append(test_dataset.__getitem__(i)[1])
+    #
+    #     input = torch.Tensor(input)
+    #     tcp = torch.Tensor(tcp)
+    #
+    #     # forward pass only accepts float
+    #     input = input.float()
+    #     tcp = tcp.float()
+    #
+    #     # apply sine and cosine to joint angles
+    #     # input = preprocess(input)
+    #
+    #     # forward propagation
+    #     with torch.no_grad():
+    #         z = model.visualise_z(input, tcp)
+    #
+    #     print('size of z: ', z)
+    #
+    #     # fig = plt.figure()
+    #     # plt.title('Latent space')
+    #     # plt.xlabel('Z1')
+    #     # plt.ylabel('Z2')
+    #     # plt.scatter(z[:, 0], z[:, 1], c='g')
+    #     # plt.savefig('figures/Latent_space_' + str(config['dof']) + '.png')
+    #
+    #     fig = plt.figure()
+    #     plt.title('Latent space')
+    #     plt.xlabel('Z')
+    #     # plt.plot(z[:, 0], c='g')
+    #     plt.plot(z[:, 0], np.zeros_like(z[:, 0]) + 0., 'x')
+    #     plt.savefig('figures/Latent_space_CVAE_' + str(config['dof']) + '.png')
+    #
+    # else:
+    #     # visualise latent space
+    #     input = []
+    #     for i in range(config['num_samples_latent']):
+    #         input.append(test_dataset.__getitem__(i)[0])
+    #
+    #     input = torch.Tensor(input)
+    #
+    #     # forward pass only accepts float
+    #     input = input.float()
+    #
+    #     # apply sine and cosine to joint angles
+    #     # input = preprocess(input)
+    #     model.visualise_z(config, input)
 
     print('-----------------------------------------------')

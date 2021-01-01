@@ -483,16 +483,16 @@ class Robot2D3DoF(RobotSim):
 
     def get_joint_ranges(self):
 
-        return np.array([
-            [-np.pi, np.pi],
-            [-np.pi, np.pi],
-            [-np.pi, np.pi],
-        ])
         # return np.array([
-        #     [-np.pi/4, np.pi/4],
-        #     [-np.pi/4, np.pi/4],
-        #     [-np.pi/4, np.pi/4],
+        #     [-np.pi, np.pi],
+        #     [-np.pi, np.pi],
+        #     [-np.pi, np.pi],
         # ])
+        return np.array([
+            [-np.pi/4, np.pi/4],
+            [-np.pi/4, np.pi/4],
+            [-np.pi/4, np.pi/4],
+        ])
 
 
 class Robot2D4DoF(RobotSim):
@@ -607,7 +607,8 @@ class Robot2D4DoF(RobotSim):
     def get_joint_ranges(self):
 
         return np.array([
-            [-self._length, self._length],
+            # [-self._length, self._length],
+            [-1.0, 1.0],
             [-np.pi, np.pi],
             [-np.pi, np.pi],
             [-np.pi, np.pi],

@@ -30,8 +30,8 @@ def train_CVAE(model, config, dataloader, device):
                                  weight_decay=config['weight_decay'])
 
     # define learning rate scheduler
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=config['step_size'],
-                                                gamma=config['gamma'])
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=config['milestones'],
+                                                     gamma=config['gamma'])
 
     for epoch in range(config['num_epochs']):
 
@@ -50,14 +50,17 @@ def train_CVAE(model, config, dataloader, device):
             coord_batch = coord_batch.float()
 
             # apply sine and cosine to joint angles
-            joint_batch = preprocess(joint_batch)
+            # joint_batch = preprocess(joint_batch)
 
             # forward propagation
             image_batch_recon, latent_mu, latent_logvar = model(joint_batch, coord_batch)
 
             # compute losses
-            recon_loss = F.mse_loss(image_batch_recon, joint_batch, reduction='sum')
-            kldivergence = -0.5 * torch.sum(1 + latent_logvar - latent_mu.pow(2) - latent_logvar.exp())
+            # recon_loss = F.mse_loss(image_batch_recon, joint_batch, reduction='sum')
+            recon_loss = MSE(image_batch_recon, joint_batch, reduction='sum')
+            # kldivergence = -0.5 * torch.sum(1 + latent_logvar - latent_mu.pow(2) - latent_logvar.exp())
+            kldivergence = KL_divergence(latent_mu, latent_logvar)
+
 
             loss = recon_loss + config['variational_beta'] * kldivergence
 
@@ -85,17 +88,34 @@ def train_CVAE(model, config, dataloader, device):
         recon_loss_avg[-1] /= num_batches
         kl_loss_avg[-1] /= num_batches
 
-        print('Epoch [%d / %d] average reconstruction error: %f, average kl error: %f, average overall error: %f'
-              % (epoch + 1, config['num_epochs'], recon_loss_avg[-1], kl_loss_avg[-1], train_loss_avg[-1]))
+        print('Epoch [%d / %d] avg reconstruction error: %f, weighted avg kl error: %f, avg overall error: %f'
+              % (epoch + 1, config['num_epochs'], recon_loss_avg[-1], config['variational_beta'] * kl_loss_avg[-1],
+                 train_loss_avg[-1]))
 
-    plt.title('AVG LOSS HISTORY')
+
+    fig = plt.figure()
+    plt.title('TOTAL AVG LOSS HISTORY')
     plt.xlabel('EPOCHS')
     plt.ylabel('AVG LOSS')
     plt.plot(train_loss_avg, '-b', label='Total loss')
+    # plt.legend()
+    plt.savefig('figures/total_avg_train_loss_CVAE_tmp_' + str(config['dof']) + '.png')
+
+    fig = plt.figure()
+    plt.title('AVG LOSS HISTORY FOR RECONSTRUCTION ERROR')
+    plt.xlabel('EPOCHS')
+    plt.ylabel('AVG LOSS')
     plt.plot(recon_loss_avg, '-r', label='MSE loss')
+    # plt.legend()
+    plt.savefig('figures/recon_avg_train_loss_CVAE_tmp_' + str(config['dof']) + '.png')
+
+    fig = plt.figure()
+    plt.title('AVG LOSS HISTORY FOR KL DIVERGENCE')
+    plt.xlabel('EPOCHS')
+    plt.ylabel('AVG LOSS')
     plt.plot(kl_loss_avg, '-k', label='KL loss')
-    plt.legend()
-    plt.savefig('figures/avg_train_loss_CVAE_tmp_' + str(config['dof']) + '.png')
+    # plt.legend()
+    plt.savefig('figures/kl_avg_train_loss_CVAE_tmp_' + str(config['dof']) + '.png')
 
 ########################################################################################################################
 # TRAIN METHOD FOR INN
@@ -125,7 +145,7 @@ def train_INN(model, config, dataloader, device):
     optimizer = torch.optim.Adam(params=trainable_parameters, lr=config['lr_rate'],
                                  weight_decay=config['weight_decay'])
     # define learning rate scheduler
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer=optimizer, step_size=config['step_size'],
+    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=config['milestones'],
                                                 gamma=config['gamma'])
     # Padding in case xdim < total dim or yz_dim < total_dim
     # compute possible padding for input
@@ -164,7 +184,7 @@ def train_INN(model, config, dataloader, device):
             y = y.float()
 
             # apply sine and cosine to joint angles
-            x = preprocess(x)
+            # x = preprocess(x)
 
             # This is used later for training the inverse pass
             y_clean = y.clone()

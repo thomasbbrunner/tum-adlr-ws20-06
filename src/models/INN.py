@@ -130,8 +130,8 @@ class INN(nn.Module):
         self.block3 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
         self.perm3 = FixedRandomPermutation(self.input_dim, 3)
         self.block4 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
-        # self.perm4 = FixedRandomPermutation(self.input_dim, 4)
-        # self.block5 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
+        self.perm4 = FixedRandomPermutation(self.input_dim, 4)
+        self.block5 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
         # self.perm5 = FixedRandomPermutation(self.input_dim, 5)
         # self.block6 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
 
@@ -146,15 +146,15 @@ class INN(nn.Module):
             x = self.block2(self.perm1(x, inverse), inverse)
             x = self.block3(self.perm2(x, inverse), inverse)
             x = self.block4(self.perm3(x, inverse), inverse)
-            # x = self.block5(self.perm4(x, inverse), inverse)
+            x = self.block5(self.perm4(x, inverse), inverse)
             # x = self.block6(self.perm5(x, inverse), inverse)
 
 
         else:
-            x = self.block4(x, inverse)
+            x = self.block5(x, inverse)
             # x = self.block6(x, inverse)
             # x = self.block5(self.perm5(x, inverse), inverse)
-            # x = self.block4(self.perm4(x, inverse), inverse)
+            x = self.block4(self.perm4(x, inverse), inverse)
             x = self.block3(self.perm3(x, inverse), inverse)
             x = self.block2(self.perm2(x, inverse), inverse)
             x = self.block1(self.perm1(x, inverse), inverse)

@@ -51,14 +51,25 @@ def MMD_multiscale(x, y, device):
 '''
 Mean Squared Error (MSE)
 '''
-def MSE(_y, y, reduction='sum'):
+def MSE(_y, y, reduction):
     return F.mse_loss(_y, y, reduction=reduction)
 
 '''
 Kullback-Leibler Divergence
 '''
-def KL_divergence(logvar, mu):
-    return -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+def KL_divergence(mu, logvar):
+    # see Appendix B from VAE paper:
+    # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
+    # https://arxiv.org/abs/1312.6114
+    # return -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+    return - 0.5 * torch.sum(1.0 + logvar - mu.pow(2) - logvar.exp())
+
+# # The CVAE is trained by maximizing ELBO on the marginal log-likelihood
+# # Optimization of single sample Monte-Carlo estimate
+# def VAE_loss(_y, y):
+#     logpx_z = MSE(_y, y, reduction='sum')
+#     logpz =
+#
 
 '''
 Binary Cross Entropy
