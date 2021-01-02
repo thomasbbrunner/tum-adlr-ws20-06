@@ -20,8 +20,11 @@ if __name__ == '__main__':
 
     model_name = 'INN'
     robot_dof = '3DOF'
+    dof=3
 
     percentile = 0.97
+    gt_tcp = [6.0, 5.0]
+    samples = 10
 
     ####################################################################################################################
     # CHECK FOR VALID INPUT
@@ -77,28 +80,52 @@ if __name__ == '__main__':
     # MODEL EVALUATION
     ####################################################################################################################
 
-    # Compute RMSE
-    test_rsme_avg = []
-    test_rsme_avg.append(0)
-    num_batches = 0
+    # 1.
+    # Compute gt estimate via rejection sampling
+    joint_states = rejection_sampling(robot=robot, tcp=gt_tcp, dof=dof, samples=samples)
+    robot.plot(joint_states, path='figures/rejection_sampling_' + str(config['dof']) + '.png', separate_plots=False)
+    gt_joint_states = torch.Tensor(joint_states)
 
-    for joint_batch, tcp_batch in test_dataloader:
 
-        joint_batch = joint_batch.to(device)
-        tcp_batch = tcp_batch.to(device)
 
-        # forward pass only accepts float
-        joint_batch = joint_batch.float()
-        tcp_batch = tcp_batch.float()
+    # Compute predicted posterior distribution
 
-        _x = model.predict(tcp_batch, device)
-        rmse = RMSE(_x, joint_batch)
 
-        test_rsme_avg[-1] += rmse.detach()
-        num_batches += 1
 
-    test_rsme_avg[-1] /= num_batches
-    print('Average RMSE between gt joints and generated joints: %f' % (test_rsme_avg[-1]))
+    gen_tcp = np.zeros(shape=(samples, 2))
+    gen_tcp[:, 0] = gt_tcp[0]
+    gen_tcp[:, 1] = gt_tcp[1]
+    gen_tcp = torch.Tensor(gen_tcp)
+
+    pred_joint_states = model.predict(tcp=gen_tcp, device=device)
+
+    mmd_loss = MMD(gt_joint_states, pred_joint_states, device=device)
+    print('MMD loss: ', mmd_loss.item())
+
+
+    # # 2.
+    # # Compute RMSE
+    # test_rsme_avg = []
+    # test_rsme_avg.append(0)
+    # num_batches = 0
+    #
+    # for joint_batch, tcp_batch in test_dataloader:
+    #
+    #     joint_batch = joint_batch.to(device)
+    #     tcp_batch = tcp_batch.to(device)
+    #
+    #     # forward pass only accepts float
+    #     joint_batch = joint_batch.float()
+    #     tcp_batch = tcp_batch.float()
+    #
+    #     _x = model.predict(tcp_batch, device)
+    #     rmse = RMSE(_x, joint_batch)
+    #
+    #     test_rsme_avg[-1] += rmse.detach()
+    #     num_batches += 1
+    #
+    # test_rsme_avg[-1] /= num_batches
+    # print('Average RMSE between gt joints and generated joints: %f' % (test_rsme_avg[-1]))
 
     ####################################################################################################################
     # VISUALISATION
@@ -119,8 +146,11 @@ if __name__ == '__main__':
     # robot.plot(joint_states=input.detach(), path='figures/gt_configurations_' + str(config['dof']) + '.png',
     #            separate_plots=False)
 
-    tcp = torch.Tensor([[8.0, 0.0]])
-    # tcp = torch.Tensor([[5.0, -6.0]])
+
+    tcp = torch.Tensor([[5.0, -6.0]])
+
+
+
 
     # Generate joints angles from predefined tcp coordinates
     _x, _y, preds_joints = [], [], []

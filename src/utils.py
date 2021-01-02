@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.spatial import ConvexHull, convex_hull_plot_2d
 
+from robotsim_dataset import RobotSimDataset
+import robotsim
+
 # Function to load yaml configuration file
 def load_config(config_name, config_path):
     with open(os.path.join(config_path, config_name)) as file:
@@ -92,30 +95,57 @@ def plot_contour_lines(config, points, gt, percentile=0.97):
 def RMSE(pred, gt):
     return torch.sqrt(torch.mean(torch.sum(torch.square(pred - gt), dim=1)))
 
+def rejection_sampling(robot, tcp, dof, samples):
 
+    eps = 0.05
+    hit = 0
+    hit_samples = []
+    np_tcp = np.array(tcp)
+
+    while(hit<samples):
+
+        sampled_joints = np.random.normal(loc=0.0, scale=0.5, size=(1, dof))[0]
+        sampled_tcp = robot.forward(joint_states=sampled_joints)
+        sampled_tcp = [sampled_tcp[0], sampled_tcp[1]]
+        sampled_tcp = np.array(sampled_tcp)
+        norm = np.linalg.norm(sampled_tcp-np_tcp)
+
+        if(norm < eps):
+            hit_samples.append(sampled_joints)
+            hit = hit + 1
+            print('hit: ', hit)
+
+    return hit_samples
 
 
 # Testing example
 if __name__ == '__main__':
 
-    use_gpu = False
-    num_samples = 100
-    percentile = 0.97
-
-    device = torch.device("cuda:0" if use_gpu and torch.cuda.is_available() else "cpu")
-
-    # x = torch.randn(num_samples, 1, device=device)
-    # y = torch.randn(num_samples, 1, device=device)
+    # use_gpu = False
+    # num_samples = 100
+    # percentile = 0.97
     #
-    # points = torch.cat((x, y), dim=1)
-    # numpy_points = points.numpy()
+    # device = torch.device("cuda:0" if use_gpu and torch.cuda.is_available() else "cpu")
+    #
+    # # x = torch.randn(num_samples, 1, device=device)
+    # # y = torch.randn(num_samples, 1, device=device)
+    # #
+    # # points = torch.cat((x, y), dim=1)
+    # # numpy_points = points.numpy()
+    #
+    # points = np.random.rand(num_samples, 2)
+    #
+    # # plot_contour_lines(points, percentile=percentile)
+    #
+    # pred = torch.rand(size=(num_samples, 3), device=device)
+    # gt = torch.rand(size=(num_samples, 3), device=device)
+    # rmse = RMSE(pred, gt)
+    # print(rmse)
 
-    points = np.random.rand(num_samples, 2)
+    robot = robotsim.Robot2D3DoF([3, 2, 3])
+    gt_tcp = [6.0, 5.0]
+    joint_states = rejection_sampling(robot=robot, tcp=gt_tcp, dof=3)
 
-    # plot_contour_lines(points, percentile=percentile)
-
-    pred = torch.rand(size=(num_samples, 3), device=device)
-    gt = torch.rand(size=(num_samples, 3), device=device)
-    rmse = RMSE(pred, gt)
-    print(rmse)
-
+    joint_states = np.array(joint_states)
+    robot.plot(joint_states=joint_states, separate_plots=False)
+    plt.show()
