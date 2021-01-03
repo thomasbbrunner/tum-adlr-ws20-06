@@ -9,6 +9,7 @@ from utils import *
 import numpy as np
 import matplotlib.pyplot as plt
 import yaml
+import json
 
 from test_loader import *
 
@@ -29,7 +30,6 @@ ________________________________________________________________________________
 4. Apply the forward process f to the generated samples _p(x|y*): y_resim = f(_p(x|y*))
 5. Measure the re-simulation error between y_resim and y*
 
-Metric 1: Compute the mismatch 
 '''
 
 if __name__ == '__main__':
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     robot_dof = '3DOF'
     dof = 3
     N = 1
-    M = 50
+    M = 10
     percentile = 0.97
 
     ####################################################################################################################
@@ -80,6 +80,8 @@ if __name__ == '__main__':
             dataset = RobotSimDataset(robot, 1e4)
         model = INN(config)
 
+    # ensures that models are trained and tested on the same samples
+    torch.manual_seed(42)
     train_dataset, test_dataset = torch.utils.data.random_split(dataset, [7000, 3000])
     test_dataloader = DataLoader(test_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
 
@@ -106,6 +108,7 @@ if __name__ == '__main__':
 
         N_x = test_dataset.__getitem__(n)[0]
         N_y = test_dataset.__getitem__(n)[1]
+
 
         # 1.
         # Generate gt estimate p_gt(x|y*) obtained by rejection sampling with M samples
@@ -189,3 +192,14 @@ if __name__ == '__main__':
 
     error_resim_avg[-1] /= num_batches
     print('Average re-simulation error: %.3f' % error_resim_avg[-1])
+
+    list_results = []
+    list_results.append(config['name'])
+    list_results.append(config['dof'])
+    list_results.append('N = ' + str(N))
+    list_results.append('M = ' + str(M))
+    list_results.append('Average error of posterior: ' + str(mismatch_avg[-1]))
+    list_results.append('Average re-simulation error: ' + str(error_resim_avg[-1]))
+
+    with open('results_' + model_name + '_' + robot_dof + '.json', 'w') as fout:
+        json.dump(list_results, fout)

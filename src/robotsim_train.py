@@ -56,10 +56,13 @@ if __name__ == '__main__':
 
     # train test split
     # train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 150000, 150000])
-    train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 150000, 150000])
+
+    # ensures that models are trained and tested on the same samples
+    torch.manual_seed(42)
+    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 150000])
 
     train_dataloader = DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
-    val_dataloader = DataLoader(val_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
+    # val_dataloader = DataLoader(val_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
 
     ####################################################################################################################
     # BUILD MODEL

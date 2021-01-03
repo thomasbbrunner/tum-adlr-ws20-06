@@ -45,8 +45,9 @@ class RobotSimDataset(Dataset):
         #     (self._num_samples, self._num_dof))
 
         # sample from random normal distribution N(0, std) with std=0.5
+        seed = 42
+        np.random.seed(seed)
         self._joint_states = np.random.normal(loc=0.0, scale=0.5, size=(self._num_samples, self._num_dof))
-
 
         self._tcp_coords = robot.forward(self._joint_states)
 
