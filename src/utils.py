@@ -61,7 +61,7 @@ def normalize(x):
 
     return x
 
-def plot_contour_lines(config, points, gt, percentile=0.97):
+def plot_contour_lines(points, gt, PATH, percentile=0.97):
 
     # q_quantile = np.quantile(points, q=percentile, axis=0)
     distance = np.linalg.norm(points - gt, axis=1)
@@ -69,28 +69,26 @@ def plot_contour_lines(config, points, gt, percentile=0.97):
     # sorts distance array such that the first k elements are the smallest
     samples = points.shape[0]
     k = int(percentile * samples)
-    # print('k: ', k)
     idx = np.argpartition(distance, k)
     idx_k = idx[:k]
 
     # selects
     selected_points = torch.index_select(input=torch.Tensor(points), dim=0, index=torch.LongTensor(idx_k)).detach()
-    # print('SHAPE OF selected points: ', selected_points.shape)
     selected_points = np.insert(selected_points, [1], gt, axis=0)
-    # print('SHAPE OF points: ', points.shape)
 
     hull = ConvexHull(selected_points)
     area = np.around(hull.area, decimals=2)
 
     fig = plt.figure()
     plt.title('Area of convex hull: ' + str(area))
-    plt.axis([6.0, 9.5, -4.0, 4.0])
+    # define axis limits dynamically
+    plt.axis([gt[0]-3.0, gt[0]+3.0, gt[1]-3.0, gt[1]+3.0])
     plt.scatter(points[:, 0], points[:, 1], c='g')
     plt.scatter(gt[0], gt[1], c='r')
-    # plt.scatter(selected_points[:, 0], selected_points[:, 1], c='b')
+
     for simplex in hull.simplices:
         plt.plot(selected_points[simplex, 0], selected_points[simplex, 1], 'k-')
-    plt.savefig('figures/q_quantile_of_points_' + config['name'] + '_' + config['dof'] + '.png')
+    plt.savefig(PATH)
 
 def RMSE(pred, gt):
     return torch.sqrt(torch.mean(torch.sum(torch.square(pred - gt), dim=1)))

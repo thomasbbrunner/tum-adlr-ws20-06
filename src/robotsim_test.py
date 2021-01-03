@@ -12,6 +12,26 @@ import yaml
 
 from test_loader import *
 
+'''
+Evaluation of the respective model:
+_________________________________________________________________________________________
+
+x*: ground truth input joint angles of the robot
+y*: ground truth labels/ end-effector coordinated of the robot
+N: # of test labels drawn from the test dataset
+M: # of generated estimates for each test label to produce full posterior distribution
+
+_________________________________________________________________________________________
+
+1. Generate gt estimate p_gt(x|y*) obtained by rejection sampling
+2. Predict posterior distribution _p(x|y*) with model
+3. Calculate posterior mismatch between _p(x|y*) and p_gt(x|y*) with MMD
+4. Apply the forward process f to the generated samples _p(x|y*): y_resim = f(_p(x|y*))
+5. Measure the re-simulation error between y_resim and y*
+
+Metric 1: Compute the mismatch 
+'''
+
 if __name__ == '__main__':
 
     ####################################################################################################################
@@ -20,11 +40,10 @@ if __name__ == '__main__':
 
     model_name = 'INN'
     robot_dof = '3DOF'
-    dof=3
-
+    dof = 3
+    N = 1
+    M = 50
     percentile = 0.97
-    gt_tcp = [6.0, 5.0]
-    samples = 10
 
     ####################################################################################################################
     # CHECK FOR VALID INPUT
@@ -80,168 +99,93 @@ if __name__ == '__main__':
     # MODEL EVALUATION
     ####################################################################################################################
 
-    # 1.
-    # Compute gt estimate via rejection sampling
-    joint_states = rejection_sampling(robot=robot, tcp=gt_tcp, dof=dof, samples=samples)
-    robot.plot(joint_states, path='figures/rejection_sampling_' + str(config['dof']) + '.png', separate_plots=False)
-    gt_joint_states = torch.Tensor(joint_states)
+    # Average mismatch
+    mismatch_avg = []
+    mismatch_avg.append(0)
+    for n in range(N):
 
+        N_x = test_dataset.__getitem__(n)[0]
+        N_y = test_dataset.__getitem__(n)[1]
 
+        # 1.
+        # Generate gt estimate p_gt(x|y*) obtained by rejection sampling with M samples
 
-    # Compute predicted posterior distribution
+        joint_states = rejection_sampling(robot=robot, tcp=N_y, dof=dof, samples=M)
 
+        # generate plots for visualization for first sample
+        if n == 0:
+            # plot sample configuration from estimated posterior by rejection sampling
+            robot.plot(joint_states, path='figures/rejection_sampling_' + str(config['dof']) + '.png',
+                       separate_plots=False)
+            # Plot contour lines enclose the region containing 97% of the end points
+            resimulation_tcp = robot.forward(joint_states=joint_states)
+            resimulation_xy = resimulation_tcp[:, :2]
+            plot_contour_lines(points=resimulation_xy, gt=N_y,
+                               PATH='figures/q_quantile_rejection_sampling_' + config['name'] + '_' + config['dof'] + '.png',
+                               percentile=percentile)
 
+        gt_joint_states = torch.Tensor(joint_states)
 
-    gen_tcp = np.zeros(shape=(samples, 2))
-    gen_tcp[:, 0] = gt_tcp[0]
-    gen_tcp[:, 1] = gt_tcp[1]
-    gen_tcp = torch.Tensor(gen_tcp)
+        # 2.
+        # Predict posterior distribution _p(x | y *) with model
 
-    pred_joint_states = model.predict(tcp=gen_tcp, device=device)
+        # Create M x 2 array as y input for model
+        gen_tcp = np.zeros(shape=(M, 2))
+        gen_tcp[:, 0] = N_y[0]
+        gen_tcp[:, 1] = N_y[1]
+        gen_tcp = torch.Tensor(gen_tcp)
 
-    mmd_loss = MMD(gt_joint_states, pred_joint_states, device=device)
-    print('MMD loss: ', mmd_loss.item())
+        # predict posterior distribution based on M samples
+        pred_joint_states = model.predict(tcp=gen_tcp, device=device)
 
+        # generate plots for visualization for first sample
+        if n == 0:
+            # plot sample configuration from predicted posterior
+            robot.plot(pred_joint_states, path='figures/predicted_posterior_' + str(config['dof']) + '.png',
+                       separate_plots=False)
+            # Plot contour lines enclose the region containing 97% of the end points
+            resimulation_tcp = robot.forward(joint_states=pred_joint_states)
+            resimulation_xy = resimulation_tcp[:, :2]
+            plot_contour_lines(points=resimulation_xy, gt=N_y,
+                               PATH='figures/q_quantile_prediction_' + config['name'] + '_' + config[
+                                   'dof'] + '.png',
+                               percentile=percentile)
 
-    # # 2.
-    # # Compute RMSE
-    # test_rsme_avg = []
-    # test_rsme_avg.append(0)
-    # num_batches = 0
-    #
-    # for joint_batch, tcp_batch in test_dataloader:
-    #
-    #     joint_batch = joint_batch.to(device)
-    #     tcp_batch = tcp_batch.to(device)
-    #
-    #     # forward pass only accepts float
-    #     joint_batch = joint_batch.float()
-    #     tcp_batch = tcp_batch.float()
-    #
-    #     _x = model.predict(tcp_batch, device)
-    #     rmse = RMSE(_x, joint_batch)
-    #
-    #     test_rsme_avg[-1] += rmse.detach()
-    #     num_batches += 1
-    #
-    # test_rsme_avg[-1] /= num_batches
-    # print('Average RMSE between gt joints and generated joints: %f' % (test_rsme_avg[-1]))
+        # 3.
+        # Calculate posterior mismatch between _p(x|y*) and p_gt(x|y*) with MMD
 
-    ####################################################################################################################
-    # VISUALISATION
-    ####################################################################################################################
+        error = MMD(gt_joint_states, pred_joint_states, device=device)
+        mismatch_avg[-1] += error.item()
 
-    # input = None
-    # if config['dof'] == '2DOF':
-    #     input = torch.Tensor([[-np.pi / 6, np.pi / 6]])
-    # else:
-    #     input = torch.Tensor([[-np.pi / 8, np.pi / 8, -np.pi / 8]])
-    #
-    # # compute resulting tcp coordinates
-    # tcp = robot.forward(joint_states=input.detach())
-    # tcp = torch.Tensor([[tcp[0], tcp[1]]])
-    # # print('tcp coordinates: ', tcp)
-    #
-    # # Plot ground truth configuration
-    # robot.plot(joint_states=input.detach(), path='figures/gt_configurations_' + str(config['dof']) + '.png',
-    #            separate_plots=False)
+    # Average error over N different observations y*
+    mismatch_avg[-1] /= N
+    print('Average error of posterior: %.3f' % mismatch_avg[-1])
 
+    # 4. and 5.
+    # Apply the forward process f to the generated samples _p(x|y*): y_resim = f(_p(x|y*)) and
+    # measure the re-simulation error between y_resim and y*
 
-    tcp = torch.Tensor([[5.0, -6.0]])
+    # Now consider the whole test dataset
+    num_batches = 0
+    error_resim_avg = []
+    error_resim_avg.append(0)
+    for joint_batch, tcp_batch in test_dataloader:
 
+        joint_batch = joint_batch.to(device)
+        tcp_batch = tcp_batch.to(device)
 
+        # only accepts float
+        joint_batch = joint_batch.float()
+        tcp_batch = tcp_batch.float()
 
+        _x = model.predict(tcp_batch, device)
+        # perform forward kinemtatics on _x
+        y_resim = torch.Tensor(robot.forward(joint_states=_x.detach()))
+        # Exclude orientation
+        y_resim = y_resim[:, :2]
+        error_resim = MSE(y_resim, tcp_batch, reduction='mean')
+        error_resim_avg[-1] += error_resim
+        num_batches += 1
 
-    # Generate joints angles from predefined tcp coordinates
-    _x, _y, preds_joints = [], [], []
-
-    for i in range(config['num_samples_config']):
-        preds = model.predict(tcp, device)
-        preds_joints.append(preds.detach().tolist()[0])
-
-    # Plot generated configurations
-    preds_joints = np.array(preds_joints)
-    robot.plot(joint_states=preds_joints, path='figures/generated_configurations_' + model_name + '_' +
-                                               str(config['dof']) + '.png', separate_plots=False)
-
-    # Plot contour lines enclose the region conaining 97% of the end points
-    resimulation_tcp = robot.forward(joint_states=preds_joints)
-    resimulation_xy = resimulation_tcp[:, :2]
-
-    tcp_squeezed = torch.squeeze(tcp)
-
-    plot_contour_lines(config, resimulation_xy, gt=tcp_squeezed.numpy(), percentile=percentile)
-
-    ####################################################################################################################
-
-    # if model_name == 'CVAE':
-    #     for i in range(config['num_samples_config']):
-    #         pred_joint_angles = model.predict(tcp, device)
-    #         # print('pred_joint_angles: ', pred_joint_angles)
-    #         preds = postprocess(pred_joint_angles)
-    #         preds_joints.append(preds.numpy().tolist()[0])
-    # else:
-    #     invalid_preds = 0
-    #     for i in range(config['num_samples_config']):
-    #         pred_joint_angles = model.predict(tcp, device)
-    #         if torch.any(pred_joint_angles < -1.0) or torch.any(pred_joint_angles > 1.0):
-    #             invalid_preds = invalid_preds + 1
-    #             continue
-    #         # print('pred_joint_angles: ', pred_joint_angles)
-    #         preds = postprocess(pred_joint_angles)
-    #         preds_joints.append(preds.numpy().tolist()[0])
-    #
-    #     print('INVALID PREDICTIONS / TOTAL PREDICTIONS: %i / %i' % (invalid_preds, config['num_samples_config']))
-
-    # if model_name == 'CVAE':
-    #     # visualise latent space
-    #     input = []
-    #     tcp = []
-    #     for i in range(config['num_samples_latent']):
-    #         input.append(test_dataset.__getitem__(i)[0])
-    #         tcp.append(test_dataset.__getitem__(i)[1])
-    #
-    #     input = torch.Tensor(input)
-    #     tcp = torch.Tensor(tcp)
-    #
-    #     # forward pass only accepts float
-    #     input = input.float()
-    #     tcp = tcp.float()
-    #
-    #     # apply sine and cosine to joint angles
-    #     # input = preprocess(input)
-    #
-    #     # forward propagation
-    #     with torch.no_grad():
-    #         z = model.visualise_z(input, tcp)
-    #
-    #     print('size of z: ', z)
-    #
-    #     # fig = plt.figure()
-    #     # plt.title('Latent space')
-    #     # plt.xlabel('Z1')
-    #     # plt.ylabel('Z2')
-    #     # plt.scatter(z[:, 0], z[:, 1], c='g')
-    #     # plt.savefig('figures/Latent_space_' + str(config['dof']) + '.png')
-    #
-    #     fig = plt.figure()
-    #     plt.title('Latent space')
-    #     plt.xlabel('Z')
-    #     # plt.plot(z[:, 0], c='g')
-    #     plt.plot(z[:, 0], np.zeros_like(z[:, 0]) + 0., 'x')
-    #     plt.savefig('figures/Latent_space_CVAE_' + str(config['dof']) + '.png')
-    #
-    # else:
-    #     # visualise latent space
-    #     input = []
-    #     for i in range(config['num_samples_latent']):
-    #         input.append(test_dataset.__getitem__(i)[0])
-    #
-    #     input = torch.Tensor(input)
-    #
-    #     # forward pass only accepts float
-    #     input = input.float()
-    #
-    #     # apply sine and cosine to joint angles
-    #     # input = preprocess(input)
-    #     model.visualise_z(config, input)
+    error_resim_avg[-1] /= num_batches
+    print('Average re-simulation error: %.3f' % error_resim_avg[-1])
