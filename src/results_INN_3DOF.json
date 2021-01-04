@@ -1,1 +1,1 @@
-["INN", "3DOF", "N = 1", "M = 10", "Average error of posterior: 0.29556038975715637", "Average re-simulation error: tensor(1.4651)"]
+["INN", "3DOF", "N = 1", "M = 100", "Average error of posterior: 0.1574472337961197", "Average re-simulation error: tensor(3.4921)"]

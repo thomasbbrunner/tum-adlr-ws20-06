@@ -23,7 +23,6 @@ def train_CVAE(model, config, dataloader, device):
     kl_loss_avg = []
 
     num_trainable_parameters = sum(p.numel() for p in model.parameters())
-
     print('TRAINABLE PARAMETERS: ', num_trainable_parameters)
 
     optimizer = torch.optim.Adam(params=model.parameters(), lr=config['lr_rate'],
@@ -50,16 +49,15 @@ def train_CVAE(model, config, dataloader, device):
             coord_batch = coord_batch.float()
 
             # apply sine and cosine to joint angles
-            # joint_batch = preprocess(joint_batch)
+            joint_batch = preprocess(joint_batch)
 
             # forward propagation
             image_batch_recon, latent_mu, latent_logvar = model(joint_batch, coord_batch)
 
             # compute losses
-            # recon_loss = F.mse_loss(image_batch_recon, joint_batch, reduction='sum')
-            recon_loss = MSE(image_batch_recon, joint_batch, reduction='sum')
+            # recon_loss = MSE(image_batch_recon, joint_batch, reduction='sum')
+            recon_loss = custom_loss(image_batch_recon, joint_batch)
             kldivergence = KL_divergence(latent_mu, latent_logvar)
-
 
             loss = recon_loss + config['variational_beta'] * kldivergence
 
@@ -183,7 +181,7 @@ def train_INN(model, config, dataloader, device):
             y = y.float()
 
             # apply sine and cosine to joint angles
-            # x = preprocess(x)
+            x = preprocess(x)
 
             # This is used later for training the inverse pass
             y_clean = y.clone()
@@ -253,7 +251,8 @@ def train_INN(model, config, dataloader, device):
             output_inv_rand = model(y_inv_rand, inverse=True)
 
             # forces padding dims to be ignored
-            L_xy = config['weight_Lxy'] * MSE(output_inv, x, reduction='mean')
+            # L_xy = config['weight_Lxy'] * MSE(output_inv, x, reduction='mean')
+            L_xy = config['weight_Lxy'] * custom_loss(output_inv, x)
             # print('L_xy: ', config['weight_Ly'] * L_xy)
 
             # TODO: What is the benefit of that loss?

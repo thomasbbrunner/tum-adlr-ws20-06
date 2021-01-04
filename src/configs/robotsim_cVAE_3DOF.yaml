@@ -7,25 +7,21 @@ weight_dir : 'weights/ROBOTSIM_CVAE_3DOF'
 checkpoint_dir: 'checkpoints/'
 
 # Network parameters
-input_dim: 3 # 2*3 = 2 * number of joints
-hidden_dim: 128 # number of neurons per fully connected layer
+input_dim: 6 # 2*3 = 2 * number of joints
+hidden_dim: 300 # number of neurons per fully connected layer
 latent_dim: 1
 condition_dim: 2 # (x, y) coordinates of end-effector
 
 # Training
-num_epochs: 40
-batch_size: 250
+num_epochs: 90
+batch_size: 500
 lr_rate: 0.01
 weight_decay: 0.0001
 # variational_beta: 0.01 # for weighting KLdivergence/reconstruction loss
-variational_beta: 0.01
-checkpoint_epoch: 10
+variational_beta: 0.067
+checkpoint_epoch: 30
 
 # lr-scheduler
 # milestones: [10, 20, 30]
-milestones: [5, 20, 30]
+milestones: [40, 60, 80]
 gamma: 0.1
-
-# Testing
-num_samples_config: 100
-num_samples_latent: 20

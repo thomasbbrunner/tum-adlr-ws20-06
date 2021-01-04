@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 import torch
 import torch.nn as nn
+from utils import *
 
 '''
 Maximum Mean Discrepancy (MMD)
@@ -105,6 +106,44 @@ def VAE_loss_ROBOT_SIM(recon_x, x, mu, logvar, variational_beta):
     kldivergence = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
     return recon_loss + variational_beta * kldivergence
+
+# Input x: gt input vector with shape: num_samples x 2 * num_joints
+# Input _x: predicted input vector with shape: num_samples x 2 * num_joints
+def custom_loss(_x, x):
+
+    num_joints = int(x.size()[1] / 2)
+    samples = x.size()[0]
+
+    # normalize vectors
+    # _x_normalized = normalize(_x)
+
+    # vectorize input vectors
+    _x_vectorized = vectorize(_x)
+    x_vectorized = vectorize(x)
+
+    # normalize preds direction vectors
+    _x_normalized = nn.functional.normalize(input=_x_vectorized, dim=2) # eps=0.00001
+
+
+    # _x_clipped = torch.clip(input=_x_vectorized, min=-1.00, max=1.00)
+    # x_clipped = torch.clip(input=x_vectorized, min=-1.00, max=1.00)
+
+    # print(_x_normalized)
+
+    loss_i = torch.zeros(size=(samples,))
+    ones = torch.ones(size=(samples,))
+    for i in range(num_joints):
+        # print('size of _x_vectorized:', _x_vectorized.size())
+        # print('size of ones:', ones.size())
+        # print('size of _x_vectorized[:, i, 0]:', _x_vectorized[:, i, 0].size())
+        # print(ones - (_x_vectorized[:, i, 0] * x_vectorized[:, i, 0] + _x_vectorized[:, i, 1] * x_vectorized[:, i, 1]))
+        loss_i += ones - (_x_normalized[:, i, 0] * x_vectorized[:, i, 0] + _x_normalized[:, i, 1]
+                                           * x_vectorized[:, i, 1])
+
+    # divide by num_joints ?
+    # loss_i /= num_joints
+
+    return torch.mean(loss_i)
 
 # Testing example
 if __name__ == '__main__':

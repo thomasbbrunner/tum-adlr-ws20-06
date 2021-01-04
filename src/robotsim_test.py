@@ -38,9 +38,9 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    model_name = 'INN'
+    model_name = 'CVAE'
     robot_dof = '3DOF'
-    dof = 3
+
     N = 1
     M = 10
     percentile = 0.97
@@ -64,20 +64,24 @@ if __name__ == '__main__':
             config = load_config('robotsim_cVAE_2DOF.yaml', 'configs/')
             robot = robotsim.Robot2D2DoF([3, 2])
             dataset = RobotSimDataset(robot, 1e4)
+            dof=2
         else:
             config = load_config('robotsim_cVAE_3DOF.yaml', 'configs/')
             robot = robotsim.Robot2D3DoF([3, 2, 3])
             dataset = RobotSimDataset(robot, 1e4)
+            dof = 3
         model = CVAE(config)
     else:
         if robot_dof == '2DOF':
             config = load_config('robotsim_INN_2DOF.yaml', 'configs/')
             robot = robotsim.Robot2D2DoF([3, 2])
             dataset = RobotSimDataset(robot, 1e4)
+            dof = 2
         else:
             config = load_config('robotsim_INN_3DOF.yaml', 'configs/')
             robot = robotsim.Robot2D3DoF([3, 2, 3])
             dataset = RobotSimDataset(robot, 1e4)
+            dof = 3
         model = INN(config)
 
     # ensures that models are trained and tested on the same samples
@@ -141,10 +145,14 @@ if __name__ == '__main__':
         # predict posterior distribution based on M samples
         pred_joint_states = model.predict(tcp=gen_tcp, device=device)
 
+        # Post-ptrocessing
+        pred_joint_states = postprocess(pred_joint_states)
+
         # generate plots for visualization for first sample
         if n == 0:
             # plot sample configuration from predicted posterior
-            robot.plot(pred_joint_states, path='figures/predicted_posterior_' + str(config['dof']) + '.png',
+            robot.plot(pred_joint_states, path='figures/predicted_posterior_' + model_name + '_' +
+                                               str(config['dof']) + '.png',
                        separate_plots=False)
             # Plot contour lines enclose the region containing 97% of the end points
             resimulation_tcp = robot.forward(joint_states=pred_joint_states)
@@ -182,8 +190,13 @@ if __name__ == '__main__':
         tcp_batch = tcp_batch.float()
 
         _x = model.predict(tcp_batch, device)
+
+        # Post-ptrocessing
+        _x = postprocess(_x)
+
         # perform forward kinemtatics on _x
         y_resim = torch.Tensor(robot.forward(joint_states=_x.detach()))
+
         # Exclude orientation
         y_resim = y_resim[:, :2]
         error_resim = MSE(y_resim, tcp_batch, reduction='mean')
@@ -193,9 +206,14 @@ if __name__ == '__main__':
     error_resim_avg[-1] /= num_batches
     print('Average re-simulation error: %.3f' % error_resim_avg[-1])
 
+    # show trainable parameters
+    trainable_parameters = [p for p in model.parameters() if p.requires_grad]
+    num_trainable_parameters = sum(p.numel() for p in model.parameters())
+
     list_results = []
     list_results.append(config['name'])
     list_results.append(config['dof'])
+    list_results.append('# trainable parameters: ' + str(num_trainable_parameters))
     list_results.append('N = ' + str(N))
     list_results.append('M = ' + str(M))
     list_results.append('Average error of posterior: ' + str(mismatch_avg[-1]))

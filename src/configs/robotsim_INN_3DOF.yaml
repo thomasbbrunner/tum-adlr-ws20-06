@@ -11,18 +11,18 @@ checkpoint_dir: 'checkpoints/'
 # Network parameters
 y_noise_scale : 0.001
 zeros_noise_scale : 0.005
-total_dim: 3 # considers padding, as well
-input_dim: 3 # = 2 * number of revolute joints + number of prismatic joints
-hidden_dim: 64 # number of neurons per fully connected layer
+total_dim: 6 # considers padding, as well
+input_dim: 6 # = 2 * number of revolute joints + number of prismatic joints
+hidden_dim: 128 # number of neurons per fully connected layer
 output_dim: 2 # tcp
-latent_dim: 1 # z
+latent_dim: 4 # z
 
 # Training
-num_epochs: 60
-batch_size: 1000
+num_epochs: 120
+batch_size: 500
 lr_rate: 0.001
 weight_decay: 0.0001
-checkpoint_epoch: 50
+checkpoint_epoch: 30
 
 # loss weights
 weight_Ly: 1.0
@@ -31,9 +31,5 @@ weight_Lx: 10.0
 weight_Lxy: 10.0
 
 # lr-scheduler
-milestones: [30, 50]
+milestones: [40, 80, 100]
 gamma: 0.1
-
-# Testing
-num_samples_config: 100
-num_samples_latent: 2000

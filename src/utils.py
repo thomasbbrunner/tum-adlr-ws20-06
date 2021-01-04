@@ -31,7 +31,7 @@ def preprocess(x):
     x = torch.cat((x_sin, x_cos), dim=1)
     return x
 
-def postprocess(x):
+def postprocess_old(x):
 
     # see values as complex numbers from which we want to compute its argument
     # arg(x + i*y) = arg(cos(phi) + i*sin(phi)) = arctan(y/x)
@@ -47,19 +47,51 @@ def postprocess(x):
 
     return _x
 
+def postprocess(x):
+
+    num_joints = int(x.size()[1] / 2)
+
+    # x_normalized = normalize(x)
+    _x = torch.zeros(size=(x.size()[0], num_joints))
+
+    for i in range(num_joints):
+        _x[:, i] = torch.atan2(input=x[:, i], other=x[:, num_joints+i])
+
+    return _x
+
 def normalize(x):
 
     num_joints = int(x.size()[1] / 2)
+    x_normalized = x.clone()
+
+    # print('x before normalization: ', x)
 
     # to avoid dividing by 0
     eps = 0.00001
 
     for i in range(num_joints):
         length = torch.sqrt(torch.square(x[:, i]) + torch.square(x[:, num_joints + i]))
-        x[:, i] = x[:, i] / (length + eps)
-        x[:, num_joints + i] = x[:, num_joints + i] / (length + eps)
+        x_normalized[:, i] = x[:, i] / (length + eps)
+        x_normalized[:, num_joints + i] = x[:, num_joints + i] / (length + eps)
 
-    return x
+    # print('x after normalization: ', x_normalized)
+
+    return x_normalized
+
+# Takes the output x of the network which has 2*num_joints variables and returns num_joints direction vectors
+# Input shape: num_samples x 2 * num_joints
+# Output shape: num_samples x num_joints x 2
+def vectorize(x):
+
+    num_joints = int(x.size()[1] / 2)
+    samples = x.size()[0]
+
+    x_vectorized = torch.zeros(size=(samples, num_joints, 2))
+    for i in range(num_joints):
+        x_vectorized[:, i, 0] = x[:, i]
+        x_vectorized[:, i, 1] = x[:, num_joints + i]
+
+    return x_vectorized
 
 def plot_contour_lines(points, gt, PATH, percentile=0.97):
 

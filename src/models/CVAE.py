@@ -52,6 +52,7 @@ class Encoder(nn.Module):
         self.fc1 = nn.Linear(in_features=X_dim + num_cond, out_features=hidden_dim)
         self.fc2 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
         self.fc3 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
+        # self.fc4 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
 
         # mean of latent space
         self.fc_mu = nn.Linear(in_features=hidden_dim, out_features=latent_dim)
@@ -62,6 +63,7 @@ class Encoder(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
+        # x = F.relu(self.fc4(x))
         x_mu = self.fc_mu(x)
         x_logvar = self.fc_logvar(x)
 
@@ -83,6 +85,7 @@ class Decoder(nn.Module):
         self.fc1 = nn.Linear(in_features=latent_dim + num_cond, out_features=hidden_dim)
         self.fc2 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
         self.fc3 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
+        # self.fc4 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
         self.fc4 = nn.Linear(in_features=hidden_dim, out_features=X_dim)
 
 
@@ -91,10 +94,12 @@ class Decoder(nn.Module):
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = F.relu(self.fc3(x))
+        # x = F.relu(self.fc4(x))
+        x = self.fc4(x)
 
         # force input to be between [-1, 1]
         # force input to be between [-pi/4, pi/4]
-        x = torch.acos(torch.zeros(1)).item() * 2 / 4 * torch.tanh(self.fc4(x))
+        # x = torch.acos(torch.zeros(1)).item() * 2 / 4 * torch.tanh(self.fc4(x))
 
         return x
 
