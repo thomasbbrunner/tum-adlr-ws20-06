@@ -208,7 +208,7 @@ class RobotSim(ABC):
                 ax.scatter(
                     arm[:, 0].flatten(),
                     arm[:, 1].flatten(),
-                    c='r', s=8)
+                    c='r', s=6)
         else:
 
             fig, ax = plt.subplots()
@@ -224,6 +224,7 @@ class RobotSim(ABC):
                 ax.plot(
                     arm[:, 0].flatten(),
                     arm[:, 1].flatten(),
+                    linewidth=1,
                     c='b')
 
             ax.scatter(

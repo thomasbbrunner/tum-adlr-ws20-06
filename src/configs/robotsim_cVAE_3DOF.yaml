@@ -8,20 +8,19 @@ checkpoint_dir: 'checkpoints/'
 
 # Network parameters
 input_dim: 6 # 2*3 = 2 * number of joints
-hidden_dim: 300 # number of neurons per fully connected layer
-latent_dim: 1
+hidden_dim: 300 # 300 # number of neurons per fully connected layer
+latent_dim: 4
 condition_dim: 2 # (x, y) coordinates of end-effector
 
 # Training
-num_epochs: 90
-batch_size: 500
+num_epochs: 150
+batch_size: 1000
 lr_rate: 0.01
 weight_decay: 0.0001
-# variational_beta: 0.01 # for weighting KLdivergence/reconstruction loss
-variational_beta: 0.067
-checkpoint_epoch: 30
+# variational_beta: 0.01 # for weighting KLdivergence / reconstruction loss
+variational_beta: 0.00067
+checkpoint_epoch: 50
 
 # lr-scheduler
-# milestones: [10, 20, 30]
-milestones: [40, 60, 80]
+milestones: [50, 90, 120]
 gamma: 0.1

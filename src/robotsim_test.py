@@ -38,11 +38,11 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    model_name = 'CVAE'
+    model_name = 'INN'
     robot_dof = '3DOF'
 
     N = 1
-    M = 10
+    M = 100
     percentile = 0.97
 
     ####################################################################################################################
@@ -67,7 +67,7 @@ if __name__ == '__main__':
             dof=2
         else:
             config = load_config('robotsim_cVAE_3DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D3DoF([3, 2, 3])
+            robot = robotsim.Robot2D3DoF([0.5, 0.5, 1.0])
             dataset = RobotSimDataset(robot, 1e4)
             dof = 3
         model = CVAE(config)
@@ -79,7 +79,7 @@ if __name__ == '__main__':
             dof = 2
         else:
             config = load_config('robotsim_INN_3DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D3DoF([3, 2, 3])
+            robot = robotsim.Robot2D3DoF([0.5, 0.5, 1.0])
             dataset = RobotSimDataset(robot, 1e4)
             dof = 3
         model = INN(config)
@@ -218,6 +218,9 @@ if __name__ == '__main__':
     list_results.append('M = ' + str(M))
     list_results.append('Average error of posterior: ' + str(mismatch_avg[-1]))
     list_results.append('Average re-simulation error: ' + str(error_resim_avg[-1]))
+    list_results.append('config: ' + str(config))
 
     with open('results_' + model_name + '_' + robot_dof + '.json', 'w') as fout:
-        json.dump(list_results, fout)
+        for item in list_results:
+            json.dump(item, fout)
+            fout.write('\n')

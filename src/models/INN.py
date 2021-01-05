@@ -151,8 +151,8 @@ class INN(nn.Module):
 
 
         else:
-            x = self.block5(x, inverse)
             # x = self.block6(x, inverse)
+            x = self.block5(x, inverse)
             # x = self.block5(self.perm5(x, inverse), inverse)
             x = self.block4(self.perm4(x, inverse), inverse)
             x = self.block3(self.perm3(x, inverse), inverse)

@@ -19,7 +19,7 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    model_name = 'CVAE'
+    model_name = 'INN'
     robot_dof = '3DOF'
 
     ####################################################################################################################
@@ -43,7 +43,7 @@ if __name__ == '__main__':
             dataset = RobotSimDataset(robot, 1e4)
         else:
             config = load_config('robotsim_cVAE_3DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D3DoF([3, 2, 3])
+            robot = robotsim.Robot2D3DoF([0.5, 0.5, 1.0])
             dataset = RobotSimDataset(robot, 1e4)
         model = CVAE(config)
     else:
@@ -53,7 +53,7 @@ if __name__ == '__main__':
             dataset = RobotSimDataset(robot, 1e4)
         else:
             config = load_config('robotsim_INN_3DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D3DoF([3, 2, 3])
+            robot = robotsim.Robot2D3DoF([0.5, 0.5, 1.0])
             dataset = RobotSimDataset(robot, 1e4)
         model = INN(config)
 

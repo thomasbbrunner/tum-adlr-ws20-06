@@ -56,9 +56,12 @@ def train_CVAE(model, config, dataloader, device):
 
             # compute losses
             # recon_loss = MSE(image_batch_recon, joint_batch, reduction='sum')
-            recon_loss = custom_loss(image_batch_recon, joint_batch)
+
+            # very important: reduction='sum', NOT 'mean' !!
+            recon_loss = custom_loss(image_batch_recon, joint_batch, reduction='sum')
             kldivergence = KL_divergence(latent_mu, latent_logvar)
 
+            # loss = recon_loss + nn.functional.sigmoid(epoch / config['num_epochs'] - 0.5) * kldivergence # config['variational_beta'] * kldivergence
             loss = recon_loss + config['variational_beta'] * kldivergence
 
             # backpropagation
@@ -85,8 +88,8 @@ def train_CVAE(model, config, dataloader, device):
         recon_loss_avg[-1] /= num_batches
         kl_loss_avg[-1] /= num_batches
 
-        print('Epoch [%d / %d] avg reconstruction error: %f, weighted avg kl error: %f, avg overall error: %f'
-              % (epoch + 1, config['num_epochs'], recon_loss_avg[-1], config['variational_beta'] * kl_loss_avg[-1],
+        print('Epoch [%d / %d] avg reconstruction error: %f, avg kl error: %f, avg overall error: %f'
+              % (epoch + 1, config['num_epochs'], recon_loss_avg[-1], kl_loss_avg[-1],
                  train_loss_avg[-1]))
 
 
@@ -163,6 +166,8 @@ def train_INN(model, config, dataloader, device):
         train_loss_Lx_avg_unweighted.append(0)
         num_batches = 0
 
+        reduction = 'sum'
+
         # If MMD on x-space is present from the start, the model can get stuck.
         # Instead, ramp it up exponentially.
         # loss_factor = min(1., 2. * 0.002 ** (1. - (float(epoch) / config['num_epochs'])))
@@ -219,7 +224,7 @@ def train_INN(model, config, dataloader, device):
             y_short = torch.cat((y[:, :config['latent_dim']], y[:, -config['output_dim']:]), dim=1)
             output_short = torch.cat((output[:, :config['latent_dim']], output[:, -config['output_dim']:].data), dim=1)
 
-            L_y = config['weight_Ly'] * MSE(output[:, config['latent_dim']:], y[:, config['latent_dim']:], reduction='mean')
+            L_y = config['weight_Ly'] * MSE(output[:, config['latent_dim']:], y[:, config['latent_dim']:], reduction=reduction)
             # print('L_y: ', config['weight_Ly'] * L_y)
             L_z = config['weight_Lz'] * MMD(output_short, y_short, device)
             # print('L_z: ', config['weight_Lz'] * L_z)
@@ -252,7 +257,7 @@ def train_INN(model, config, dataloader, device):
 
             # forces padding dims to be ignored
             # L_xy = config['weight_Lxy'] * MSE(output_inv, x, reduction='mean')
-            L_xy = config['weight_Lxy'] * custom_loss(output_inv, x)
+            L_xy = config['weight_Lxy'] * custom_loss(output_inv, x, reduction=reduction)
             # print('L_xy: ', config['weight_Ly'] * L_xy)
 
             # TODO: What is the benefit of that loss?
@@ -271,10 +276,26 @@ def train_INN(model, config, dataloader, device):
             optimizer.step()
 
             train_loss_avg[-1] += loss
+
+            # if torch.isnan(train_loss_avg[-1]):
+            #     raise Exception('NaN in loss detected!')
+
             train_loss_Ly_avg[-1] += L_y.data.detach()
+            if torch.isnan(train_loss_Ly_avg[-1]):
+                raise Exception('NaN in Ly loss detected!')
+
             train_loss_Lz_avg[-1] += L_z.data.detach()
+            if torch.isnan(train_loss_Lz_avg[-1]):
+                raise Exception('NaN in Lz loss detected!')
+
             train_loss_Lx_avg[-1] += L_x.data.detach()
+            if torch.isnan(train_loss_Lx_avg[-1]):
+                raise Exception('NaN in Lx loss detected!')
+
             train_loss_Lxy_avg[-1] += L_xy.data.detach()
+            if torch.isnan(train_loss_Lxy_avg[-1]):
+                raise Exception('NaN in Lxy loss detected!')
+
             train_loss_Lx_avg_unweighted[-1] += UNWEIGHTED_LOSS.data.detach()
 
             num_batches += 1
@@ -300,8 +321,6 @@ def train_INN(model, config, dataloader, device):
               'weighted average x-MSE loss: %f, weighted average x-MMD loss: %f, Overall average loss: %f'
               % (epoch + 1, config['num_epochs'], train_loss_Ly_avg[-1],
                                           train_loss_Lz_avg[-1], train_loss_Lxy_avg[-1], train_loss_Lx_avg[-1], train_loss_avg[-1]))
-
-        # print('Unweighted x-MMD loss: %f' % train_loss_Lx_avg_unweighted[-1])
 
     plt.title('AVG LOSS HISTORY')
     plt.xlabel('EPOCHS')
