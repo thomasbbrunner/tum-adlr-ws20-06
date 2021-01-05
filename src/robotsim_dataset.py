@@ -8,24 +8,27 @@ import robotsim
 
 
 class RobotSimDataset(Dataset):
-    """
-    TODO:
-    - More uniform distribution of samples in cartesian space.
+    """TODO:
+    - improve interface: 
+        commenting out code to enable features is not ideal
+        (e.g. joint ranges)
     """
 
     # for generation of random values
     # according to new numpy documentation
-    random_gen = np.random.default_rng()
+    random_gen = np.random.default_rng(seed=42)
 
-    def __init__(self, robot, num_samples):
+    def __init__(self, robot, num_samples, normal=True):
         """Dataset for robot simulation.
 
         Dataset is generated on demand. 
         Entire dataset is stored in memory.
 
         Args:
-            robot: instance of RobotSim
+            robot: instance of RobotSim.
             num_samples: number of samples in dataset.
+            normal: sampled from normal distribution, 
+                otherwise uniform distribution.
 
         Example usage:
         robot = robotsim.Robot2D3DoF([3, 3, 3])
@@ -39,15 +42,14 @@ class RobotSimDataset(Dataset):
         joint_ranges = self._robot.get_joint_ranges()
 
         # TODO: Check whether better
-        # sample random combinations of joint states
-        # self._joint_states = self.random_gen.uniform(
-        #     joint_ranges[:, 0], joint_ranges[:, 1],
-        #     (self._num_samples, self._num_dof))
-
-        # sample from random normal distribution N(0, std) with std=0.5
-        seed = 42
-        np.random.seed(seed)
-        self._joint_states = np.random.normal(loc=0.0, scale=0.5, size=(self._num_samples, self._num_dof))
+        if normal:
+            # sample from random normal distribution N(0, std) with std=0.5
+            self._joint_states = self.random_gen.normal(
+                loc=0.0, scale=0.5, size=(self._num_samples, self._num_dof))
+        else:
+            self._joint_states = self.random_gen.uniform(
+                joint_ranges[:, 0], joint_ranges[:, 1],
+                (self._num_samples, self._num_dof))
 
         self._tcp_coords = robot.forward(self._joint_states)
 
@@ -76,7 +78,7 @@ class RobotSimDataset(Dataset):
             marker='.', s=1)
 
         ax.set_title(
-            "{} DoF Dataset ({} samples)". format(
+            "Dataset {} DoF ({} samples)". format(
                 self._num_dof, self._num_samples))
         ax.set_xlabel("$x_1$")
         ax.set_ylabel("$x_2$")
@@ -120,24 +122,46 @@ class RobotSimDataset(Dataset):
 
 if __name__ == "__main__":
 
-    # num_samples = 1e6
     num_samples = 1e6
 
-    # robot = robotsim.Robot2D2DoF([3, 2])
-    # dataset = RobotSimDataset(robot, num_samples)
-    # dataset.plot(path="./figures/dataset_2D2DoF")
-    # dataset.histogram(path="./figures/dataset_2D2DoF_histogram")
+    # 2 DoF
+    robot = robotsim.Robot2D2DoF([3, 2])
+    dataset = RobotSimDataset(robot, num_samples)
+    # dataset.plot(path="./figures/dataset/normal_Robot2D2DoF")
+    dataset.histogram(path="./figures/dataset/normal_Robot2D2DoF_histogram")
 
+    dataset = RobotSimDataset(robot, num_samples, normal=False)
+    # dataset.plot(path="./figures/dataset/uniform_Robot2D2DoF")
+    dataset.histogram(path="./figures/dataset/uniform_Robot2D2DoF_histogram")
+
+    # 3 DoF
     robot = robotsim.Robot2D3DoF([3, 2, 3])
     dataset = RobotSimDataset(robot, num_samples)
-    # dataset.plot(path="./figures/dataset_2D3DoF")
-    dataset.plot()
-    # dataset.histogram(path="./figures/dataset_2D3DoF_histogram")
-    dataset.histogram()
+    # dataset.plot(path="./figures/dataset/normal_Robot2D3DoF")
+    dataset.histogram(path="./figures/dataset/normal_Robot2D3DoF_histogram")
 
-    # robot = robotsim.Robot2D4DoF([3, 2, 3])
-    # dataset = RobotSimDataset(robot, num_samples)
-    # dataset.plot(path="./figures/dataset_2D4DoF")
-    # dataset.histogram(path="./figures/dataset_2D4DoF_histogram")
+    dataset = RobotSimDataset(robot, num_samples, normal=False)
+    # dataset.plot(path="./figures/dataset/uniform_Robot2D3DoF")
+    dataset.histogram(path="./figures/dataset/uniform_Robot2D3DoF_histogram")
 
-    plt.show()
+    # 4 DoF
+    robot = robotsim.Robot2D4DoF([3, 2, 2, 3])
+    dataset = RobotSimDataset(robot, num_samples)
+    # dataset.plot(path="./figures/dataset/normal_Robot2D4DoF")
+    dataset.histogram(path="./figures/dataset/normal_Robot2D4DoF_histogram")
+
+    dataset = RobotSimDataset(robot, num_samples, normal=False)
+    # dataset.plot(path="./figures/dataset/uniform_Robot2D4DoF")
+    dataset.histogram(path="./figures/dataset/uniform_Robot2D4DoF_histogram")
+
+    # Paper's Robot
+    robot = robotsim.RobotPaper([3, 2, 3])
+    dataset = RobotSimDataset(robot, num_samples)
+    # dataset.plot(path="./figures/dataset/normal_RobotPaper")
+    dataset.histogram(path="./figures/dataset/normal_RobotPaper_histogram")
+
+    dataset = RobotSimDataset(robot, num_samples, normal=False)
+    # dataset.plot(path="./figures/dataset/uniform_RobotPaper")
+    dataset.histogram(path="./figures/dataset/uniform_RobotPaper_histogram")
+
+    # plt.show()
