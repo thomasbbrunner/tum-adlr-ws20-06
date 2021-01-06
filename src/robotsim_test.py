@@ -38,8 +38,8 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    model_name = 'INN'
-    robot_dof = '4DOF'
+    model_name = 'CVAE'
+    robot_dof = '3DOF'
 
     N = 1
     M = 100
@@ -122,6 +122,8 @@ if __name__ == '__main__':
 
         N_x = test_dataset.__getitem__(n)[0]
         N_y = test_dataset.__getitem__(n)[1]
+
+        print('n / N : %i / %i' % (n, N))
 
 
         # 1.

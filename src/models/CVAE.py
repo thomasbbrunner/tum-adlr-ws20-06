@@ -9,50 +9,15 @@ from utils import *
  CVAE paper:  Learning structured output representation using deep conditional generative models [Sohn et al 2015]
  Code: https://github.com/graviraja/pytorch-sample-codes/blob/master/conditional_vae.py
  '''
-
-class Preprocessor(nn.Module):
-
-    def __init__(self, dof=3):
-        super(Preprocessor, self).__init__()
-        self.dof = dof
-
-    def forward(self, x):
-        return preprocess(x)
-
-class Postprocessor(nn.Module):
-
-    def __init__(self, dof=3):
-        super(Postprocessor, self).__init__()
-        self.dof = dof
-
-    def forward(self, x):
-        return postprocess(x)
-
 class Encoder(nn.Module):
-    def __init__(self, X_dim, hidden_dim, latent_dim, num_cond):
 
-        '''
-        Encoder network with only fully connected layers and ReLU activations
-
-        Args:
-            X_dim: number of input variables (joint angles, ect.)
-            hidden_dim: number of nodes of the fully connected layers
-            latent_dims: number of nodes for additional variable z)
-        '''
+    def __init__(self, X_dim, hidden_dim, latent_dim, num_cond, num_layers):
 
         super(Encoder, self).__init__()
 
-        '''
-        self.fc_layers = []
-        self.fc_layers.append(nn.Linear(in_features=X_dim + num_cond, out_features=hidden_dim))
-        for i in range(num_layers)-1:
-            self.fc_layers.append(nn.Linear(in_features=hidden_dim, out_features=hidden_dim))
-        '''
-
-        self.fc1 = nn.Linear(in_features=X_dim + num_cond, out_features=hidden_dim)
-        self.fc2 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
-        self.fc3 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
-        # self.fc4 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
+        # create list of hidden layers
+        self.fcs = nn.ModuleList([nn.Linear(in_features=X_dim + num_cond, out_features=hidden_dim)])
+        self.fcs.extend([nn.Linear(in_features=hidden_dim, out_features=hidden_dim) for i in range(1, num_layers)])
 
         # mean of latent space
         self.fc_mu = nn.Linear(in_features=hidden_dim, out_features=latent_dim)
@@ -60,10 +25,10 @@ class Encoder(nn.Module):
         self.fc_logvar = nn.Linear(in_features=hidden_dim, out_features=latent_dim)
 
     def forward(self, x):
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        # x = F.relu(self.fc4(x))
+
+        for layer in self.fcs:
+            x = F.relu(layer(x))
+
         x_mu = self.fc_mu(x)
         x_logvar = self.fc_logvar(x)
 
@@ -71,35 +36,20 @@ class Encoder(nn.Module):
 
 class Decoder(nn.Module):
 
-    def __init__(self, X_dim, hidden_dim, latent_dim, num_cond):
-        '''
-        Decoder network with only fully connected layers and ReLU activations
-
-        Args:
-            X_dim: number of input variables (joint angles, ect.)
-            hidden_dim: number of nodes of the fully connected layers
-            latent_dims: number of nodes for additional variable z)
-        '''
+    def __init__(self, X_dim, hidden_dim, latent_dim, num_cond, num_layers):
 
         super(Decoder, self).__init__()
-        self.fc1 = nn.Linear(in_features=latent_dim + num_cond, out_features=hidden_dim)
-        self.fc2 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
-        self.fc3 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
-        # self.fc4 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
-        self.fc4 = nn.Linear(in_features=hidden_dim, out_features=X_dim)
 
+        # create list of hidden layers
+        self.fcs = nn.ModuleList([nn.Linear(in_features=latent_dim + num_cond, out_features=hidden_dim)])
+        self.fcs.extend([nn.Linear(in_features=hidden_dim, out_features=hidden_dim) for i in range(1, num_layers)])
+        self.fc_output = nn.Linear(in_features=hidden_dim, out_features=X_dim)
 
     def forward(self, x):
 
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = F.relu(self.fc3(x))
-        # x = F.relu(self.fc4(x))
-        x = self.fc4(x)
-
-        # force input to be between [-1, 1]
-        # force input to be between [-pi/4, pi/4]
-        # x = torch.acos(torch.zeros(1)).item() * 2 / 4 * torch.tanh(self.fc4(x))
+        for layer in self.fcs:
+            x = F.relu(layer(x))
+        x = self.fc_output(x)
 
         return x
 
@@ -127,17 +77,15 @@ class CVAE(nn.Module):
         self.latent_dim = config['latent_dim']
         self.X_dim = config['input_dim']
         self.hidden_dim = config['hidden_dim']
+        self.num_layers = config['num_layers']
 
         self.num_condition = config['condition_dim']
-        # self.preprocessor = Preprocessor()
-        self.encoder = Encoder(self.X_dim, self.hidden_dim, self.latent_dim, self.num_condition)
-        self.decoder = Decoder(self.X_dim, self.hidden_dim, self.latent_dim, self.num_condition)
-        # self.postprocessor = Postprocessor()
+        self.encoder = Encoder(self.X_dim, self.hidden_dim, self.latent_dim, self.num_condition, self.num_layers)
+        self.decoder = Decoder(self.X_dim, self.hidden_dim, self.latent_dim, self.num_condition, self.num_layers)
 
 
     def forward(self, x, condition):
 
-        # x = self.preprocessor(x)
         x = torch.cat((x, condition), dim=1)
 
         latent_mu, latent_logvar = self.encoder(x)
@@ -145,20 +93,18 @@ class CVAE(nn.Module):
         z = torch.cat((latent, condition), dim=1)
         x_recon = self.decoder(z)
 
-        # x_recon = self.postprocessor(x_recon)
-
         return x_recon, latent_mu, latent_logvar
 
     def latent_sample(self, mu, logvar):
-        '''
-        if self.training:
-            # the reparameterization trick
-            std = logvar.mul(0.5).exp_()
-            eps = torch.empty_like(std).normal_()
-            return eps.mul(std).add_(mu)
-        else:
-            return mu
-        '''
+
+        # if self.training:
+        #     # the reparameterization trick
+        #     std = logvar.mul(0.5).exp_()
+        #     eps = torch.empty_like(std).normal_()
+        #     return eps.mul(std).add_(mu)
+        # else:
+        #     return mu
+
         # the reparameterization trick
         std = logvar.mul(0.5).exp_()
         eps = torch.empty_like(std).normal_()
@@ -168,7 +114,6 @@ class CVAE(nn.Module):
     def visualise_z(self, x, condition):
 
         with torch.no_grad():
-            # x = self.preprocessor(x)
             x = torch.cat((x, condition), dim=1)
             latent_mu, latent_logvar = self.encoder(x)
             latent = self.latent_sample(latent_mu, latent_logvar)
@@ -183,7 +128,6 @@ class CVAE(nn.Module):
         x = torch.cat((z, tcp), dim=1)
         with torch.no_grad():
             x = self.decoder(x)
-            # x = self.postprocessor(x)
 
         return x
 
@@ -207,7 +151,6 @@ class CVAE(nn.Module):
             return epoch, loss
 
     def save_weights(self, PATH):
-        # TODO: save whole model state
         torch.save(self.state_dict(), PATH)
 
     def load_weights(self, PATH):

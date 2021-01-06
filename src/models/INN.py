@@ -50,20 +50,24 @@ class FixedRandomPermutation(nn.Module):
 
 class sub_network(nn.Module):
 
-    def __init__(self, input_dim, hidden_dim, output_dim):
+    def __init__(self, input_dim, hidden_dim, output_dim, num_layers):
         super(sub_network, self).__init__()
-        self.fc1 = nn.Linear(in_features=input_dim, out_features=hidden_dim)
-        self.fc2 = nn.Linear(in_features=hidden_dim, out_features=hidden_dim)
-        self.fc3 = nn.Linear(in_features=hidden_dim, out_features=output_dim)
+
+        # create list of hidden layers
+        self.fcs = nn.ModuleList([nn.Linear(in_features=input_dim, out_features=hidden_dim)])
+        self.fcs.extend([nn.Linear(in_features=hidden_dim, out_features=hidden_dim) for i in range(1, num_layers-1)])
+        self.fcs.append(nn.Linear(in_features=hidden_dim, out_features=output_dim))
+
 
     def forward(self, x):
-        x = F.leaky_relu(self.fc1(x))
-        x = F.leaky_relu(self.fc2(x))
-        x = F.leaky_relu(self.fc3(x))
+
+        for layer in self.fcs:
+            x = F.leaky_relu(layer(x))
+
         return x
 
 class AffineCouplingBlock(nn.Module):
-    def __init__(self, input_dim, hidden_dim):
+    def __init__(self, input_dim, hidden_dim, num_layers):
         super(AffineCouplingBlock, self).__init__()
 
         # Split input U into two halves
@@ -71,10 +75,10 @@ class AffineCouplingBlock(nn.Module):
         self.u2_dim = input_dim - input_dim // 2
 
         # Define scale and translation subnetworks for the two complementary affine coupling layers
-        self.s1 = sub_network(self.u1_dim, hidden_dim, self.u2_dim)
-        self.t1 = sub_network(self.u1_dim, hidden_dim, self.u2_dim)
-        self.s2 = sub_network(self.u2_dim, hidden_dim, self.u1_dim)
-        self.t2 = sub_network(self.u2_dim, hidden_dim, self.u1_dim)
+        self.s1 = sub_network(self.u1_dim, hidden_dim, self.u2_dim, num_layers)
+        self.t1 = sub_network(self.u1_dim, hidden_dim, self.u2_dim, num_layers)
+        self.s2 = sub_network(self.u2_dim, hidden_dim, self.u1_dim, num_layers)
+        self.t2 = sub_network(self.u2_dim, hidden_dim, self.u1_dim, num_layers)
 
     def forward(self, x, inverse=False):
 
@@ -127,43 +131,27 @@ class INN(nn.Module):
         self.batch_size = config['batch_size']
         self.y_noise_scale = config['y_noise_scale']
         self.zeros_noise_scale = config['zeros_noise_scale']
+        self.num_layers_subnet = config['num_layers_subnet']
+        self.num_coupling_layers = config['num_coupling_layers']
 
-        self.block1 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
-        self.perm1 = FixedRandomPermutation(self.input_dim, 1)
-        self.block2 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
-
-        self.perm2 = FixedRandomPermutation(self.input_dim, 2)
-        self.block3 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
-        self.perm3 = FixedRandomPermutation(self.input_dim, 3)
-        self.block4 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
-        self.perm4 = FixedRandomPermutation(self.input_dim, 4)
-        self.block5 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
-        # self.perm5 = FixedRandomPermutation(self.input_dim, 5)
-        # self.block6 = AffineCouplingBlock(self.input_dim, self.hidden_dim)
+        # create list of hidden layers
+        self.fcs = nn.ModuleList()
+        for i in range(self.num_coupling_layers-1):
+            self.fcs.append(AffineCouplingBlock(self.input_dim, self.hidden_dim, self.num_layers_subnet))
+            self.fcs.append(FixedRandomPermutation(self.input_dim, i))
+        self.fcs.append(AffineCouplingBlock(self.input_dim, self.hidden_dim, self.num_layers_subnet))
 
 
     def forward(self, x, inverse=False):
 
         if not inverse:
-            # coupling layer
-            x = self.block1(x, inverse)
-            # shuffle components (fixed permutation)
-            # ensures that every single input variable affects every single output variable
-            x = self.block2(self.perm1(x, inverse), inverse)
-            x = self.block3(self.perm2(x, inverse), inverse)
-            x = self.block4(self.perm3(x, inverse), inverse)
-            x = self.block5(self.perm4(x, inverse), inverse)
-            # x = self.block6(self.perm5(x, inverse), inverse)
-
+            for layer in self.fcs:
+                x = layer(x, inverse)
 
         else:
-            # x = self.block6(x, inverse)
-            x = self.block5(x, inverse)
-            # x = self.block5(self.perm5(x, inverse), inverse)
-            x = self.block4(self.perm4(x, inverse), inverse)
-            x = self.block3(self.perm3(x, inverse), inverse)
-            x = self.block2(self.perm2(x, inverse), inverse)
-            x = self.block1(self.perm1(x, inverse), inverse)
+
+            for layer in reversed(self.fcs):
+                x = layer(x, inverse)
 
         return x
 

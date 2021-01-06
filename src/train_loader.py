@@ -62,6 +62,14 @@ def train_CVAE(model, config, dataloader, device):
             kldivergence = KL_divergence(latent_mu, latent_logvar)
 
             # loss = recon_loss + nn.functional.sigmoid(epoch / config['num_epochs'] - 0.5) * kldivergence # config['variational_beta'] * kldivergence
+
+            # if epoch < config['num_epochs'] / 2:
+            #     beta = config['variational_beta']
+            # elif epoch >= config['num_epochs'] / 2 and epoch < 3 * config['num_epochs'] / 4:
+            #     beta = 10 * config['variational_beta']
+            # else:
+            #     beta = 100 * config['variational_beta']
+
             loss = recon_loss + config['variational_beta'] * kldivergence
 
             # backpropagation
@@ -225,9 +233,7 @@ def train_INN(model, config, dataloader, device):
             output_short = torch.cat((output[:, :config['latent_dim']], output[:, -config['output_dim']:].data), dim=1)
 
             L_y = config['weight_Ly'] * MSE(output[:, config['latent_dim']:], y[:, config['latent_dim']:], reduction=reduction)
-            # print('L_y: ', config['weight_Ly'] * L_y)
             L_z = config['weight_Lz'] * MMD(output_short, y_short, device)
-            # print('L_z: ', config['weight_Lz'] * L_z)
             loss_forward = L_y + L_z
             loss = loss_forward.data.detach()
 
@@ -276,9 +282,6 @@ def train_INN(model, config, dataloader, device):
             optimizer.step()
 
             train_loss_avg[-1] += loss
-
-            # if torch.isnan(train_loss_avg[-1]):
-            #     raise Exception('NaN in loss detected!')
 
             train_loss_Ly_avg[-1] += L_y.data.detach()
             if torch.isnan(train_loss_Ly_avg[-1]):

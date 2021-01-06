@@ -13,6 +13,9 @@ hidden_dim: 128 # number of neurons per fully connected layer
 output_dim: 2 # tcp
 latent_dim: 4 # z
 
+num_layers_subnet: 3
+num_coupling_layers: 6
+
 # Training
 num_epochs: 300
 batch_size: 1000
@@ -24,7 +27,7 @@ checkpoint_epoch: 100
 weight_Ly: 0.01
 weight_Lz: 100.0
 weight_Lx: 100.0
-weight_Lxy: 0.1
+weight_Lxy: 0.01
 
 # lr-scheduler
 milestones: [200, 270]

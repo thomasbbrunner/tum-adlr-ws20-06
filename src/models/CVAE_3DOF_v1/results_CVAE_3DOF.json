@@ -1,1 +1,8 @@
-["CVAE", "3DOF", "# trainable parameters: 370214", "N = 1", "M = 100", "Average error of posterior: 0.1731981337070465", "Average re-simulation error: tensor(0.0168)"]
+"CVAE"
+"3DOF"
+"# trainable parameters: 370214"
+"N = 1"
+"M = 100"
+"Average error of posterior: 0.12326595187187195"
+"Average re-simulation error: tensor(0.0102)"
+"config: {'name': 'CVAE', 'dof': '3DOF', 'weight_dir': 'weights/ROBOTSIM_CVAE_3DOF', 'checkpoint_dir': 'checkpoints/', 'input_dim': 6, 'hidden_dim': 300, 'latent_dim': 4, 'condition_dim': 2, 'num_epochs': 250, 'batch_size': 1000, 'lr_rate': 0.01, 'weight_decay': 0.0001, 'variational_beta': 6.7e-05, 'checkpoint_epoch': 100, 'milestones': [150, 230], 'gamma': 0.1}"

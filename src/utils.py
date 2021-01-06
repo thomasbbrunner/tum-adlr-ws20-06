@@ -143,7 +143,7 @@ def rejection_sampling(robot, tcp, dof, samples):
         if(norm < eps):
             hit_samples.append(sampled_joints)
             hit = hit + 1
-            print('hit: ', hit)
+            # print('hit: ', hit)
 
     return hit_samples
 
