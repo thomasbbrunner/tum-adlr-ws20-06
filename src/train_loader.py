@@ -150,7 +150,8 @@ def train_INN(model, config, dataloader, device):
 
     print('TRAINABLE PARAMETERS: ', num_trainable_parameters)
 
-    optimizer = torch.optim.Adam(params=trainable_parameters, lr=config['lr_rate'],
+    # TODO: does increasing of eps help to improve stability?
+    optimizer = torch.optim.Adam(params=trainable_parameters, lr=config['lr_rate'], eps=1e-5,
                                  weight_decay=config['weight_decay'])
     # define learning rate scheduler
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=config['milestones'],
@@ -225,15 +226,39 @@ def train_INN(model, config, dataloader, device):
 
             optimizer.zero_grad()
 
+            if torch.any(torch.isinf(x)):
+                raise Exception('inf in input detected!')
+
             # forward propagation
             output = model(x)
 
+            if torch.any(torch.isinf(output)):
+                raise Exception('inf in output detected!')
+
+            if torch.any(torch.isnan(output)):
+                raise Exception('NaN in output detected!')
+
+            if torch.any(torch.isnan(y)):
+                raise Exception('NaN in y detected!')
+
             # shorten y and output for latent loss computation: (z, pad_yz)
             y_short = torch.cat((y[:, :config['latent_dim']], y[:, -config['output_dim']:]), dim=1)
+
+            if torch.any(torch.isinf(y_short)):
+                raise Exception('inf in yshort detected!')
+
             output_short = torch.cat((output[:, :config['latent_dim']], output[:, -config['output_dim']:].data), dim=1)
 
+            if torch.any(torch.isinf(output_short)):
+                raise Exception('inf in output_short detected!')
+
             L_y = config['weight_Ly'] * MSE(output[:, config['latent_dim']:], y[:, config['latent_dim']:], reduction=reduction)
+
+            if torch.isnan(L_y):
+                raise Exception('NaN in L_y loss detected!')
             L_z = config['weight_Lz'] * MMD(output_short, y_short, device)
+            if torch.isnan(L_z):
+                raise Exception('NaN in L_z loss detected!')
             loss_forward = L_y + L_z
             loss = loss_forward.data.detach()
 
@@ -275,8 +300,14 @@ def train_INN(model, config, dataloader, device):
             loss += loss_backward.data.detach()
             loss_backward.backward()
 
+            # TODO: change to 15.0 again
+            # very important such that grads in subnetworks dont explode!!!!!
             for p in model.parameters():
                 p.grad.data.clamp_(-15.00, 15.00)
+
+            # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=15.0)
+            # for p in model.parameters():
+            #     p.data.add_(p.grad, alpha=-lr)
 
             # one step of the optimizer
             optimizer.step()
@@ -285,11 +316,11 @@ def train_INN(model, config, dataloader, device):
 
             train_loss_Ly_avg[-1] += L_y.data.detach()
             if torch.isnan(train_loss_Ly_avg[-1]):
-                raise Exception('NaN in Ly loss detected!')
+                raise Exception('NaN in train_loss_Ly_avg[-1] loss detected!')
 
             train_loss_Lz_avg[-1] += L_z.data.detach()
             if torch.isnan(train_loss_Lz_avg[-1]):
-                raise Exception('NaN in Lz loss detected!')
+                raise Exception('NaN in train_loss_Lz_avg[-1] loss detected!')
 
             train_loss_Lx_avg[-1] += L_x.data.detach()
             if torch.isnan(train_loss_Lx_avg[-1]):

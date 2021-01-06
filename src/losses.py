@@ -13,22 +13,53 @@ source: https://github.com/masa-su/pixyz/blob/master/pixyz/losses/mmd.py
 # def MMD_tmp(x, y, device):
 def MMD(x, y, device):
 
+    if torch.any(torch.isnan(x)):
+        raise Exception('NaN in x')
+
+    if torch.any(torch.isnan(y)):
+        raise Exception('NaN in y')
+
     def inverse_multiquadratic_kernel(x, y):
         h = 1.2
-        return h ** 2 / (h ** 2 + torch.cdist(x, y, p=2))
+
+        cdist = torch.cdist(x, y, p=2)
+
+        if torch.any(torch.isnan(cdist)):
+            # samples = x.size()[0]
+            # for i in range(samples):
+            #     for j in range(samples):
+            #         if torch.isnan(cdist[i, j]):
+            #             print('x: ', x[i, :])
+            #             print('y: ', y[j, :])
+            raise Exception('NaN in cdist')
+
+        return h ** 2 / (h ** 2 + cdist)
 
     xx = inverse_multiquadratic_kernel(x, x)
     xy = inverse_multiquadratic_kernel(x, y)
     yy = inverse_multiquadratic_kernel(y, y)
 
-    return torch.mean(xx + yy - 2.0 * xy)
+    if torch.any(torch.isnan(xx)):
+        raise Exception('NaN in xx')
+
+    if torch.any(torch.isnan(xy)):
+        raise Exception('NaN in xy')
+
+    if torch.any(torch.isnan(xy)):
+        raise Exception('NaN in xy')
+
+    mean = torch.mean(xx + yy - 2.0 * xy)
+
+    if torch.isnan(mean):
+        raise Exception('NaN in MMD')
+
+    return mean
 
 '''
 Maximum Mean Discrepancy (MMD) Multiscale
 source: https://github.com/VLL-HD/analyzing_inverse_problems/blob/master/toy_8-modes/toy_8-modes.ipynb
 '''
 def MMD_multiscale(x, y, device):
-# def MMD(x, y, device):
     xx, yy, zz = torch.mm(x,x.t()), torch.mm(y,y.t()), torch.mm(x,y.t())
 
     rx = (xx.diag().unsqueeze(0).expand_as(xx))
@@ -47,7 +78,12 @@ def MMD_multiscale(x, y, device):
         YY += a**2 * (a**2 + dyy)**-1
         XY += a**2 * (a**2 + dxy)**-1
 
-    return torch.mean(XX + YY - 2.*XY)
+    mean = torch.mean(XX + YY - 2.*XY)
+
+    if torch.isnan(mean):
+        raise Exception('NaN in MMD')
+
+    return mean
 
 '''
 Mean Squared Error (MSE)

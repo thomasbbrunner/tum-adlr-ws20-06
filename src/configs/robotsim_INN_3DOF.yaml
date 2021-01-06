@@ -14,10 +14,10 @@ output_dim: 2 # tcp
 latent_dim: 4 # z
 
 num_layers_subnet: 3
-num_coupling_layers: 6
+num_coupling_layers: 5
 
 # Training
-num_epochs: 300
+num_epochs: 250
 batch_size: 1000
 lr_rate: 0.001
 weight_decay: 0.001
@@ -27,8 +27,8 @@ checkpoint_epoch: 100
 weight_Ly: 0.01
 weight_Lz: 100.0
 weight_Lx: 100.0
-weight_Lxy: 0.01
+weight_Lxy: 0.1
 
 # lr-scheduler
-milestones: [200, 270]
+milestones: [150, 230]
 gamma: 0.1
