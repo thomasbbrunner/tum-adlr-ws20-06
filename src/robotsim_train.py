@@ -20,7 +20,7 @@ if __name__ == '__main__':
     ####################################################################################################################
 
     model_name = 'INN'
-    robot_dof = '3DOF'
+    robot_dof = '4DOF'
 
     ####################################################################################################################
     # CHECK FOR VALID INPUT
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     if not (model_name == 'CVAE' or model_name == 'INN'):
         raise Exception('Model not supported')
 
-    if not (robot_dof == '2DOF' or robot_dof == '3DOF'):
+    if not (robot_dof == '2DOF' or robot_dof == '3DOF' or robot_dof == '4DOF'):
         raise Exception('DOF not supported')
 
     ####################################################################################################################
@@ -41,9 +41,13 @@ if __name__ == '__main__':
             config = load_config('robotsim_cVAE_2DOF.yaml', 'configs/')
             robot = robotsim.Robot2D2DoF([3, 2])
             dataset = RobotSimDataset(robot, 1e4)
-        else:
+        elif robot_dof == '3DOF':
             config = load_config('robotsim_cVAE_3DOF.yaml', 'configs/')
             robot = robotsim.Robot2D3DoF([0.5, 0.5, 1.0])
+            dataset = RobotSimDataset(robot, 1e4)
+        else:
+            config = load_config('robotsim_cVAE_4DOF.yaml', 'configs/')
+            robot = robotsim.Robot2D4DoF([0.5, 0.5, 0.5, 1.0])
             dataset = RobotSimDataset(robot, 1e4)
         model = CVAE(config)
     else:
@@ -51,9 +55,13 @@ if __name__ == '__main__':
             config = load_config('robotsim_INN_2DOF.yaml', 'configs/')
             robot = robotsim.Robot2D2DoF([3, 2])
             dataset = RobotSimDataset(robot, 1e4)
-        else:
+        elif robot_dof == '3DOF':
             config = load_config('robotsim_INN_3DOF.yaml', 'configs/')
             robot = robotsim.Robot2D3DoF([0.5, 0.5, 1.0])
+            dataset = RobotSimDataset(robot, 1e4)
+        else:
+            config = load_config('robotsim_INN_4DOF.yaml', 'configs/')
+            robot = robotsim.Robot2D4DoF([0.5, 0.5, 0.5, 1.0])
             dataset = RobotSimDataset(robot, 1e4)
         model = INN(config)
 

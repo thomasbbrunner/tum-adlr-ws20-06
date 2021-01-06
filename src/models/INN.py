@@ -103,6 +103,12 @@ class AffineCouplingBlock(nn.Module):
             exp_2 = torch.exp(-self.s2(v2))
             v1 = (u1 - self.t2(v2)) * exp_2
 
+            if torch.any(torch.isnan(v1)):
+                print('v1: ', v1)
+
+            if torch.any(torch.isnan(v2)):
+                print('v2: ', v2)
+
         return torch.cat((v1, v2), 1)
 
     def jacobian(self, inverse=False):

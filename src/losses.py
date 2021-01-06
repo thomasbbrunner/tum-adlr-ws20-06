@@ -120,9 +120,16 @@ def custom_loss(_x, x, reduction):
 
     # normalize preds direction vectors
     # eps important in order to avoid dividing by 0
-    _x_normalized = nn.functional.normalize(input=_x_vectorized, p=2, dim=2, eps=1e-8)
+    _x_normalized = nn.functional.normalize(input=_x_vectorized, p=2, dim=2, eps=1e-5)
+
     if torch.any(torch.isnan(_x_normalized)):
-        print(_x_normalized)
+        for i in range(samples):
+            if(torch.any(torch.isnan(_x_normalized[i, :, :]))):
+                print('_x: ', _x[i, :])
+                print('_x_vectorized: ', _x_vectorized[i, :, :])
+                print('_x_normalized: ', _x_normalized[i, :, :])
+                print('\n')
+
         raise Exception('NaN in _x_normalized detected!')
 
     ones = torch.ones(size=(samples,))

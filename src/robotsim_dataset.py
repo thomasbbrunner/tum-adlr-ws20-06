@@ -164,4 +164,4 @@ if __name__ == "__main__":
     # dataset.plot(path="./figures/dataset/uniform_RobotPaper")
     dataset.histogram(path="./figures/dataset/uniform_RobotPaper_histogram")
 
-    # plt.show()
+    plt.show()

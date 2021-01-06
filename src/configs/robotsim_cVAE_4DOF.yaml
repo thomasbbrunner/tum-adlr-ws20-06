@@ -1,0 +1,24 @@
+# Settings
+name: 'CVAE'
+dof: '4DOF'
+weight_dir : 'weights/ROBOTSIM_CVAE_4DOF'
+checkpoint_dir: 'checkpoints/'
+
+# Network parameters
+input_dim: 8 # 2*4 = 2 * number of joints
+hidden_dim: 300 # number of neurons per fully connected layer
+latent_dim: 6
+condition_dim: 2 # (x, y) coordinates of end-effector
+
+# Training
+num_epochs: 200
+batch_size: 1000
+lr_rate: 0.01
+weight_decay: 0.0001
+# variational_beta: 0.01 # for weighting KLdivergence / reconstruction loss
+variational_beta: 0.00067
+checkpoint_epoch: 100
+
+# lr-scheduler
+milestones: [80, 160]
+gamma: 0.1
