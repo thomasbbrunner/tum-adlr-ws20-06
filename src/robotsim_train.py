@@ -19,7 +19,7 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    model_name = 'INN'
+    model_name = 'CVAE'
     robot_dof = '3DOF'
 
     ####################################################################################################################
@@ -40,34 +40,34 @@ if __name__ == '__main__':
         if robot_dof == '2DOF':
             config = load_config('robotsim_cVAE_2DOF.yaml', 'configs/')
             robot = robotsim.Robot2D2DoF([3, 2])
-            dataset = RobotSimDataset(robot, 1e4)
+            dataset = RobotSimDataset(robot, 1e6)
         elif robot_dof == '3DOF':
             config = load_config('robotsim_cVAE_3DOF.yaml', 'configs/')
             robot = robotsim.Robot2D3DoF([0.5, 0.5, 1.0])
-            dataset = RobotSimDataset(robot, 1e4)
+            dataset = RobotSimDataset(robot, 1e6)
         else:
             config = load_config('robotsim_cVAE_4DOF.yaml', 'configs/')
             robot = robotsim.Robot2D4DoF([0.5, 0.5, 0.5, 1.0])
-            dataset = RobotSimDataset(robot, 1e4)
+            dataset = RobotSimDataset(robot, 1e6)
         model = CVAE(config)
     else:
         if robot_dof == '2DOF':
             config = load_config('robotsim_INN_2DOF.yaml', 'configs/')
             robot = robotsim.Robot2D2DoF([3, 2])
-            dataset = RobotSimDataset(robot, 1e4)
+            dataset = RobotSimDataset(robot, 1e6)
         elif robot_dof == '3DOF':
             config = load_config('robotsim_INN_3DOF.yaml', 'configs/')
             robot = robotsim.Robot2D3DoF([0.5, 0.5, 1.0])
-            dataset = RobotSimDataset(robot, 1e4)
+            dataset = RobotSimDataset(robot, 1e6)
         else:
             config = load_config('robotsim_INN_4DOF.yaml', 'configs/')
             robot = robotsim.Robot2D4DoF([0.5, 0.5, 0.5, 1.0])
-            dataset = RobotSimDataset(robot, 1e4)
+            dataset = RobotSimDataset(robot, 1e6)
         model = INN(config)
 
     # ensures that models are trained and tested on the same samples
     torch.manual_seed(42)
-    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [7000, 3000])
+    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 300000])
     train_dataloader = DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
