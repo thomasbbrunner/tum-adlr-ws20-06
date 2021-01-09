@@ -12,14 +12,14 @@ condition_dim: 2 # (x, y) coordinates of end-effector
 num_layers: 3 # number of hidden layers for each, encoder and decoder
 
 # Training
-num_epochs: 250
+num_epochs: 40
 batch_size: 1000
 lr_rate: 0.01
 weight_decay: 0.0001
 # variational_beta: 0.01 # for weighting KLdivergence / reconstruction loss
 variational_beta: 0.000067 # 0.00067
-checkpoint_epoch: 100
+checkpoint_epoch: 15
 
 # lr-scheduler
-milestones: [150, 230]
+milestones: [5, 20, 30]
 gamma: 0.1
