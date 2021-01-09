@@ -134,7 +134,7 @@ if __name__ == '__main__':
         # generate plots for visualization for first sample
         if n == 0:
             # plot sample configuration from estimated posterior by rejection sampling
-            robot.plot(joint_states, path='figures/rejection_sampling_' + str(config['dof']) + '.png',
+            robot.plot(joint_states, path='figures/rejection_sampling_' + str(config['name']) + '_' + str(config['dof']) + '.png',
                        separate_plots=False)
             # Plot contour lines enclose the region containing 97% of the end points
             resimulation_tcp = robot.forward(joint_states=joint_states)
