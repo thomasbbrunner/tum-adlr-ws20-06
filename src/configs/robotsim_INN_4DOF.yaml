@@ -30,5 +30,5 @@ weight_Lx: 100.0
 weight_Lxy: 0.01
 
 # lr-scheduler
-milestones: [25, 32]
+milestones: [30]
 gamma: 0.1

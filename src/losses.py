@@ -24,14 +24,8 @@ def MMD(x, y, device):
 
         cdist = torch.cdist(x, y, p=2)
 
-        if torch.any(torch.isnan(cdist)):
-            # samples = x.size()[0]
-            # for i in range(samples):
-            #     for j in range(samples):
-            #         if torch.isnan(cdist[i, j]):
-            #             print('x: ', x[i, :])
-            #             print('y: ', y[j, :])
-            raise Exception('NaN in cdist')
+        # if torch.any(torch.isnan(cdist)):
+        #     raise Exception('NaN in cdist')
 
         return h ** 2 / (h ** 2 + cdist)
 
@@ -156,7 +150,7 @@ def custom_loss(_x, x, reduction):
 
     # normalize preds direction vectors
     # eps important in order to avoid dividing by 0
-    _x_normalized = nn.functional.normalize(input=_x_vectorized, p=2, dim=2, eps=1e-5)
+    _x_normalized = nn.functional.normalize(input=_x_vectorized, p=2, dim=2, eps=1e-4)
 
     if torch.any(torch.isnan(_x_normalized)):
         for i in range(samples):
