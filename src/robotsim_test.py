@@ -42,7 +42,7 @@ if __name__ == '__main__':
     robot_dof = '3DOF'
 
     N = 500
-    M = 200
+    M = 100
     percentile = 0.97
 
     ####################################################################################################################
@@ -152,6 +152,7 @@ if __name__ == '__main__':
         gen_tcp[:, 0] = N_y[0]
         gen_tcp[:, 1] = N_y[1]
         gen_tcp = torch.Tensor(gen_tcp)
+        gen_tcp = gen_tcp.to(device)
 
         # predict posterior distribution based on M samples
         pred_joint_states = model.predict(tcp=gen_tcp, device=device)
