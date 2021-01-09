@@ -208,6 +208,7 @@ if __name__ == '__main__':
 
         # perform forward kinemtatics on _x
         y_resim = torch.Tensor(robot.forward(joint_states=_x.detach()))
+        y_resim = y_resim.to(device)
 
         # Exclude orientation
         y_resim = y_resim[:, :2]
