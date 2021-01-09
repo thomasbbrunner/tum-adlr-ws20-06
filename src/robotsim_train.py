@@ -62,7 +62,7 @@ if __name__ == '__main__':
         else:
             config = load_config('robotsim_INN_4DOF.yaml', 'configs/')
             robot = robotsim.Robot2D4DoF([0.5, 0.5, 0.5, 1.0])
-            dataset = RobotSimDataset(robot, 1e4)
+            dataset = RobotSimDataset(robot, 1e6)
         model = INN(config)
 
     # ensures that models are trained and tested on the same samples
