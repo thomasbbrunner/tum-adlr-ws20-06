@@ -125,7 +125,6 @@ if __name__ == '__main__':
 
         print('n / N : %i / %i' % (n, N))
 
-
         # 1.
         # Generate gt estimate p_gt(x|y*) obtained by rejection sampling with M samples
 

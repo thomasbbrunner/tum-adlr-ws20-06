@@ -24,7 +24,7 @@ checkpoint_epoch: 100
 weight_Ly: 0.01
 weight_Lz: 100.0
 weight_Lx: 100.0
-weight_Lxy: 0.1
+weight_Lxy: 0.01
 
 # lr-scheduler
 milestones: [25, 32]
