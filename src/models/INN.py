@@ -82,6 +82,12 @@ class AffineCouplingBlock(nn.Module):
 
     def forward(self, x, inverse=False):
 
+        if torch.any(torch.isinf(x)):
+            raise Exception('Inf in x  of forward detected')
+        if torch.any(torch.isnan(x)):
+            raise Exception('NaN in x of forward detected')
+
+
         # Split x in two halves
         u1 = torch.narrow(x, 1, 0, self.u1_dim)
         u2 = torch.narrow(x, 1, self.u1_dim, self.u2_dim)
