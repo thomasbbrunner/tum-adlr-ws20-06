@@ -61,34 +61,8 @@ class sub_network(nn.Module):
 
     def forward(self, x):
 
-        # if torch.any(torch.isnan(self.parameters())):
-        #     raise Exception('NaN in parameters of subnetwork detected')
-        #
-        # if torch.any(torch.isinf(self.parameters())):
-        #     raise Exception('inf in parameters of subnetwork detected')
-
-
-        i = 0
         for layer in self.fcs:
-            # if torch.any(torch.isinf(layer(x))):
-            #     print('layer in subnet: ', i)
-            #     raise Exception('inf in layer(x) detected')
-            #
-            # if torch.any(torch.isnan(layer(x))):
-            #     print('layer in subnet: ', i)
-            #     raise Exception('NaN in layer(x) detected')
-
             x = F.leaky_relu(layer(x))
-
-            # if torch.any(torch.isinf(x)):
-            #     print('layer in subnet: ', i)
-            #     raise Exception('inf in x detected')
-            #
-            # if torch.any(torch.isnan(x)):
-            #     print('layer in subnet: ', i)
-            #     raise Exception('NaN in x detected')
-
-            i += 1
 
         return x
 
@@ -115,48 +89,23 @@ class AffineCouplingBlock(nn.Module):
         # Perform forward kinematics
         if not inverse:
 
-            # if torch.any(torch.isinf(self.s2(u2))):
-            #     raise Exception('inf in self.s2(u2)')
-
-            # if torch.any(torch.isinf(u2)):
-            #     raise Exception('inf in u2')
-            #
-            # if torch.any(torch.isnan(u2)):
-            #     raise Exception('nan in u2')
-
-
-            # if torch.any(torch.isinf(self.t2(u2))):
-            #     raise Exception('inf in self.t2(u2)')
-            #
-            # if torch.any(torch.isnan(self.t2(u2))):
-            #     raise Exception('nan in self.t2(u2)')
-
-
             # v1 = u1 dotprod exp(s2(u2)) + t2(u2)
-
             if torch.any(torch.isnan(self.s2(u2))):
                 raise Exception('NaN in self.s2(u2) detected!')
             if torch.any(torch.isinf(self.s2(u2))):
                 raise Exception('Inf in self.s2(u2) detected!')
 
             exp_2 = torch.exp(self.s2(u2))
+            exp_2_y = self.s2(u2).where(torch.isinf(exp_2), exp_2.log1p())  # Replace infs with x
 
-            if torch.any(torch.isnan(exp_2)):
-                raise Exception('NaN in exp_2 detected!')
-            if torch.any(torch.isinf(exp_2)):
-                raise Exception('Inf in exp_2 detected!')
-            # exp_2_y = self.s2(u2).where(torch.isinf(exp_2), exp_2.log1p())  # Replace infs with x
+            if torch.any(torch.isnan(exp_2_y)):
+                raise Exception('NaN in exp_2_y detected!')
+            if torch.any(torch.isinf(exp_2_y)):
+                raise Exception('Inf in exp_2_y detected!')
 
-            # if torch.any(torch.isinf(exp_2_y)):
-            #     raise Exception('inf in exp_2_y')
-            #
-            # if torch.any(torch.isnan(exp_2_y)):
-            #     raise Exception('nan in exp_2_y')
-
-            v1 = u1 * exp_2 + self.t2(u2)
+            v1 = u1 * exp_2_y + self.t2(u2)
 
             # v2 = u2 dotprod exp(s1(v1)) + t1(v1)
-
             if torch.any(torch.isnan(self.s1(v1))):
                 raise Exception('NaN in self.s1(v1) detected!')
             if torch.any(torch.isinf(self.s1(v1))):
@@ -170,40 +119,28 @@ class AffineCouplingBlock(nn.Module):
             if torch.any(torch.isinf(exp_1_y)):
                 raise Exception('Inf in exp_1_y detected!')
 
-
-            # if torch.any(torch.isinf(self.s1(v1))):
-            #     raise Exception('inf in self.s1(v1)')
-            #
-            # if torch.any(torch.isinf(exp_1)):
-            #     print(exp_1)
-            #     raise Exception('inf in exp_1')
-
             v2 = u2 * exp_1_y + self.t1(v1)
-
-            # if torch.any(torch.isinf(self.t1(v1))):
-            #     raise Exception('inf in self.t1(v1)')
 
         # Perform inverse kinematics (names of u and v are swapped)
         else:
-            # u2 = (v2-t1(v1)) dotprod exp(-s1(v1))
 
+            # u2 = (v2-t1(v1)) dotprod exp(-s1(v1))
             if torch.any(torch.isnan(-self.s1(u1))):
                 raise Exception('NaN in -self.s1(u1) detected!')
             if torch.any(torch.isinf(-self.s1(u1))):
                 raise Exception('Inf in -self.s1(u1) detected!')
 
             exp_1 = torch.exp(-self.s1(u1))
+            exp_1_y = -self.s1(u1).where(torch.isinf(exp_1), exp_1.log1p())  # Replace infs with x
 
-            if torch.any(torch.isnan(exp_1)):
-                raise Exception('NaN in exp_1 detected!')
-            if torch.any(torch.isinf(exp_1)):
-                raise Exception('Inf in exp_1 detected!')
-            # exp_1_y = -self.s1(u1).where(torch.isinf(exp_1), exp_1.log1p())  # Replace infs with x
+            if torch.any(torch.isnan(exp_1_y)):
+                raise Exception('NaN in exp_1_y detected!')
+            if torch.any(torch.isinf(exp_1_y)):
+                raise Exception('Inf in exp_1_y detected!')
 
-            v2 = (u2 - self.t1(u1)) * exp_1
+            v2 = (u2 - self.t1(u1)) * exp_1_y
 
             # u1 = (v1-t2(u2)) dotprod exp(-s2(u2))
-
             if torch.any(torch.isnan(-self.s2(v2))):
                 raise Exception('NaN in -self.s2(v2) detected!')
             if torch.any(torch.isinf(-self.s2(v2))):
@@ -218,7 +155,6 @@ class AffineCouplingBlock(nn.Module):
                 raise Exception('Inf in exp_2_y detected!')
 
             v1 = (u1 - self.t2(v2)) * exp_2_y
-
 
         return torch.cat((v1, v2), 1)
 
@@ -250,20 +186,11 @@ class INN(nn.Module):
 
 
     def forward(self, x, inverse=False):
-        # i=0
+
         if not inverse:
             for layer in self.fcs:
                 x = layer(x, inverse)
 
-                # if torch.any(torch.isinf(x)):
-                #     print('layer: ', i)
-                #     raise Exception('inf in x detected')
-                #
-                # if torch.any(torch.isnan(x)):
-                #     print('layer: ', i)
-                #     raise Exception('NaN in x detected')
-
-                # i += 1
 
         else:
             for layer in reversed(self.fcs):
