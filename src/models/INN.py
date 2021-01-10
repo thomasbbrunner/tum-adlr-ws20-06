@@ -86,8 +86,43 @@ class AffineCouplingBlock(nn.Module):
         u1 = torch.narrow(x, 1, 0, self.u1_dim)
         u2 = torch.narrow(x, 1, self.u1_dim, self.u2_dim)
 
+        params = [p for p in self.s1.parameters()]
+        for p in params:
+            if torch.any(torch.isinf(p)):
+                raise Exception('Inf in self.s1.parameters() detected')
+            if torch.any(torch.isnan(p)):
+                raise Exception('NaN in self.s1.parameters() detected')
+
+        params = [p for p in self.t1.parameters()]
+        for p in params:
+            if torch.any(torch.isinf(p)):
+                raise Exception('Inf in self.t1.parameters() detected')
+            if torch.any(torch.isnan(p)):
+                raise Exception('NaN in self.t1.parameters() detected')
+
+        params = [p for p in self.s2.parameters()]
+        for p in params:
+            if torch.any(torch.isinf(p)):
+                raise Exception('Inf in self.s2.parameters() detected')
+            if torch.any(torch.isnan(p)):
+                raise Exception('NaN in self.s2.parameters() detected')
+
+        params = [p for p in self.t2.parameters()]
+        for p in params:
+            if torch.any(torch.isinf(p)):
+                raise Exception('Inf in self.t2.parameters() detected')
+            if torch.any(torch.isnan(p)):
+                raise Exception('NaN in self.t2.parameters() detected')
+
         # Perform forward kinematics
         if not inverse:
+
+            params = [p for p in self.s1.parameters()]
+            for p in params:
+                if torch.any(torch.isinf(p)):
+                    raise Exception('Inf in p detected')
+                if torch.any(torch.isnan(p)):
+                    raise Exception('NaN in p detected')
 
             # v1 = u1 dotprod exp(s2(u2)) + t2(u2)
             if torch.any(torch.isnan(self.s2(u2))):
