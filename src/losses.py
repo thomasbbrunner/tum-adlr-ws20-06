@@ -12,7 +12,7 @@ source: https://github.com/masa-su/pixyz/blob/master/pixyz/losses/mmd.py
 '''
 # def MMD_tmp(x, y, device):
 # produces instability
-def MMD2(x, y, device):
+def MMD(x, y, device):
 
     # if torch.any(torch.isnan(x)):
     #     raise Exception('NaN in x')
@@ -22,24 +22,24 @@ def MMD2(x, y, device):
 
     def inverse_multiquadratic_kernel(x, y):
 
-        if torch.any(torch.isnan(x)):
-            raise Exception('NaN in x')
-        if torch.any(torch.isinf(x)):
-            raise Exception('Inf in x')
-
-        if torch.any(torch.isnan(y)):
-            raise Exception('NaN in y')
-        if torch.any(torch.isinf(y)):
-            raise Exception('Inf in y')
+        # if torch.any(torch.isnan(x)):
+        #     raise Exception('NaN in x')
+        # if torch.any(torch.isinf(x)):
+        #     raise Exception('Inf in x')
+        #
+        # if torch.any(torch.isnan(y)):
+        #     raise Exception('NaN in y')
+        # if torch.any(torch.isinf(y)):
+        #     raise Exception('Inf in y')
 
         h = 1.2
 
         cdist = torch.cdist(x, y, p=2.0, compute_mode='use_mm_for_euclid_dist_if_necessary')
 
-        if torch.any(torch.isnan(cdist)):
-            raise Exception('NaN in cdist')
-        if torch.any(torch.isinf(cdist)):
-            raise Exception('Inf in cdist')
+        # if torch.any(torch.isnan(cdist)):
+        #     raise Exception('NaN in cdist')
+        # if torch.any(torch.isinf(cdist)):
+        #     raise Exception('Inf in cdist')
 
         return h ** 2 / (h ** 2 + cdist)
 
@@ -67,7 +67,7 @@ def MMD2(x, y, device):
 Maximum Mean Discrepancy (MMD) Multiscale
 source: https://github.com/VLL-HD/analyzing_inverse_problems/blob/master/toy_8-modes/toy_8-modes.ipynb
 '''
-def MMD(x, y, device):
+def MMD_multiscale(x, y, device):
 
     xx, yy, zz = torch.mm(x,x.t()), torch.mm(y,y.t()), torch.mm(x,y.t())
 
