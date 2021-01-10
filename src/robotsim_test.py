@@ -38,10 +38,10 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    model_name = 'INN'
+    model_name = 'CVAE'
     robot_dof = '4DOF'
 
-    N = 1
+    N = 100
     M = 100
     percentile = 0.97
 
@@ -90,13 +90,13 @@ if __name__ == '__main__':
         else:
             config = load_config('robotsim_INN_4DOF.yaml', 'configs/')
             robot = robotsim.Robot2D4DoF([0.5, 0.5, 0.5, 1.0])
-            dataset = RobotSimDataset(robot, 1e4)
+            dataset = RobotSimDataset(robot, 1e6)
             dof = 4
         model = INN(config)
 
     # ensures that models are trained and tested on the same samples
     torch.manual_seed(42)
-    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [7000, 3000])
+    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 300000])
     test_dataloader = DataLoader(test_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
