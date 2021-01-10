@@ -131,6 +131,8 @@ def train_CVAE(model, config, dataloader, device):
 
 def train_INN(model, config, dataloader, device):
 
+    torch.autograd.set_detect_anomaly(True)
+
     # try to overfit on a single batch
     # x_orig, y_orig = next(iter(dataloader))
 
@@ -212,6 +214,12 @@ def train_INN(model, config, dataloader, device):
 
             # Insert noise
             pad_x = zeros_noise_scale * torch.randn(config['batch_size'], diff, device=device)
+
+            if torch.any(torch.isinf(pad_x)):
+                raise Exception('Inf in pad_x detected')
+            if torch.any(torch.isnan(pad_x)):
+                raise Exception('NaN in pad_x detected')
+
             pad_yz = zeros_noise_scale * torch.randn(config['batch_size'], pad, device=device)
 
             y += y_noise_scale * torch.randn(config['batch_size'], config['output_dim'], dtype=torch.float,
@@ -232,48 +240,38 @@ def train_INN(model, config, dataloader, device):
 
             optimizer.zero_grad()
 
-            # if torch.any(torch.isinf(x)):
-            #     raise Exception('inf in input detected!')
-
             # forward propagation
             output = model(x)
-
-            # if torch.any(torch.isinf(output)):
-            #     raise Exception('inf in output detected!')
-            #
-            # if torch.any(torch.isnan(output)):
-            #     raise Exception('NaN in output detected!')
-            #
-            # if torch.any(torch.isnan(y)):
-            #     raise Exception('NaN in y detected!')
 
             # shorten y and output for latent loss computation: (z, pad_yz)
             y_short = torch.cat((y[:, :config['latent_dim']], y[:, -config['output_dim']:]), dim=1)
 
-            # if torch.any(torch.isinf(y_short)):
-            #     raise Exception('inf in yshort detected!')
-
             output_short = torch.cat((output[:, :config['latent_dim']], output[:, -config['output_dim']:].data), dim=1)
-
-            # if torch.any(torch.isinf(output_short)):
-            #     raise Exception('inf in output_short detected!')
 
             L_y = config['weight_Ly'] * MSE(output[:, config['latent_dim']:], y[:, config['latent_dim']:], reduction=reduction)
 
-            # if torch.isnan(L_y):
-            #     raise Exception('NaN in L_y loss detected!')
-
             L_z = config['weight_Lz'] * MMD(output_short, y_short, device)
-
-            # if torch.isnan(L_z):
-            #     raise Exception('NaN in L_z loss detected!')
 
             loss_forward = L_y + L_z
             loss = loss_forward.data.detach()
 
+            params = [p for p in model.parameters()]
+            for p in params:
+                if torch.any(torch.isinf(p)):
+                    raise Exception('Inf in model before forward.backward detected')
+                if torch.any(torch.isnan(p)):
+                    raise Exception('NaN in model before forward.backward detected')
+
             # backpropagation
             # Do not free intermediate results in order to accumulate grads later from forward and backward
             loss_forward.backward(retain_graph=True)
+
+            params = [p for p in model.parameters()]
+            for p in params:
+                if torch.any(torch.isinf(p)):
+                    raise Exception('Inf in model after forward.backward detected')
+                if torch.any(torch.isnan(p)):
+                    raise Exception('NaN in model after forward.backward detected')
 
             ############################################################################################################
             # BACKWARD STEP
@@ -282,12 +280,30 @@ def train_INN(model, config, dataloader, device):
             # Insert noise
             pad_yz = zeros_noise_scale * torch.randn(config['batch_size'], pad, device=device)
 
+            if torch.any(torch.isinf(pad_yz)):
+                raise Exception('Inf in pad_yz in backward step detected')
+            if torch.any(torch.isnan(pad_yz)):
+                raise Exception('NaN in pad_yz backward step detected')
+
             y = y_clean + y_noise_scale * torch.randn(config['batch_size'], config['output_dim'], dtype=torch.float,
                                                       device=device)
 
+            if torch.any(torch.isinf(y)):
+                raise Exception('Inf in y in backward step detected')
+            if torch.any(torch.isnan(y)):
+                raise Exception('NaN in y backward step detected')
+
             orig_z_perturbed = (output[:, :config['latent_dim']] + y_noise_scale *
                                 torch.randn(config['batch_size'], config['latent_dim'], device=device))
+
+            if torch.any(torch.isinf(orig_z_perturbed)):
+                raise Exception('Inf in orig_z_perturbed in backward step detected')
+            if torch.any(torch.isnan(orig_z_perturbed)):
+                raise Exception('NaN in orig_z_perturbed backward step detected')
+
             y_inv = torch.cat((orig_z_perturbed, pad_yz, y), dim=1)
+
+
             y_inv_rand = torch.cat((torch.randn(config['batch_size'], config['latent_dim'], device=device), pad_yz, y),
                                    dim=1)
             ############################################################################################################
@@ -307,9 +323,23 @@ def train_INN(model, config, dataloader, device):
 
             loss_backward = L_x + L_xy
             loss += loss_backward.data.detach()
+
+            params = [p for p in model.parameters()]
+            for p in params:
+                if torch.any(torch.isinf(p)):
+                    raise Exception('Inf in model before backward.backward detected')
+                if torch.any(torch.isnan(p)):
+                    raise Exception('NaN in model before backward.backward detected')
+
             loss_backward.backward()
 
-            # TODO: change to 15.0 again
+            params = [p for p in model.parameters()]
+            for p in params:
+                if torch.any(torch.isinf(p)):
+                    raise Exception('Inf in model after backward.backward detected')
+                if torch.any(torch.isnan(p)):
+                    raise Exception('NaN in model after backward.backward detected')
+
             # very important such that grads in subnetworks dont explode!!!!!
             for p in model.parameters():
                 p.grad.data.clamp_(-15.00, 15.00)

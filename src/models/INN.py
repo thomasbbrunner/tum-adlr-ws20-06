@@ -73,6 +73,7 @@ class AffineCouplingBlock(nn.Module):
         # Split input U into two halves
         self.u1_dim = input_dim // 2
         self.u2_dim = input_dim - input_dim // 2
+        self.clamp = 5.0 # important to bound exp
 
         # Define scale and translation subnetworks for the two complementary affine coupling layers
         self.s1 = sub_network(self.u1_dim, hidden_dim, self.u2_dim, num_layers)
@@ -80,122 +81,56 @@ class AffineCouplingBlock(nn.Module):
         self.s2 = sub_network(self.u2_dim, hidden_dim, self.u1_dim, num_layers)
         self.t2 = sub_network(self.u2_dim, hidden_dim, self.u1_dim, num_layers)
 
+    def e(self, x):
+        return torch.exp(self.clamp * 0.636 * torch.atan(x))
+
     def forward(self, x, inverse=False):
-
-        if torch.any(torch.isinf(x)):
-            raise Exception('Inf in x  of forward detected')
-        if torch.any(torch.isnan(x)):
-            raise Exception('NaN in x of forward detected')
-
 
         # Split x in two halves
         u1 = torch.narrow(x, 1, 0, self.u1_dim)
         u2 = torch.narrow(x, 1, self.u1_dim, self.u2_dim)
 
-        params = [p for p in self.s1.parameters()]
-        for p in params:
-            if torch.any(torch.isinf(p)):
-                raise Exception('Inf in self.s1.parameters() detected')
-            if torch.any(torch.isnan(p)):
-                raise Exception('NaN in self.s1.parameters() detected')
-
-        params = [p for p in self.t1.parameters()]
-        for p in params:
-            if torch.any(torch.isinf(p)):
-                raise Exception('Inf in self.t1.parameters() detected')
-            if torch.any(torch.isnan(p)):
-                raise Exception('NaN in self.t1.parameters() detected')
-
-        params = [p for p in self.s2.parameters()]
-        for p in params:
-            if torch.any(torch.isinf(p)):
-                raise Exception('Inf in self.s2.parameters() detected')
-            if torch.any(torch.isnan(p)):
-                raise Exception('NaN in self.s2.parameters() detected')
-
-        params = [p for p in self.t2.parameters()]
-        for p in params:
-            if torch.any(torch.isinf(p)):
-                raise Exception('Inf in self.t2.parameters() detected')
-            if torch.any(torch.isnan(p)):
-                raise Exception('NaN in self.t2.parameters() detected')
-
         # Perform forward kinematics
         if not inverse:
 
-            params = [p for p in self.s1.parameters()]
-            for p in params:
-                if torch.any(torch.isinf(p)):
-                    raise Exception('Inf in p detected')
-                if torch.any(torch.isnan(p)):
-                    raise Exception('NaN in p detected')
-
             # v1 = u1 dotprod exp(s2(u2)) + t2(u2)
-            if torch.any(torch.isnan(self.s2(u2))):
-                raise Exception('NaN in self.s2(u2) detected!')
-            if torch.any(torch.isinf(self.s2(u2))):
-                raise Exception('Inf in self.s2(u2) detected!')
+            # exp_2 = torch.exp(self.s2(u2))
+            exp_2 = self.e(self.s2(u2))
+            # exp_2_y = self.s2(u2).where(torch.isinf(exp_2), exp_2.log1p())  # Replace infs with x
+            if torch.any(torch.isinf(exp_2)):
+                raise Exception('Inf in exp_2 detected!')
 
-            exp_2 = torch.exp(self.s2(u2))
-            exp_2_y = self.s2(u2).where(torch.isinf(exp_2), exp_2.log1p())  # Replace infs with x
-
-            if torch.any(torch.isnan(exp_2_y)):
-                raise Exception('NaN in exp_2_y detected!')
-            if torch.any(torch.isinf(exp_2_y)):
-                raise Exception('Inf in exp_2_y detected!')
-
-            v1 = u1 * exp_2_y + self.t2(u2)
+            v1 = u1 * exp_2 + self.t2(u2)
 
             # v2 = u2 dotprod exp(s1(v1)) + t1(v1)
-            if torch.any(torch.isnan(self.s1(v1))):
-                raise Exception('NaN in self.s1(v1) detected!')
-            if torch.any(torch.isinf(self.s1(v1))):
-                raise Exception('Inf in self.s1(v1) detected!')
+            # exp_1 = torch.exp(self.s1(v1))
+            # exp_1_y = self.s1(v1).where(torch.isinf(exp_1), exp_1.log1p())  # Replace infs with x
+            exp_1 = self.e(self.s1(v1))
+            if torch.any(torch.isinf(exp_1)):
+                raise Exception('Inf in exp_1 detected!')
 
-            exp_1 = torch.exp(self.s1(v1))
-            exp_1_y = self.s1(v1).where(torch.isinf(exp_1), exp_1.log1p())  # Replace infs with x
-
-            if torch.any(torch.isnan(exp_1_y)):
-                raise Exception('NaN in exp_1_y detected!')
-            if torch.any(torch.isinf(exp_1_y)):
-                raise Exception('Inf in exp_1_y detected!')
-
-            v2 = u2 * exp_1_y + self.t1(v1)
+            v2 = u2 * exp_1 + self.t1(v1)
 
         # Perform inverse kinematics (names of u and v are swapped)
         else:
 
             # u2 = (v2-t1(v1)) dotprod exp(-s1(v1))
-            if torch.any(torch.isnan(-self.s1(u1))):
-                raise Exception('NaN in -self.s1(u1) detected!')
-            if torch.any(torch.isinf(-self.s1(u1))):
-                raise Exception('Inf in -self.s1(u1) detected!')
+            # exp_1 = torch.exp(-self.s1(u1))
+            exp_1 = self.e(-self.s1(u1))
+            # exp_1_y = -self.s1(u1).where(torch.isinf(exp_1), exp_1.log1p())  # Replace infs with x
+            if torch.any(torch.isinf(exp_1)):
+                raise Exception('Inf in exp_1 detected!')
 
-            exp_1 = torch.exp(-self.s1(u1))
-            exp_1_y = -self.s1(u1).where(torch.isinf(exp_1), exp_1.log1p())  # Replace infs with x
-
-            if torch.any(torch.isnan(exp_1_y)):
-                raise Exception('NaN in exp_1_y detected!')
-            if torch.any(torch.isinf(exp_1_y)):
-                raise Exception('Inf in exp_1_y detected!')
-
-            v2 = (u2 - self.t1(u1)) * exp_1_y
+            v2 = (u2 - self.t1(u1)) * exp_1
 
             # u1 = (v1-t2(u2)) dotprod exp(-s2(u2))
-            if torch.any(torch.isnan(-self.s2(v2))):
-                raise Exception('NaN in -self.s2(v2) detected!')
-            if torch.any(torch.isinf(-self.s2(v2))):
-                raise Exception('Inf in -self.s2(v2) detected!')
+            # exp_2 = torch.exp(-self.s2(v2))
+            exp_2 = self.e(-self.s2(v2))
+            # exp_2_y = -self.s2(v2).where(torch.isinf(exp_2), exp_2.log1p())  # Replace infs with x
+            if torch.any(torch.isinf(exp_2)):
+                raise Exception('Inf in exp_2 detected!')
 
-            exp_2 = torch.exp(-self.s2(v2))
-            exp_2_y = -self.s2(v2).where(torch.isinf(exp_2), exp_2.log1p())  # Replace infs with x
-
-            if torch.any(torch.isnan(exp_2_y)):
-                raise Exception('NaN in exp_2_y detected!')
-            if torch.any(torch.isinf(exp_2_y)):
-                raise Exception('Inf in exp_2_y detected!')
-
-            v1 = (u1 - self.t2(v2)) * exp_2_y
+            v1 = (u1 - self.t2(v2)) * exp_2
 
         return torch.cat((v1, v2), 1)
 
