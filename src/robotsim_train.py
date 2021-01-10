@@ -39,7 +39,7 @@ if __name__ == '__main__':
     if model_name == 'CVAE':
         if robot_dof == '2DOF':
             config = load_config('robotsim_cVAE_2DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D2DoF([3, 2])
+            robot = robotsim.Robot2D2DoF([0.5, 1])
             dataset = RobotSimDataset(robot, 1e6)
         elif robot_dof == '3DOF':
             config = load_config('robotsim_cVAE_3DOF.yaml', 'configs/')
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     else:
         if robot_dof == '2DOF':
             config = load_config('robotsim_INN_2DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D2DoF([3, 2])
+            robot = robotsim.Robot2D2DoF([0.5, 1])
             dataset = RobotSimDataset(robot, 1e6)
         elif robot_dof == '3DOF':
             config = load_config('robotsim_INN_3DOF.yaml', 'configs/')
@@ -62,7 +62,7 @@ if __name__ == '__main__':
         else:
             config = load_config('robotsim_INN_4DOF.yaml', 'configs/')
             robot = robotsim.Robot2D4DoF([0.5, 0.5, 0.5, 1.0])
-            dataset = RobotSimDataset(robot, 1e6)
+            dataset = RobotSimDataset(robot, 1e4)
         model = INN(config)
 
     # ensures that models are trained and tested on the same samples

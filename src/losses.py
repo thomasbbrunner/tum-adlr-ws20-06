@@ -11,21 +11,35 @@ Maximum Mean Discrepancy (MMD)
 source: https://github.com/masa-su/pixyz/blob/master/pixyz/losses/mmd.py
 '''
 # def MMD_tmp(x, y, device):
-def MMD(x, y, device):
+# produces instability
+def MMD2(x, y, device):
 
-    if torch.any(torch.isnan(x)):
-        raise Exception('NaN in x')
-
-    if torch.any(torch.isnan(y)):
-        raise Exception('NaN in y')
+    # if torch.any(torch.isnan(x)):
+    #     raise Exception('NaN in x')
+    #
+    # if torch.any(torch.isnan(y)):
+    #     raise Exception('NaN in y')
 
     def inverse_multiquadratic_kernel(x, y):
+
+        if torch.any(torch.isnan(x)):
+            raise Exception('NaN in x')
+        if torch.any(torch.isinf(x)):
+            raise Exception('Inf in x')
+
+        if torch.any(torch.isnan(y)):
+            raise Exception('NaN in y')
+        if torch.any(torch.isinf(y)):
+            raise Exception('Inf in y')
+
         h = 1.2
 
-        cdist = torch.cdist(x, y, p=2)
+        cdist = torch.cdist(x, y, p=2.0, compute_mode='use_mm_for_euclid_dist_if_necessary')
 
-        # if torch.any(torch.isnan(cdist)):
-        #     raise Exception('NaN in cdist')
+        if torch.any(torch.isnan(cdist)):
+            raise Exception('NaN in cdist')
+        if torch.any(torch.isinf(cdist)):
+            raise Exception('Inf in cdist')
 
         return h ** 2 / (h ** 2 + cdist)
 
@@ -33,19 +47,19 @@ def MMD(x, y, device):
     xy = inverse_multiquadratic_kernel(x, y)
     yy = inverse_multiquadratic_kernel(y, y)
 
-    if torch.any(torch.isnan(xx)):
-        raise Exception('NaN in xx')
-
-    if torch.any(torch.isnan(xy)):
-        raise Exception('NaN in xy')
-
-    if torch.any(torch.isnan(xy)):
-        raise Exception('NaN in xy')
+    # if torch.any(torch.isnan(xx)):
+    #     raise Exception('NaN in xx')
+    #
+    # if torch.any(torch.isnan(xy)):
+    #     raise Exception('NaN in xy')
+    #
+    # if torch.any(torch.isnan(xy)):
+    #     raise Exception('NaN in xy')
 
     mean = torch.mean(xx + yy - 2.0 * xy)
 
-    if torch.isnan(mean):
-        raise Exception('NaN in MMD')
+    # if torch.isnan(mean):
+    #     raise Exception('NaN in MMD')
 
     return mean
 
@@ -53,7 +67,8 @@ def MMD(x, y, device):
 Maximum Mean Discrepancy (MMD) Multiscale
 source: https://github.com/VLL-HD/analyzing_inverse_problems/blob/master/toy_8-modes/toy_8-modes.ipynb
 '''
-def MMD_multiscale(x, y, device):
+def MMD(x, y, device):
+
     xx, yy, zz = torch.mm(x,x.t()), torch.mm(y,y.t()), torch.mm(x,y.t())
 
     rx = (xx.diag().unsqueeze(0).expand_as(xx))
@@ -73,9 +88,6 @@ def MMD_multiscale(x, y, device):
         XY += a**2 * (a**2 + dxy)**-1
 
     mean = torch.mean(XX + YY - 2.*XY)
-
-    if torch.isnan(mean):
-        raise Exception('NaN in MMD')
 
     return mean
 
@@ -141,26 +153,34 @@ def VAE_loss_ROBOT_SIM(recon_x, x, mu, logvar, variational_beta):
 # Input _x: predicted input vector with shape: num_samples x 2 * num_joints
 def custom_loss(_x, x, reduction):
 
+    if torch.any(torch.isnan(_x)):
+        raise Exception('NaN in _x detected!')
+    if torch.any(torch.isinf(_x)):
+        raise Exception('Inf in _x detected!')
+
     num_joints = int(x.size()[1] / 2)
     samples = x.size()[0]
 
     # vectorize input vectors
     _x_vectorized = vectorize(_x)
+    if torch.any(torch.isnan(_x_vectorized)):
+        raise Exception('NaN in _x_vectorized detected!')
+    if torch.any(torch.isinf(_x_vectorized)):
+        raise Exception('Inf in _x_vectorized detected!')
     x_vectorized = vectorize(x)
+    if torch.any(torch.isnan(x_vectorized)):
+        raise Exception('NaN in x_vectorized detected!')
+    if torch.any(torch.isinf(x_vectorized)):
+        raise Exception('Inf in x_vectorized detected!')
 
     # normalize preds direction vectors
     # eps important in order to avoid dividing by 0
-    _x_normalized = nn.functional.normalize(input=_x_vectorized, p=2, dim=2, eps=1e-4)
+    _x_normalized = nn.functional.normalize(input=_x_vectorized, p=2, dim=2, eps=1e-5)
 
     if torch.any(torch.isnan(_x_normalized)):
-        for i in range(samples):
-            if(torch.any(torch.isnan(_x_normalized[i, :, :]))):
-                print('_x: ', _x[i, :])
-                print('_x_vectorized: ', _x_vectorized[i, :, :])
-                print('_x_normalized: ', _x_normalized[i, :, :])
-                print('\n')
-
         raise Exception('NaN in _x_normalized detected!')
+    if torch.any(torch.isinf(_x_normalized)):
+        raise Exception('Inf in _x_normalized detected!')
 
     ones = torch.ones(size=(samples,))
     loss_i = 0.0

@@ -39,9 +39,9 @@ if __name__ == '__main__':
     ####################################################################################################################
 
     model_name = 'INN'
-    robot_dof = '3DOF'
+    robot_dof = '4DOF'
 
-    N = 500
+    N = 1
     M = 100
     percentile = 0.97
 
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     if model_name == 'CVAE':
         if robot_dof == '2DOF':
             config = load_config('robotsim_cVAE_2DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D2DoF([3, 2])
+            robot = robotsim.Robot2D2DoF([0.5, 1])
             dataset = RobotSimDataset(robot, 1e6)
             dof=2
         elif robot_dof == '3DOF':
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     else:
         if robot_dof == '2DOF':
             config = load_config('robotsim_INN_2DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D2DoF([3, 2])
+            robot = robotsim.Robot2D2DoF([0.5, 1])
             dataset = RobotSimDataset(robot, 1e6)
             dof = 2
         elif robot_dof == '3DOF':
@@ -90,13 +90,13 @@ if __name__ == '__main__':
         else:
             config = load_config('robotsim_INN_4DOF.yaml', 'configs/')
             robot = robotsim.Robot2D4DoF([0.5, 0.5, 0.5, 1.0])
-            dataset = RobotSimDataset(robot, 1e6)
+            dataset = RobotSimDataset(robot, 1e4)
             dof = 4
         model = INN(config)
 
     # ensures that models are trained and tested on the same samples
     torch.manual_seed(42)
-    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 300000])
+    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [7000, 3000])
     test_dataloader = DataLoader(test_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

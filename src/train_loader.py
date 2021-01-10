@@ -151,7 +151,7 @@ def train_INN(model, config, dataloader, device):
     print('TRAINABLE PARAMETERS: ', num_trainable_parameters)
 
     # TODO: does increasing of eps help to improve stability?
-    optimizer = torch.optim.Adam(params=trainable_parameters, lr=config['lr_rate'], eps=1e-5,
+    optimizer = torch.optim.Adam(params=trainable_parameters, lr=config['lr_rate'], eps=1e-6,
                                  weight_decay=config['weight_decay'])
     # define learning rate scheduler
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=config['milestones'],
@@ -197,6 +197,12 @@ def train_INN(model, config, dataloader, device):
             # apply sine and cosine to joint angles
             x = preprocess(x)
 
+            if torch.any(torch.isinf(x)):
+                raise Exception('Inf in input x detected')
+
+            if torch.any(torch.isnan(x)):
+                raise Exception('NaN in input x detected')
+
             # This is used later for training the inverse pass
             y_clean = y.clone()
 
@@ -226,39 +232,42 @@ def train_INN(model, config, dataloader, device):
 
             optimizer.zero_grad()
 
-            if torch.any(torch.isinf(x)):
-                raise Exception('inf in input detected!')
+            # if torch.any(torch.isinf(x)):
+            #     raise Exception('inf in input detected!')
 
             # forward propagation
             output = model(x)
 
-            if torch.any(torch.isinf(output)):
-                raise Exception('inf in output detected!')
-
-            if torch.any(torch.isnan(output)):
-                raise Exception('NaN in output detected!')
-
-            if torch.any(torch.isnan(y)):
-                raise Exception('NaN in y detected!')
+            # if torch.any(torch.isinf(output)):
+            #     raise Exception('inf in output detected!')
+            #
+            # if torch.any(torch.isnan(output)):
+            #     raise Exception('NaN in output detected!')
+            #
+            # if torch.any(torch.isnan(y)):
+            #     raise Exception('NaN in y detected!')
 
             # shorten y and output for latent loss computation: (z, pad_yz)
             y_short = torch.cat((y[:, :config['latent_dim']], y[:, -config['output_dim']:]), dim=1)
 
-            if torch.any(torch.isinf(y_short)):
-                raise Exception('inf in yshort detected!')
+            # if torch.any(torch.isinf(y_short)):
+            #     raise Exception('inf in yshort detected!')
 
             output_short = torch.cat((output[:, :config['latent_dim']], output[:, -config['output_dim']:].data), dim=1)
 
-            if torch.any(torch.isinf(output_short)):
-                raise Exception('inf in output_short detected!')
+            # if torch.any(torch.isinf(output_short)):
+            #     raise Exception('inf in output_short detected!')
 
             L_y = config['weight_Ly'] * MSE(output[:, config['latent_dim']:], y[:, config['latent_dim']:], reduction=reduction)
 
-            if torch.isnan(L_y):
-                raise Exception('NaN in L_y loss detected!')
+            # if torch.isnan(L_y):
+            #     raise Exception('NaN in L_y loss detected!')
+
             L_z = config['weight_Lz'] * MMD(output_short, y_short, device)
-            if torch.isnan(L_z):
-                raise Exception('NaN in L_z loss detected!')
+
+            # if torch.isnan(L_z):
+            #     raise Exception('NaN in L_z loss detected!')
+
             loss_forward = L_y + L_z
             loss = loss_forward.data.detach()
 

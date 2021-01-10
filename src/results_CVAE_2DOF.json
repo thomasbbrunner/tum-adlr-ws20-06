@@ -1,0 +1,8 @@
+"CVAE"
+"2DOF"
+"# trainable parameters: 164808"
+"N = 1"
+"M = 100"
+"Average error of posterior: 0.012178524397313595"
+"Average re-simulation error: tensor(0.0036)"
+"config: {'name': 'CVAE', 'dof': '2DOF', 'weight_dir': 'weights/ROBOTSIM_CVAE_2DOF', 'checkpoint_dir': 'checkpoints/', 'input_dim': 4, 'hidden_dim': 200, 'latent_dim': 2, 'condition_dim': 2, 'num_layers': 3, 'num_epochs': 60, 'batch_size': 1000, 'lr_rate': 0.01, 'weight_decay': 0.0001, 'variational_beta': 0.0067, 'checkpoint_epoch': 15, 'milestones': [20, 40, 50], 'gamma': 0.1}"

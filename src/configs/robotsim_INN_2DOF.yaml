@@ -15,8 +15,8 @@ latent_dim: 2 # z
 use_gpu: False
 
 # Training
-num_epochs: 30
-batch_size: 250
+num_epochs: 60
+batch_size: 100
 lr_rate: 0.001
 weight_decay: 0.0001
 checkpoint_epoch: 10
@@ -30,7 +30,3 @@ weight_Lxy: 200.0
 # lr-scheduler
 step_size: 20
 gamma: 0.1
-
-# Testing
-num_samples_config: 500
-num_samples_latent: 2000
