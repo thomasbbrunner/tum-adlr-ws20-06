@@ -199,12 +199,6 @@ def train_INN(model, config, dataloader, device):
             # apply sine and cosine to joint angles
             x = preprocess(x)
 
-            # if torch.any(torch.isinf(x)):
-            #     raise Exception('Inf in input x detected')
-            #
-            # if torch.any(torch.isnan(x)):
-            #     raise Exception('NaN in input x detected')
-
             # This is used later for training the inverse pass
             y_clean = y.clone()
 
@@ -214,11 +208,6 @@ def train_INN(model, config, dataloader, device):
 
             # Insert noise
             pad_x = zeros_noise_scale * torch.randn(config['batch_size'], diff, device=device)
-
-            # if torch.any(torch.isinf(pad_x)):
-            #     raise Exception('Inf in pad_x detected')
-            # if torch.any(torch.isnan(pad_x)):
-            #     raise Exception('NaN in pad_x detected')
 
             pad_yz = zeros_noise_scale * torch.randn(config['batch_size'], pad, device=device)
 
@@ -255,23 +244,9 @@ def train_INN(model, config, dataloader, device):
             loss_forward = L_y + L_z
             loss = loss_forward.data.detach()
 
-            # params = [p for p in model.parameters()]
-            # for p in params:
-            #     if torch.any(torch.isinf(p)):
-            #         raise Exception('Inf in model before forward.backward detected')
-            #     if torch.any(torch.isnan(p)):
-            #         raise Exception('NaN in model before forward.backward detected')
-
             # backpropagation
             # Do not free intermediate results in order to accumulate grads later from forward and backward
             loss_forward.backward(retain_graph=True)
-
-            # params = [p for p in model.parameters()]
-            # for p in params:
-            #     if torch.any(torch.isinf(p)):
-            #         raise Exception('Inf in model after forward.backward detected')
-            #     if torch.any(torch.isnan(p)):
-            #         raise Exception('NaN in model after forward.backward detected')
 
             ############################################################################################################
             # BACKWARD STEP
@@ -280,29 +255,13 @@ def train_INN(model, config, dataloader, device):
             # Insert noise
             pad_yz = zeros_noise_scale * torch.randn(config['batch_size'], pad, device=device)
 
-            # if torch.any(torch.isinf(pad_yz)):
-            #     raise Exception('Inf in pad_yz in backward step detected')
-            # if torch.any(torch.isnan(pad_yz)):
-            #     raise Exception('NaN in pad_yz backward step detected')
-
             y = y_clean + y_noise_scale * torch.randn(config['batch_size'], config['output_dim'], dtype=torch.float,
                                                       device=device)
-
-            # if torch.any(torch.isinf(y)):
-            #     raise Exception('Inf in y in backward step detected')
-            # if torch.any(torch.isnan(y)):
-            #     raise Exception('NaN in y backward step detected')
 
             orig_z_perturbed = (output[:, :config['latent_dim']] + y_noise_scale *
                                 torch.randn(config['batch_size'], config['latent_dim'], device=device))
 
-            # if torch.any(torch.isinf(orig_z_perturbed)):
-            #     raise Exception('Inf in orig_z_perturbed in backward step detected')
-            # if torch.any(torch.isnan(orig_z_perturbed)):
-            #     raise Exception('NaN in orig_z_perturbed backward step detected')
-
             y_inv = torch.cat((orig_z_perturbed, pad_yz, y), dim=1)
-
 
             y_inv_rand = torch.cat((torch.randn(config['batch_size'], config['latent_dim'], device=device), pad_yz, y),
                                    dim=1)
@@ -312,41 +271,20 @@ def train_INN(model, config, dataloader, device):
             output_inv_rand = model(y_inv_rand, inverse=True)
 
             # forces padding dims to be ignored
-            # L_xy = config['weight_Lxy'] * MSE(output_inv, x, reduction='mean')
             L_xy = config['weight_Lxy'] * custom_loss(output_inv, x, reduction=reduction)
-            # print('L_xy: ', config['weight_Ly'] * L_xy)
 
             # TODO: What is the benefit of that loss?
             UNWEIGHTED_LOSS = MMD(output_inv_rand[:, :config['input_dim']], x[:, :config['input_dim']], device)
             L_x = config['weight_Lx'] * loss_factor * UNWEIGHTED_LOSS
-            # print('L_x: ', config['weight_Lx'] * L_x)
 
             loss_backward = L_x + L_xy
             loss += loss_backward.data.detach()
 
-            # params = [p for p in model.parameters()]
-            # for p in params:
-            #     if torch.any(torch.isinf(p)):
-            #         raise Exception('Inf in model before backward.backward detected')
-            #     if torch.any(torch.isnan(p)):
-            #         raise Exception('NaN in model before backward.backward detected')
-
             loss_backward.backward()
-
-            # params = [p for p in model.parameters()]
-            # for p in params:
-            #     if torch.any(torch.isinf(p)):
-            #         raise Exception('Inf in model after backward.backward detected')
-            #     if torch.any(torch.isnan(p)):
-            #         raise Exception('NaN in model after backward.backward detected')
 
             # very important such that grads in subnetworks dont explode!!!!!
             for p in model.parameters():
                 p.grad.data.clamp_(-15.00, 15.00)
-
-            # torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=15.0)
-            # for p in model.parameters():
-            #     p.data.add_(p.grad, alpha=-lr)
 
             # one step of the optimizer
             optimizer.step()
@@ -354,20 +292,20 @@ def train_INN(model, config, dataloader, device):
             train_loss_avg[-1] += loss
 
             train_loss_Ly_avg[-1] += L_y.data.detach()
-            if torch.isnan(train_loss_Ly_avg[-1]):
-                raise Exception('NaN in train_loss_Ly_avg[-1] loss detected!')
+            # if torch.isnan(train_loss_Ly_avg[-1]):
+            #     raise Exception('NaN in train_loss_Ly_avg[-1] loss detected!')
 
             train_loss_Lz_avg[-1] += L_z.data.detach()
-            if torch.isnan(train_loss_Lz_avg[-1]):
-                raise Exception('NaN in train_loss_Lz_avg[-1] loss detected!')
+            # if torch.isnan(train_loss_Lz_avg[-1]):
+            #     raise Exception('NaN in train_loss_Lz_avg[-1] loss detected!')
 
             train_loss_Lx_avg[-1] += L_x.data.detach()
-            if torch.isnan(train_loss_Lx_avg[-1]):
-                raise Exception('NaN in Lx loss detected!')
+            # if torch.isnan(train_loss_Lx_avg[-1]):
+            #     raise Exception('NaN in Lx loss detected!')
 
             train_loss_Lxy_avg[-1] += L_xy.data.detach()
-            if torch.isnan(train_loss_Lxy_avg[-1]):
-                raise Exception('NaN in Lxy loss detected!')
+            # if torch.isnan(train_loss_Lxy_avg[-1]):
+            #     raise Exception('NaN in Lxy loss detected!')
 
             train_loss_Lx_avg_unweighted[-1] += UNWEIGHTED_LOSS.data.detach()
 

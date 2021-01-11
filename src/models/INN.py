@@ -96,18 +96,12 @@ class AffineCouplingBlock(nn.Module):
             # v1 = u1 dotprod exp(s2(u2)) + t2(u2)
             # exp_2 = torch.exp(self.s2(u2))
             exp_2 = self.e(self.s2(u2))
-            # exp_2_y = self.s2(u2).where(torch.isinf(exp_2), exp_2.log1p())  # Replace infs with x
-            # if torch.any(torch.isinf(exp_2)):
-            #     raise Exception('Inf in exp_2 detected!')
 
             v1 = u1 * exp_2 + self.t2(u2)
 
             # v2 = u2 dotprod exp(s1(v1)) + t1(v1)
             # exp_1 = torch.exp(self.s1(v1))
-            # exp_1_y = self.s1(v1).where(torch.isinf(exp_1), exp_1.log1p())  # Replace infs with x
             exp_1 = self.e(self.s1(v1))
-            # if torch.any(torch.isinf(exp_1)):
-            #     raise Exception('Inf in exp_1 detected!')
 
             v2 = u2 * exp_1 + self.t1(v1)
 
@@ -117,18 +111,12 @@ class AffineCouplingBlock(nn.Module):
             # u2 = (v2-t1(v1)) dotprod exp(-s1(v1))
             # exp_1 = torch.exp(-self.s1(u1))
             exp_1 = self.e(-self.s1(u1))
-            # exp_1_y = -self.s1(u1).where(torch.isinf(exp_1), exp_1.log1p())  # Replace infs with x
-            # if torch.any(torch.isinf(exp_1)):
-            #     raise Exception('Inf in exp_1 detected!')
 
             v2 = (u2 - self.t1(u1)) * exp_1
 
             # u1 = (v1-t2(u2)) dotprod exp(-s2(u2))
             # exp_2 = torch.exp(-self.s2(v2))
             exp_2 = self.e(-self.s2(v2))
-            # exp_2_y = -self.s2(v2).where(torch.isinf(exp_2), exp_2.log1p())  # Replace infs with x
-            # if torch.any(torch.isinf(exp_2)):
-            #     raise Exception('Inf in exp_2 detected!')
 
             v1 = (u1 - self.t2(v2)) * exp_2
 
