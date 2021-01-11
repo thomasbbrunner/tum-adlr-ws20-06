@@ -4,14 +4,12 @@ from models.CVAE import *
 from models.INN import *
 from robotsim_dataset import RobotSimDataset
 import robotsim
-from losses import VAE_loss_ROBOT_SIM
+from losses import *
 from utils import *
 import numpy as np
 import matplotlib.pyplot as plt
 import yaml
 import json
-
-from test_loader import *
 
 '''
 Evaluation of the respective model:
@@ -38,8 +36,8 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    model_name = 'INN'
-    robot_dof = '2DOF'
+    model_name = 'CVAE'
+    robot_dof = '3DOF'
 
     N = 100
     M = 100
@@ -106,7 +104,7 @@ if __name__ == '__main__':
     model.load_weights(config['weight_dir'])
 
     # load pre-trained weights from checkpoint
-    # epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + model_name + '_' + config['dof'] + '_epoch_30')
+    # epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + model_name + '_' + config['dof'] + '_epoch_60')
 
     # set to evaluation mode
     model.eval()
