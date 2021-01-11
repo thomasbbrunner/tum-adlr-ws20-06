@@ -106,7 +106,7 @@ if __name__ == '__main__':
     model.load_weights(config['weight_dir'])
 
     # load pre-trained weights from checkpoint
-    # epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + model_name + '_' + config['dof'] + '_epoch_20')
+    # epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + model_name + '_' + config['dof'] + '_epoch_30')
 
     # set to evaluation mode
     model.eval()

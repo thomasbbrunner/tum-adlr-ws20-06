@@ -111,14 +111,14 @@ class CVAE(nn.Module):
         return eps.mul(std).add_(mu)
 
 
-    def visualise_z(self, x, condition):
-
-        with torch.no_grad():
-            x = torch.cat((x, condition), dim=1)
-            latent_mu, latent_logvar = self.encoder(x)
-            latent = self.latent_sample(latent_mu, latent_logvar)
-
-        return latent
+    # def visualise_z(self, x, condition):
+    #
+    #     with torch.no_grad():
+    #         x = torch.cat((x, condition), dim=1)
+    #         latent_mu, latent_logvar = self.encoder(x)
+    #         latent = self.latent_sample(latent_mu, latent_logvar)
+    #
+    #     return latent
 
 
     def predict(self, tcp, device):
@@ -140,7 +140,10 @@ class CVAE(nn.Module):
         }, PATH)
 
     def load_checkpoint(self, PATH, optimizer=None):
-        checkpoint = torch.load(PATH)
+        if torch.cuda.is_available():
+            checkpoint = torch.load(PATH)
+        else:
+            checkpoint = torch.load(PATH, map_location=torch.device('cpu'))
         self.load_state_dict(checkpoint['model_state_dict'])
         epoch = checkpoint['epoch']
         loss = checkpoint['loss']

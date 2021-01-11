@@ -217,10 +217,16 @@ class INN(nn.Module):
         }, PATH)
 
     def load_checkpoint(self, PATH, optimizer=None):
-        checkpoint = torch.load(PATH)
+
+        if torch.cuda.is_available():
+            checkpoint = torch.load(PATH)
+        else:
+            checkpoint = torch.load(PATH, map_location=torch.device('cpu'))
+
         self.load_state_dict(checkpoint['model_state_dict'])
         epoch = checkpoint['epoch']
         loss = checkpoint['loss']
+
         if not optimizer == None:
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             return optimizer, epoch, loss
