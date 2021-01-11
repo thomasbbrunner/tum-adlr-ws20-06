@@ -9,7 +9,7 @@ y_noise_scale : 0.001
 zeros_noise_scale : 0.005
 total_dim: 6 # considers padding, as well
 input_dim: 6 # = 2 * number of revolute joints + number of prismatic joints
-hidden_dim: 128 # number of neurons per fully connected layer
+hidden_dim: 132 # number of neurons per fully connected layer
 output_dim: 2 # tcp
 latent_dim: 4 # z
 
