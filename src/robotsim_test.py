@@ -36,7 +36,7 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    model_name = 'CVAE'
+    model_name = 'INN'
     robot_dof = '3DOF'
 
     N = 100
@@ -104,7 +104,7 @@ if __name__ == '__main__':
     model.load_weights(config['weight_dir'])
 
     # load pre-trained weights from checkpoint
-    # epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + model_name + '_' + config['dof'] + '_epoch_60')
+    # epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + model_name + '_' + config['dof'] + '_epoch_40')
 
     # set to evaluation mode
     model.eval()
