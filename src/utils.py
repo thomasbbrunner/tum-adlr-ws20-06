@@ -7,6 +7,7 @@ from scipy.spatial import ConvexHull, convex_hull_plot_2d
 
 from robotsim_dataset import RobotSimDataset
 import robotsim
+import robotsim_plot
 
 # Function to load yaml configuration file
 def load_config(config_name, config_path):
@@ -150,7 +151,7 @@ def rejection_sampling(robot, tcp, dof, samples):
 # from robotsim_dataset
 def plot_configurations(robot, joints, transparency=None, path=None, show=False):
 
-    fig, ax = robot.plot_heatmap(joints, transparency, path=None, show=False)
+    fig, ax = robotsim_plot.heatmap(joints, robot, transparency=transparency, path=None, show=False)
     plt.axis([0.0, 2.7, -1.0, 1.0])
 
     # get a sample to plot
@@ -203,5 +204,5 @@ if __name__ == '__main__':
     joint_states = rejection_sampling(robot=robot, tcp=gt_tcp, dof=3)
 
     joint_states = np.array(joint_states)
-    robot.plot(joint_states=joint_states, separate_plots=False)
+    robotsim_plot.plot(joint_states, robot)
     plt.show()

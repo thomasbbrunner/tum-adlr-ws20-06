@@ -5,6 +5,7 @@ import pdb
 from torch.utils.data import Dataset
 
 import robotsim
+import robotsim_plot
 
 
 class RobotSimDataset(Dataset):
@@ -118,8 +119,9 @@ class RobotSimDataset(Dataset):
 
     def plot_configurations(self, transparency=None, path=None, show=False):
 
-        fig, ax = self._robot.plot_heatmap(
+        fig, ax = robotsim_plot.heatmap(
             self._joint_states,
+            self._robot,
             transparency, path=None, show=False)
 
         # get a sample to plot
