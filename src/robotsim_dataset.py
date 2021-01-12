@@ -44,9 +44,11 @@ class RobotSimDataset(Dataset):
         # TODO: Check whether better
         if normal:
             # sample from random normal distribution N(0, std) with std=0.5
+            # TODO 0.5 is standard deviation (not variance!)
             self._joint_states = self.random_gen.normal(
                 loc=0.0, scale=0.5, size=(self._num_samples, self._num_dof))
         else:
+            # TODO reset joint limits to normal limits
             self._joint_states = self.random_gen.uniform(
                 joint_ranges[:, 0], joint_ranges[:, 1],
                 (self._num_samples, self._num_dof))
@@ -78,18 +80,18 @@ class RobotSimDataset(Dataset):
             marker='.', s=1)
 
         ax.set_title(
-            "Dataset {} DoF ({} samples)". format(
+            "TCP Coordinates in Dataset ({} DOF, {} samples)". format(
                 self._num_dof, self._num_samples))
         ax.set_xlabel("$x_1$")
         ax.set_ylabel("$x_2$")
 
         if path:
-            plt.savefig(path)
+            fig.savefig(path)
 
         if show:
-            plt.show()
+            fig.show()
 
-    def histogram(self, path=None, show=False, bins=200):
+    def histogram(self, path=None, show=False, bins=150):
 
         fig, ax = plt.subplots()
         ax.grid()
@@ -100,7 +102,7 @@ class RobotSimDataset(Dataset):
             cmin=1,)
 
         ax.set_title(
-            "Dataset {} DoF ({} samples)". format(
+            "TCP Coordinates in Dataset ({} DOF, {} samples)". format(
                 self._num_dof, self._num_samples))
         ax.set_xlabel("$x_1$")
         ax.set_ylabel("$x_2$")
@@ -109,59 +111,72 @@ class RobotSimDataset(Dataset):
         cbar.set_label("samples")
 
         if path:
-            plt.savefig(path)
+            fig.savefig(path, dpi=300)
 
         if show:
-            plt.show()
+            fig.show()
 
     def plot_configurations(self, transparency=None, path=None, show=False):
-        self._robot.plot_heatmap(
+
+        fig, ax = self._robot.plot_heatmap(
             self._joint_states,
-            transparency, path, show)
+            transparency, path=None, show=False)
+
+        # get a sample to plot
+        joint_coords = self._robot._get_joint_coords(self._joint_states[0])
+
+        for arm in joint_coords:
+
+            ax.plot(
+                arm[:, 0].flatten(),
+                arm[:, 1].flatten(),
+                c='k', linewidth=2, zorder=10)
+
+            ax.scatter(
+                arm[:, 0].flatten(),
+                arm[:, 1].flatten(),
+                c='r', s=6, zorder=11)
+
+        ax.set_title(
+            "Configurations in Dataset ({} DOF, {} samples)". format(
+                self._num_dof, self._num_samples))
+
+        if path:
+            fig.savefig(path, dpi=300)
+
+        if show:
+            fig.show()
 
 
 if __name__ == "__main__":
 
     num_samples = 1e6
+    num_samples_limited = 1e4  # for plots that can't handle full dataset
 
-    # 2 DoF
-    robot = robotsim.Robot2D2DoF([3, 2])
-    dataset = RobotSimDataset(robot, num_samples)
-    # dataset.plot(path="./figures/dataset/normal_Robot2D2DoF")
-    dataset.histogram(path="./figures/dataset/normal_Robot2D2DoF_histogram")
+    # robots used during training
+    robot_2dof = robotsim.Robot2D2DoF([0.5, 1])
+    robot_3dof = robotsim.Robot2D3DoF([0.5, 0.5, 1.0])
+    robot_4dof = robotsim.Robot2D4DoF([0.5, 0.5, 0.5, 1.0])
+    robot_paper = robotsim.RobotPaper([0.5, 0.5, 1.0])
 
-    dataset = RobotSimDataset(robot, num_samples, normal=False)
-    # dataset.plot(path="./figures/dataset/uniform_Robot2D2DoF")
-    dataset.histogram(path="./figures/dataset/uniform_Robot2D2DoF_histogram")
+    robots = [robot_2dof, robot_3dof, robot_4dof, robot_paper]
+    names = ["2dof", "3dof", "4dof", "paper"]
 
-    # 3 DoF
-    robot = robotsim.Robot2D3DoF([3, 2, 3])
-    dataset = RobotSimDataset(robot, num_samples)
-    # dataset.plot(path="./figures/dataset/normal_Robot2D3DoF")
-    dataset.histogram(path="./figures/dataset/normal_Robot2D3DoF_histogram")
+    # generation of dataset plots
+    for robot, name in zip(robots, names):
 
-    dataset = RobotSimDataset(robot, num_samples, normal=False)
-    # dataset.plot(path="./figures/dataset/uniform_Robot2D3DoF")
-    dataset.histogram(path="./figures/dataset/uniform_Robot2D3DoF_histogram")
+        # normal
+        dataset = RobotSimDataset(robot, num_samples_limited)
+        dataset.plot_configurations(
+            path="./figures/dataset/normal_{}_configs".format(name))
+        dataset = RobotSimDataset(robot, num_samples)
+        dataset.histogram(
+            path="./figures/dataset/normal_{}_histogram".format(name))
 
-    # 4 DoF
-    robot = robotsim.Robot2D4DoF([3, 2, 2, 3])
-    dataset = RobotSimDataset(robot, num_samples)
-    # dataset.plot(path="./figures/dataset/normal_Robot2D4DoF")
-    dataset.histogram(path="./figures/dataset/normal_Robot2D4DoF_histogram")
-
-    dataset = RobotSimDataset(robot, num_samples, normal=False)
-    # dataset.plot(path="./figures/dataset/uniform_Robot2D4DoF")
-    dataset.histogram(path="./figures/dataset/uniform_Robot2D4DoF_histogram")
-
-    # Paper's Robot
-    robot = robotsim.RobotPaper([3, 2, 3])
-    dataset = RobotSimDataset(robot, num_samples)
-    # dataset.plot(path="./figures/dataset/normal_RobotPaper")
-    dataset.histogram(path="./figures/dataset/normal_RobotPaper_histogram")
-
-    dataset = RobotSimDataset(robot, num_samples, normal=False)
-    # dataset.plot(path="./figures/dataset/uniform_RobotPaper")
-    dataset.histogram(path="./figures/dataset/uniform_RobotPaper_histogram")
-
-    plt.show()
+        # uniform
+        dataset = RobotSimDataset(robot, num_samples_limited, normal=False)
+        dataset.plot_configurations(
+            path="./figures/dataset/uniform_{}_configs".format(name))
+        dataset = RobotSimDataset(robot, num_samples, normal=False)
+        dataset.histogram(
+            path="./figures/dataset/uniform_{}_histogram".format(name))

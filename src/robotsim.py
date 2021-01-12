@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pdb
 
+# TODO naming with RRRR, PRRR...
+
 
 class RobotSim(ABC):
 
@@ -171,6 +173,8 @@ class RobotSim(ABC):
 
         Plot is only shown if "show" is set.
 
+        Returns figure and axes object.
+
         Examples:
         # >>> # for single plot
         # >>> robot.plot_configurations([0, 1, 0])
@@ -233,10 +237,12 @@ class RobotSim(ABC):
                 c='r', s=8)
 
         if path:
-            plt.savefig(path)
+            fig.savefig(path)
 
         if show:
-            plt.show()
+            fig.show()
+
+        return fig, ax
 
     def plot_heatmap(self, joint_states, transparency=None, path=None, show=False):
         # TODO docstring
@@ -264,10 +270,12 @@ class RobotSim(ABC):
                 c='b', alpha=transparency)
 
         if path:
-            plt.savefig(path)
+            fig.savefig(path)
 
         if show:
-            plt.show()
+            fig.show()
+
+        return fig, ax
 
 
 class Robot3D1(RobotSim):
@@ -329,15 +337,15 @@ class Robot2D2DoF(RobotSim):
 
     def get_joint_ranges(self):
 
-        # return np.array([
-        #     [-np.pi, np.pi],
-        #     [-np.pi, np.pi],
-        # ])
-
         return np.array([
-            [-np.pi/2, np.pi/2],
-            [-np.pi/2, np.pi/2],
+            [-np.pi, np.pi],
+            [-np.pi, np.pi],
         ])
+
+        # return np.array([
+        #     [-np.pi/2, np.pi/2],
+        #     [-np.pi/2, np.pi/2],
+        # ])
 
 
 class Robot2D3DoF(RobotSim):
@@ -497,17 +505,17 @@ class Robot2D3DoF(RobotSim):
 
     def get_joint_ranges(self):
 
-        # return np.array([
-        #     [-np.pi, np.pi],
-        #     [-np.pi, np.pi],
-        #     [-np.pi, np.pi],
-        # ])
-
         return np.array([
-            [-np.pi/2, np.pi/2],
-            [-np.pi/2, np.pi/2],
-            [-np.pi/2, np.pi/2],
+            [-np.pi, np.pi],
+            [-np.pi, np.pi],
+            [-np.pi, np.pi],
         ])
+
+        # return np.array([
+        #     [-np.pi/2, np.pi/2],
+        #     [-np.pi/2, np.pi/2],
+        #     [-np.pi/2, np.pi/2],
+        # ])
 
 
 class RobotPaper(RobotSim):
@@ -623,12 +631,18 @@ class RobotPaper(RobotSim):
     def get_joint_ranges(self):
 
         return np.array([
-            # [-self._length, self._length],
-            [-1.0, 1.0],
+            [-self._length, self._length],
             [-np.pi, np.pi],
             [-np.pi, np.pi],
             [-np.pi, np.pi],
         ])
+
+        # return np.array([
+        #     [-1.0, 1.0],
+        #     [-np.pi, np.pi],
+        #     [-np.pi, np.pi],
+        #     [-np.pi, np.pi],
+        # ])
 
 
 class Robot2D4DoF(RobotSim):
