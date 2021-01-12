@@ -36,10 +36,10 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    model_name = 'INN'
-    robot_dof = '3DOF'
+    model_name = 'CVAE'
+    robot_dof = '4DOF'
 
-    N = 100
+    N = 1
     M = 100
     percentile = 0.97
 
@@ -130,9 +130,19 @@ if __name__ == '__main__':
 
         # generate plots for visualization for first sample
         if n == 0:
+
+            print('N_x: ', N_x)
+            print('N_y: ', N_y)
+
             # plot sample configuration from estimated posterior by rejection sampling
-            robot.plot(joint_states, path='figures/rejection_sampling_' + str(config['name']) + '_' + str(config['dof']) + '.png',
-                       separate_plots=False)
+            plot_configurations(robot, joint_states, transparency=0.2, path='figures/rejection_sampling_' +
+                                                                            str(config['name']) + '_' +
+                                                                            str(config['dof']) + '.png', show=False)
+
+            # robot.plot_heatmap(joint_states, path=None, transparency=0.1)
+            # robot.plot(joint_states[0], path='figures/rejection_sampling_' + str(config['name']) + '_' +
+            #                                  str(config['dof']) + '.png', separate_plots=False)
+
             # Plot contour lines enclose the region containing 97% of the end points
             resimulation_tcp = robot.forward(joint_states=joint_states)
             resimulation_xy = resimulation_tcp[:, :2]
@@ -161,9 +171,13 @@ if __name__ == '__main__':
         # generate plots for visualization for first sample
         if n == 0:
             # plot sample configuration from predicted posterior
-            robot.plot(pred_joint_states, path='figures/predicted_posterior_' + model_name + '_' +
-                                               str(config['dof']) + '.png',
-                       separate_plots=False)
+            plot_configurations(robot, pred_joint_states, transparency=0.2, path='figures/predicted_posterior_' +
+                                                                            model_name + '_' + str(config['dof']) +
+                                                                            '.png', show=False)
+            # robot.plot(pred_joint_states, path='figures/predicted_posterior_' + model_name + '_' +
+            #                                    str(config['dof']) + '.png', separate_plots=False)
+            # robot.plot_heatmap(pred_joint_states, path='figures/predicted_posterior_' + model_name + '_' +
+            #                                    str(config['dof']) + '.png', transparency=0.1)
             # Plot contour lines enclose the region containing 97% of the end points
             resimulation_tcp = robot.forward(joint_states=pred_joint_states)
             resimulation_xy = resimulation_tcp[:, :2]

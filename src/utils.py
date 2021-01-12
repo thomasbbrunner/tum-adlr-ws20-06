@@ -147,6 +147,32 @@ def rejection_sampling(robot, tcp, dof, samples):
 
     return hit_samples
 
+# from robotsim_dataset
+def plot_configurations(robot, joints, transparency=None, path=None, show=False):
+
+    fig, ax = robot.plot_heatmap(joints, transparency, path=None, show=False)
+    plt.axis([0.0, 2.7, -1.0, 1.0])
+
+    # get a sample to plot
+    joint_coords = robot._get_joint_coords(joints[22])
+
+    for arm in joint_coords:
+        ax.plot(
+            arm[:, 0].flatten(),
+            arm[:, 1].flatten(),
+            c='k', linewidth=2, zorder=10)
+
+        ax.scatter(
+            arm[:, 0].flatten(),
+            arm[:, 1].flatten(),
+            c='r', s=6, zorder=11)
+
+    if path:
+        fig.savefig(path, dpi=300)
+
+    if show:
+        fig.show()
+
 
 # Testing example
 if __name__ == '__main__':
