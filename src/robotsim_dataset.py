@@ -139,6 +139,9 @@ class RobotSimDataset(Dataset):
                 arm[:, 1].flatten(),
                 c='r', s=6, zorder=11)
 
+        ax.set_xlim([-1, 4])
+        ax.set_ylim([-2.5, 2.5])
+
         ax.set_title(
             "Configurations in Dataset ({} DOF, {} samples)". format(
                 self._num_dof, self._num_samples))
