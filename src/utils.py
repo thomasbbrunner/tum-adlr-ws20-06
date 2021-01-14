@@ -9,22 +9,27 @@ from robotsim_dataset import RobotSimDataset
 import robotsim
 import robotsim_plot
 
+'''
+Various methods to make life easier
+'''
+
 # Function to load yaml configuration file
 def load_config(config_name, config_path):
     with open(os.path.join(config_path, config_name)) as file:
         config = yaml.safe_load(file)
     return config
 
-def onehot(idx, num_classes):
+# def onehot(idx, num_classes):
+#
+#     assert idx.shape[1] == 1
+#     assert torch.max(idx).item() < num_classes
+#
+#     onehot = torch.zeros(idx.size(0), num_classes)
+#     onehot.scatter_(1, idx.data, 1)
+#
+#     return onehot
 
-    assert idx.shape[1] == 1
-    assert torch.max(idx).item() < num_classes
-
-    onehot = torch.zeros(idx.size(0), num_classes)
-    onehot.scatter_(1, idx.data, 1)
-
-    return onehot
-
+# Takes joints angles as inputs and produces direction vectors from them
 def preprocess(x):
 
     x_sin = torch.sin(x)
@@ -32,27 +37,26 @@ def preprocess(x):
     x = torch.cat((x_sin, x_cos), dim=1)
     return x
 
-def postprocess_old(x):
+# def postprocess_old(x):
+#
+#     # see values as complex numbers from which we want to compute its argument
+#     # arg(x + i*y) = arg(cos(phi) + i*sin(phi)) = arctan(y/x)
+#     # special cases
+#
+#     # x = normalize(x)
+#
+#     num_joints = int(x.size()[1] / 2)
+#     _x = torch.zeros(size=(x.size()[0], num_joints))
+#
+#     for i in range(num_joints):
+#         _x[:, i] = torch.atan2(input=x[:, i], other=x[:, num_joints+i])
+#
+#     return _x
 
-    # see values as complex numbers from which we want to compute its argument
-    # arg(x + i*y) = arg(cos(phi) + i*sin(phi)) = arctan(y/x)
-    # special cases
-
-    # x = normalize(x)
-
-    num_joints = int(x.size()[1] / 2)
-    _x = torch.zeros(size=(x.size()[0], num_joints))
-
-    for i in range(num_joints):
-        _x[:, i] = torch.atan2(input=x[:, i], other=x[:, num_joints+i])
-
-    return _x
-
+# takes direction vectors as input and computes corresponding joint angles
 def postprocess(x):
 
     num_joints = int(x.size()[1] / 2)
-
-    # x_normalized = normalize(x)
     _x = torch.zeros(size=(x.size()[0], num_joints))
 
     for i in range(num_joints):
@@ -60,12 +64,11 @@ def postprocess(x):
 
     return _x
 
+# Normalizes vectorized (--> see method vectorize()) direction vectors
 def normalize(x):
 
     num_joints = int(x.size()[1] / 2)
     x_normalized = x.clone()
-
-    # print('x before normalization: ', x)
 
     # to avoid dividing by 0
     eps = 0.00001
@@ -74,8 +77,6 @@ def normalize(x):
         length = torch.sqrt(torch.square(x[:, i]) + torch.square(x[:, num_joints + i]))
         x_normalized[:, i] = x[:, i] / (length + eps)
         x_normalized[:, num_joints + i] = x[:, num_joints + i] / (length + eps)
-
-    # print('x after normalization: ', x_normalized)
 
     return x_normalized
 
@@ -123,9 +124,10 @@ def plot_contour_lines(points, gt, PATH, percentile=0.97):
         plt.plot(selected_points[simplex, 0], selected_points[simplex, 1], 'k-')
     plt.savefig(PATH)
 
-def RMSE(pred, gt):
-    return torch.sqrt(torch.mean(torch.sum(torch.square(pred - gt), dim=1)))
+# def RMSE(pred, gt):
+#     return torch.sqrt(torch.mean(torch.sum(torch.square(pred - gt), dim=1)))
 
+# method to produce a ground truth posterior distribution of the joint angles depending on the tcp
 def rejection_sampling(robot, tcp, dof, samples):
 
     eps = 0.05
@@ -144,7 +146,6 @@ def rejection_sampling(robot, tcp, dof, samples):
         if(norm < eps):
             hit_samples.append(sampled_joints)
             hit = hit + 1
-            # print('hit: ', hit)
 
     return hit_samples
 

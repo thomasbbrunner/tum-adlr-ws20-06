@@ -9,6 +9,10 @@ import matplotlib.pyplot as plt
 from utils import *
 from losses import *
 
+'''
+Training pipelines for INN and CVAE
+'''
+
 ########################################################################################################################
 # TRAIN METHOD FOR CVAE
 ########################################################################################################################
@@ -61,8 +65,7 @@ def train_CVAE(model, config, dataloader, device):
             recon_loss = custom_loss(image_batch_recon, joint_batch, reduction='sum')
             kldivergence = KL_divergence(latent_mu, latent_logvar)
 
-            # loss = recon_loss + nn.functional.sigmoid(epoch / config['num_epochs'] - 0.5) * kldivergence # config['variational_beta'] * kldivergence
-
+            # adapt size of variational beta to epoch
             # if epoch < config['num_epochs'] / 2:
             #     beta = config['variational_beta']
             # elif epoch >= config['num_epochs'] / 2 and epoch < 3 * config['num_epochs'] / 4:
@@ -87,6 +90,7 @@ def train_CVAE(model, config, dataloader, device):
         # perform step of lr-scheduler
         scheduler.step()
 
+        # save checkpoint
         if epoch > 1 and epoch % config['checkpoint_epoch'] == 0:
             model.save_checkpoint(epoch=epoch, optimizer=optimizer, loss=loss,
                                   PATH=config['checkpoint_dir'] + 'CVAE_' + str(config['dof']) + '_epoch_' + str(epoch))
@@ -125,12 +129,14 @@ def train_CVAE(model, config, dataloader, device):
     # plt.legend()
     plt.savefig('figures/kl_avg_train_loss_CVAE_' + str(config['dof']) + '.png')
 
+
 ########################################################################################################################
 # TRAIN METHOD FOR INN
 ########################################################################################################################
 
 def train_INN(model, config, dataloader, device):
 
+    # for debugging
     torch.autograd.set_detect_anomaly(True)
 
     # try to overfit on a single batch
@@ -143,21 +149,21 @@ def train_INN(model, config, dataloader, device):
     train_loss_Ly_avg = []
     train_loss_Lz_avg = []
     train_loss_Lx_avg = []
-    train_loss_Lx_avg_unweighted = []
     train_loss_Lxy_avg = []
 
     # show trainable parameters
     trainable_parameters = [p for p in model.parameters() if p.requires_grad]
     num_trainable_parameters = sum(p.numel() for p in model.parameters())
-
     print('TRAINABLE PARAMETERS: ', num_trainable_parameters)
 
-    # TODO: does increasing of eps help to improve stability?
+    # TODO: which eps is the best for stability ?
     optimizer = torch.optim.Adam(params=trainable_parameters, lr=config['lr_rate'], eps=1e-6,
                                  weight_decay=config['weight_decay'])
     # define learning rate scheduler
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=config['milestones'],
                                                 gamma=config['gamma'])
+
+    # TODO: Implement possible padding
     # Padding in case xdim < total dim or yz_dim < total_dim
     # compute possible padding for input
     diff = config['total_dim'] - config['input_dim']
@@ -167,6 +173,9 @@ def train_INN(model, config, dataloader, device):
     zeros_noise_scale = config['zeros_noise_scale']
     y_noise_scale = config['y_noise_scale']
 
+    # for MSE loss
+    reduction = 'sum'
+
     for epoch in range(config['num_epochs']):
 
         train_loss_avg.append(0)
@@ -174,10 +183,7 @@ def train_INN(model, config, dataloader, device):
         train_loss_Lz_avg.append(0)
         train_loss_Lx_avg.append(0)
         train_loss_Lxy_avg.append(0)
-        train_loss_Lx_avg_unweighted.append(0)
         num_batches = 0
-
-        reduction = 'sum'
 
         # If MMD on x-space is present from the start, the model can get stuck.
         # Instead, ramp it up exponentially.
@@ -208,13 +214,10 @@ def train_INN(model, config, dataloader, device):
 
             # Insert noise
             pad_x = zeros_noise_scale * torch.randn(config['batch_size'], diff, device=device)
-
             pad_yz = zeros_noise_scale * torch.randn(config['batch_size'], pad, device=device)
 
             y += y_noise_scale * torch.randn(config['batch_size'], config['output_dim'], dtype=torch.float,
                                              device=device)
-
-            # TODO: Add noise to x as well
             x += y_noise_scale * torch.randn(config['batch_size'], config['input_dim'], dtype=torch.float,
                                              device=device)
 
@@ -234,11 +237,10 @@ def train_INN(model, config, dataloader, device):
 
             # shorten y and output for latent loss computation: (z, pad_yz)
             y_short = torch.cat((y[:, :config['latent_dim']], y[:, -config['output_dim']:]), dim=1)
-
             output_short = torch.cat((output[:, :config['latent_dim']], output[:, -config['output_dim']:].data), dim=1)
 
-            L_y = config['weight_Ly'] * MSE(output[:, config['latent_dim']:], y[:, config['latent_dim']:], reduction=reduction)
-
+            L_y = config['weight_Ly'] * MSE(output[:, config['latent_dim']:], y[:, config['latent_dim']:],
+                                            reduction=reduction)
             L_z = config['weight_Lz'] * MMD(output_short, y_short, device)
 
             loss_forward = L_y + L_z
@@ -257,12 +259,10 @@ def train_INN(model, config, dataloader, device):
 
             y = y_clean + y_noise_scale * torch.randn(config['batch_size'], config['output_dim'], dtype=torch.float,
                                                       device=device)
-
             orig_z_perturbed = (output[:, :config['latent_dim']] + y_noise_scale *
                                 torch.randn(config['batch_size'], config['latent_dim'], device=device))
 
             y_inv = torch.cat((orig_z_perturbed, pad_yz, y), dim=1)
-
             y_inv_rand = torch.cat((torch.randn(config['batch_size'], config['latent_dim'], device=device), pad_yz, y),
                                    dim=1)
             ############################################################################################################
@@ -273,7 +273,6 @@ def train_INN(model, config, dataloader, device):
             # forces padding dims to be ignored
             L_xy = config['weight_Lxy'] * custom_loss(output_inv, x, reduction=reduction)
 
-            # TODO: What is the benefit of that loss?
             UNWEIGHTED_LOSS = MMD(output_inv_rand[:, :config['input_dim']], x[:, :config['input_dim']], device)
             L_x = config['weight_Lx'] * loss_factor * UNWEIGHTED_LOSS
 
@@ -307,8 +306,6 @@ def train_INN(model, config, dataloader, device):
             # if torch.isnan(train_loss_Lxy_avg[-1]):
             #     raise Exception('NaN in Lxy loss detected!')
 
-            train_loss_Lx_avg_unweighted[-1] += UNWEIGHTED_LOSS.data.detach()
-
             num_batches += 1
 
         ################################################################################################################
@@ -316,6 +313,7 @@ def train_INN(model, config, dataloader, device):
         # perform step of lr-scheduler
         scheduler.step()
 
+        # save checkpoint
         if epoch > 1 and epoch % config['checkpoint_epoch'] == 0:
             model.save_checkpoint(epoch=epoch, optimizer=optimizer, loss=loss,
                                   PATH=config['checkpoint_dir'] + 'INN_' + str(config['dof']) + '_epoch_' + str(epoch))
@@ -326,7 +324,6 @@ def train_INN(model, config, dataloader, device):
         train_loss_Lz_avg[-1] /= num_batches
         train_loss_Lx_avg[-1] /= num_batches
         train_loss_Lxy_avg[-1] /= num_batches
-        train_loss_Lx_avg_unweighted[-1] /= num_batches
 
         print('Epoch [%d / %d] weighted average y-MSE loss: %f, weighted average y-MMD loss: %f, '
               'weighted average x-MSE loss: %f, weighted average x-MMD loss: %f, Overall average loss: %f'

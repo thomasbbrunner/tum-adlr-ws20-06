@@ -32,6 +32,8 @@ ________________________________________________________________________________
 
 if __name__ == '__main__':
 
+    # TODO: Make implementation compatible with GPU
+
     ####################################################################################################################
     # TO MODIFY
     ####################################################################################################################
@@ -139,10 +141,6 @@ if __name__ == '__main__':
                                                                             str(config['name']) + '_' +
                                                                             str(config['dof']) + '.png', show=False)
 
-            # robot.plot_heatmap(joint_states, path=None, transparency=0.1)
-            # robot.plot(joint_states[0], path='figures/rejection_sampling_' + str(config['name']) + '_' +
-            #                                  str(config['dof']) + '.png', separate_plots=False)
-
             # Plot contour lines enclose the region containing 97% of the end points
             resimulation_tcp = robot.forward(joint_states=joint_states)
             resimulation_xy = resimulation_tcp[:, :2]
@@ -174,10 +172,7 @@ if __name__ == '__main__':
             plot_configurations(robot, pred_joint_states, transparency=0.2, path='figures/predicted_posterior_' +
                                                                             model_name + '_' + str(config['dof']) +
                                                                             '.png', show=False)
-            # robot.plot(pred_joint_states, path='figures/predicted_posterior_' + model_name + '_' +
-            #                                    str(config['dof']) + '.png', separate_plots=False)
-            # robot.plot_heatmap(pred_joint_states, path='figures/predicted_posterior_' + model_name + '_' +
-            #                                    str(config['dof']) + '.png', transparency=0.1)
+
             # Plot contour lines enclose the region containing 97% of the end points
             resimulation_tcp = robot.forward(joint_states=pred_joint_states)
             resimulation_xy = resimulation_tcp[:, :2]

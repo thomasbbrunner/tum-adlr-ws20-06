@@ -13,6 +13,20 @@ import matplotlib.pyplot as plt
 from utils import *
 from train_loader import *
 
+'''
+Training of the respective model:
+_________________________________________________________________________________________
+
+For specifying the model and the type of robot, just modify the 'TO MODIFY' section
+
+Options:
+
+model_name: CVAE, INN
+robot_dof = 2DOF, 3DOF, 4DOF
+
+_________________________________________________________________________________________
+'''
+
 if __name__ == '__main__':
 
     ####################################################################################################################
