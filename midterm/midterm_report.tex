@@ -114,7 +114,27 @@ where we denote $[y, z] = [f_y(x), f_z(x)]$ as a bijective mapping between joint
 \section*{Experimental Evaluation}
 
 \subsection*{Evaluation protocol}
+
+The two models have been trained and compared for a $N$ DOF planar robot with $N=[2, 3, 4]$ in a fair setting, with same batch sizes and approximately the same amount of trainable parameters. The dataset consists of 1 million pairs of joint angles and end-effector position with a train / test split of 70 / 30. 
+
+For comparison, two metrics are defined referring to \cite{Kruse2019}:
+
+1 . The average mismatch between the true posterior $p_{gt}(x | y_{gt})$ obtained via rejection sampling and the predicted posterior $\tilde p(x | y_{gt})$ is computed for randomly but fixed chosen samples from the test dataset. For each test sample, 100 samples are drawn from the true posterior by rejection sampling and compared with 100 samples predicted by the model via MMD.
+
+\begin{equation}
+e_{posterior} = MMD(\tilde p(x | y_{gt}), p_{gt}(x | y_{gt}))
+\end{equation}
+
+2. The average re-simulation error is computed on the whole test dataset by applying the simulation for the true forward kinematics $y_{resim} = f( \tilde \theta)$ to the generated joint angles $\tilde \theta$ and measure the mean squared distance between the ground truth end-effector position $y_{gt}$ and the resimulated end-effector position $y_{resim}$ resulting from the predicted joint angles.
+
+\begin{equation}
+e_{resim} = E_{x \sim \tilde{p}(x|y_{gt})}(|| f(x) - y_{gt}||^2_2)
+\end{equation}
+
+
 \subsection*{Results}
+
+The results of the different robots are depicted in Tab. \ref{tab:results}. The results for the $e_{posterior}$ and $e_{resim}$ are already quite good and in the same magnitude as in  \cite{Ardizzone2018} and \cite{Kruse2019}. But in contrast to their results, the INN does not outperform the cVAE. One reason might be that none of the networks is fully optimized with respect to their hyper-parameters. Additionally, the training of the INN is more unstable than the training of the cVAE, the learning rate needs to be decreased by a factor of 10. 
 
 \begin{table}[h]
 \centering
@@ -131,10 +151,13 @@ where we denote $[y, z] = [f_y(x), f_z(x)]$ as a bijective mapping between joint
  4  & \textbf{0.044} & 0.075 & 374,960 & \\
  \hline
 \end{tabular}
-\caption{\label{tab:results} Caption to come}
+\vspace{5pt}
+\caption{\label{tab:results} Results for the CVAE and INN which have been trained on a planar robot with $N$ DoF with $N=[2, 3, 4]$.}
 \end{table}
 
-\begin{figure*}[t]
+In Fig. \ref{fig:posterior:3dof} and Fig. \ref{fig:posterior:4dof}, the predicted and ground truth distributions of the joint angles given a specific end-effector position are shown, respectively.
+
+\begin{figure*}[tbh]
 \centering
 	\subfloat[Rejection Sampling]{\includegraphics[width=0.29\linewidth]{figures/rejection_sampling_INN_3DOF.png}
     \label{fig:rejection_sampling:3DOF}}
@@ -148,7 +171,7 @@ where we denote $[y, z] = [f_y(x), f_z(x)]$ as a bijective mapping between joint
 	\caption{\label{fig:posterior:3dof} Arm configuration of a planar manipulator with 3 revolute joints and end-effector position at $(x, y) = [1.83, -0.57]$. 100 samples are drawn from each model's predicted posterior $\tilde{p}(x | y_{gt})$, one random sample configuration is highlighted.}
 \end{figure*}
 
-\begin{figure*}[t]
+\begin{figure*}[tbh]
 \centering
 	\subfloat[Rejection Sampling]{\includegraphics[width=0.29\linewidth]{figures/rejection_sampling_CVAE_4DOF.png}
     \label{fig:rejection_sampling:4DOF}}
@@ -161,10 +184,6 @@ where we denote $[y, z] = [f_y(x), f_z(x)]$ as a bijective mapping between joint
     
 	\caption{\label{fig:posterior:4dof} Arm configuration of a planar manipulator with 4 revolute joints and end-effector position at $(x, y) = [2.44, 0.35]$. 100 samples are drawn from each model's predicted posterior $\tilde{p}(x | y_{gt})$, one random sample configuration is highlighted.}
 \end{figure*}
-
-
-\section*{Next Steps}
-
 
 \nocite{*}
 \bibliographystyle{IEEEtran}
