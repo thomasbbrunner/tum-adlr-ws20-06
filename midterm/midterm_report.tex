@@ -83,6 +83,34 @@ Here, $N$ is denoted as the  number of joints. For representing the joint angles
 
 \subsection*{Invertible Neural Network}
 
+The motivation of Invertible Neural Networks (INN) \cite{Ardizzone2018} is to model a bijective mapping from the end-effector position to the joint angles. This is done by introducing \textit{coupling layers} (see Fig. ...) as the basic building unit inspired from \cite{Dinh2016}. 
+The input is split in two halves and then transformed by affine functions with learned coefficients $s_i, t_i$ and concatenated at the end again to form the output (see Fig. ...). These expressions are easily invertible (see Fig. ...) such that given the output the inverse process is again an affine transformation with the same learned coefficients $s_i, t_i$. These coefficients do not have to be invertible and can be arbitrarily complex functions. For the applications to inverse kinematics, they are represented by fully connected neural networks. 
+
+The INN is then created by stacking coupling layers and permutation layers (mix the data in a random but fixes way to enhance the interaction among individual variables) together in an alternate manner. As every single unit is invertible, the whole INN is invertible, as well where the input $x$ (joint angles) has the same dimensionality as the concatenated ouput $[y, z]$ to ensure bijectivity. The latent space $z$ contains the information which is lost during the forward kinematics and not contained in $y$. The predicted posterior of the joint angles can be then generated in the same way as with cVAE by sampling from $p(z) \sim N(0, 1)$ and then predicting the joint angles conditioned on $y$.
+
+The INN is trained based on four losses:
+\begin{equation}
+L_y = MSE(y_i, f_y(x_i))
+\label{L_y}
+\end{equation}
+
+\begin{equation}
+L_x = MSE(x_i, [f_y^{-1}(y_i),f_z^{-1}(f_z(x_i))])
+\label{L_xy}
+\end{equation}
+
+\begin{equation}
+L_{p(z)} = MMD(p(f_z(x_i)), p(z)\sim N(0, 1))
+\label{L_z}
+\end{equation}
+
+\begin{equation}
+L_{p(x)} = MMD(p([f_y^{-1}(y_i), f_z^{-1}(p(z))]), p(x))
+\label{L_x}
+\end{equation}
+
+where we denote $[y, z] = [f_y(x), f_z(x)]$ as a bijective mapping between joint angles $x$ and end-effector position $y$ and latent space $z$. The losses (\ref{L_y}) and (\ref{L_xy}) are computed by the Mean Squared Error (MSE) and losses (\ref{L_z}) and (\ref{L_x}) are computed by the Maximum Mean Discrepancy (MMD) \cite{Gretton2008}. This kernel-based method measures the distance between two distributions based on a batch of samples.
+
 \section*{Experimental Evaluation}
 
 \subsection*{Evaluation protocol}
