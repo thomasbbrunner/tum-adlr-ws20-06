@@ -173,7 +173,9 @@ In Fig. \ref{fig:posterior:3dof} and Fig. \ref{fig:posterior:4dof}, the predicte
     \caption{\label{fig:posterior:4dof} Arm configuration of a planar manipulator with 4 revolute joints and end-effector position at $(x, y) = [2.44, 0.35]$. 100 samples are drawn from each model's predicted posterior $\tilde{p}(x | y_{gt})$, one random sample configuration is highlighted.}
 \end{figure*}
 
-\section*{Next Steps}
+\section*{Conclusion}
+
+In this work, we have introduced the methods and robot simulations used to evaluate the feasibility of using neural networks for inverse kinematics problems in robotics. We have shown that the networks are able to learn the inverse transformations of planar robot simulations.
 
 Our next steps will be to apply the networks to more complex and challenging scenarios, with the goal of evaluating the limits of the INN and cVAE architectures for inverse kinematics problems. In a first step, we will apply these networks to planar robots with longer kinematic chains and more degrees of freedom. As was previously discussed, our current setup uses robot simulations composed of revolute joints. In the future we plan on also using prismatic joints to evaluate the performance of the networks for different joint configurations. We also plan on eventually moving to three-dimensional space to evaluate the performance of these networks on a higher dimensional space. As stated previously, the performance of our INN model is somewhat worse than the performance described in the paper \cite{Ardizzone2018}. One possible explanation for this mismatch is a suboptimal choice of hyperparameters. Thus, to improve the performances of our models, we plan on implementing hyperparameter optimization using random search.
 
