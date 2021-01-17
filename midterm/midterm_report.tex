@@ -16,6 +16,13 @@
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
+\ifCLASSOPTIONcompsoc
+\usepackage[caption=false,font=normalsize,labelfon
+t=sf,textfont=sf]{subfig}
+\else
+\usepackage[caption=false,font=footnotesize]{subfi
+g}
+\fi
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
@@ -33,7 +40,19 @@
 
 \maketitle
 
-\section*{Introduction}
+\section*{Dataset}
+
+\begin{figure*}[t]
+    \centering
+    \subfloat[2 DOF]{\includegraphics[width=0.3\linewidth]{figures/normal_2dof_configs.png}
+        \label{fig_first_case}}
+    \subfloat[3 DOF]{\includegraphics[width=0.3\linewidth]{figures/normal_3dof_configs.png}
+        \label{fig_second_case}}
+    \subfloat[4 DOF]{\includegraphics[width=0.3\linewidth]{figures/normal_4dof_configs.png}
+        \label{fig_second_case}}
+    \caption{Illustration of datasets used during training of models. Only a subset of the samples contained in the datasets is shown here. One configuration in the dataset is highlighted to illustrate the configuration of the robot arm.}
+    \label{fig_sim}
+\end{figure*}
 
 
 \section*{Methods}
