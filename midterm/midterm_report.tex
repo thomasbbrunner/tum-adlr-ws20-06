@@ -16,15 +16,17 @@
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
+
+% \usepackage{subcaption}
+% \captionsetup{compatibility=false}
+
 \ifCLASSOPTIONcompsoc
-\usepackage[caption=false,font=normalsize,labelfon
-t=sf,textfont=sf]{subfig}
+\usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf{subfig}
 \else
-\usepackage[caption=false,font=footnotesize]{subfi
-g}
+\usepackage[caption=false,font=footnotesize]{subfig}
+
 \fi
-\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
-    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08emT\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 \begin{document}
 
@@ -65,6 +67,52 @@ g}
 
 \subsection*{Evaluation protocol}
 \subsection*{Results}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+ DoF & $e_{posterior}$ & $e_{resim}$ & Trainable Parameters & Model \\
+ \hline
+ 2  & 0.077 & \textbf{0.003} & 164,808 & \\
+ 3  & \textbf{0.045} & 0.045 & 370,214 & cVAE \\
+ 4  & 0.063 & \textbf{0.006} & 373,220 & \\
+ \hline
+ 2  & \textbf{0.061} & 0.012 & 169,632 & \\
+ 3  & 0.066 & \textbf{0.036} & 369,660 & INN \\
+ 4  & \textbf{0.044} & 0.075 & 374,960 & \\
+ \hline
+\end{tabular}
+\caption{\label{tab:results} Caption to come}
+\end{table}
+
+\begin{figure*}[t]
+\centering
+	\subfloat[Rejection Sampling]{\includegraphics[width=0.29\linewidth]{figures/rejection_sampling_INN_3DOF.png}
+    \label{fig:rejection_sampling:3DOF}}
+    %
+    \subfloat[cVAE]{\includegraphics[width=0.29\linewidth]{figures/predicted_posterior_CVAE_3DOF.png}
+    \label{fig:cVAE:3DOF}}
+    %
+    \subfloat[INN]{\includegraphics[width=0.29\linewidth]{figures/predicted_posterior_INN_3DOF.png}
+    \label{fig:INN:3DOF}}
+    
+	\caption{\label{fig:posterior:3dof} Arm configuration of a planar manipulator with 3 revolute joints and end-effector position at $(x, y) = [1.83, -0.57]$. 100 samples are drawn from each model's predicted posterior $\tilde{p}(x | y_{gt})$, one random sample configuration is highlighted.}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+	\subfloat[Rejection Sampling]{\includegraphics[width=0.29\linewidth]{figures/rejection_sampling_CVAE_4DOF.png}
+    \label{fig:rejection_sampling:4DOF}}
+    %
+    \subfloat[cVAE]{\includegraphics[width=0.29\linewidth]{figures/predicted_posterior_CVAE_4DOF.png}
+    \label{fig:cVAE:4DOF}}
+    %
+    \subfloat[INN]{\includegraphics[width=0.29\linewidth]{figures/predicted_posterior_INN_4DOF.png}
+    \label{fig:INN:4DOF}}
+    
+	\caption{\label{fig:posterior:4dof} Arm configuration of a planar manipulator with 4 revolute joints and end-effector position at $(x, y) = [2.44, 0.35]$. 100 samples are drawn from each model's predicted posterior $\tilde{p}(x | y_{gt})$, one random sample configuration is highlighted.}
+\end{figure*}
 
 
 \section*{Next Steps}
