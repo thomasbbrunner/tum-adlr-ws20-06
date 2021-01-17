@@ -59,7 +59,27 @@
 
 \section*{Methods}
 
+The following two model architectures have been implemented in PyTorch and are inspired by GitHub repositories \cite{graviraja2019}, \cite{freia2020}.
+
 \subsection*{Conditional Variational Autoencoder}
+
+In the lecture, we have already discussed Variational Autoencoders (VAE) \cite{Kingma2014} in detail. One drawback of this type of generative architecture is that there is no control over the data generation process. In our case this would mean that although we can generate random sample configurations we cannot control in which end-effector position these configurations would result. Conditional Variational Autoencoders (cVAE) \cite{Sohn2015} solve this problem by conditioning the latent space $z$. For inverse kinematics this means that random samples are drawn from $p(z) \sim N(0, 1)$ and the predicted posterior of the joint angles is then generated conditioned on the end-effector position. During training, the position $(x, y)$ is concatenated with both $x$ and $z$ and then fed into the encoder and decoder, respectively.
+
+The cVAE is trained in the same manner as the VAE based on the ELBO (Evidence Lower Bound) loss $L_{ELBO} = L_y + L_x$: 
+
+\begin{equation}
+L_y = - KL[q_\phi(z | x, y) || p(z) \sim N(0, 1) ]
+\label{ELBO}
+\end{equation}
+
+The Kullback-Leibler divergence measures the distance between the predicted probability distribution $q_\phi(z | x, y)$ of the latent space $z$ and the standard normal distribution. The reconstruction loss is defined as follows: 
+
+\begin{equation}
+L_x = E_{q_\phi(z | x)}[log(p_\theta(x| z, y))] = \sum _ {i=0} ^ N MSE(v_i \cdot \tilde v_i, 1)
+\label{MSE}
+\end{equation}
+
+Here, $N$ is denoted as the  number of joints. For representing the joint angles of the robot, we use a vector-based representation: $V = (sin(\theta), cos(\theta))$ to avoid singularities at the boundaries of the joint angles. $v_i \cdot \tilde v_i$ is denoted as the scalar product between the normalized predicted posterior point estimate  $\tilde v_i  = (sin(\tilde \theta), cos(\tilde \theta))$ and the ground truth vector  $v_i = (sin(\theta), cos(\theta))$ of the ith joint.
 
 \subsection*{Invertible Neural Network}
 
