@@ -16,17 +16,14 @@
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
+\usepackage[caption=false,font=footnotesize]{subfig}
 
 % \usepackage{subcaption}
 % \captionsetup{compatibility=false}
 
-\ifCLASSOPTIONcompsoc
-\usepackage[caption=false,font=normalsize,labelfont=sf,textfont=sf{subfig}
-\else
-\usepackage[caption=false,font=footnotesize]{subfig}
 
-\fi
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08emT\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
 
 \begin{document}
 
@@ -42,20 +39,27 @@
 
 \maketitle
 
+\section*{Robot Simulations}
+
+For this project, we have implemented simulations of robotic arms with different complexities. In total, we have four simulations of planar robots with open kinematic chains. Three of these are composed solely of revolute joints and are of increasing complexity (with two, three and four joints). The fourth simulation also contains a prismatic joint. However, we decided to focus only on robot simulations with revolute joints and we will, thus, limit ourselves to the first three simulations in this report. From now on, these simulations will be designated by their degrees of freedom (2 DOF, 3 DOF and 4 DOF). For an illustration of the robot configurations, refer to Figure~\ref{fig:datasets}.
+
+In our current setup, we don't take the angle of the tool center point (TCP) into consideration. Thus, the location of the TCP is defined by its $ x, y $ coordinates. As a result of this, both the 3 DOF and 4 DOF robot arms can have up to infinite solutions of the inverse kinematics for a given TCP position. The 2 DOF can have up to two solutions.
+
 \section*{Dataset}
+
+The dataset used for training is composed of one million samples of robot configurations for each robot simulation (2 DOF, 3 DOF and 4 DOF). Figure~\ref{fig:datasets} shows an illustration of the datasets. Each configuration was sampled from a normal distribution $ \theta_i \sim \mathcal{N}(\mu=0, \sigma=0.5) $. Thus, the dataset is composed mostly of configurations in which the robot arm is extended. This reflects real-world use cases of robot arms, which have limited workspaces and whose tasks are focused on one section of the workspace. Moreover, limiting the range of the joints improved the performance of the networks.
 
 \begin{figure*}[t]
     \centering
     \subfloat[2 DOF]{\includegraphics[width=0.3\linewidth]{figures/normal_2dof_configs.png}
-        \label{fig_first_case}}
+        \label{fig:dataset_2dof}}
     \subfloat[3 DOF]{\includegraphics[width=0.3\linewidth]{figures/normal_3dof_configs.png}
-        \label{fig_second_case}}
+        \label{fig:dataset_3dof}}
     \subfloat[4 DOF]{\includegraphics[width=0.3\linewidth]{figures/normal_4dof_configs.png}
-        \label{fig_second_case}}
+        \label{fig:dataset_4dof}}
     \caption{Illustration of datasets used during training of models. Only a subset of the samples contained in the datasets is shown here. One configuration in the dataset is highlighted to illustrate the configuration of the robot arm.}
-    \label{fig_sim}
+    \label{fig:datasets}
 \end{figure*}
-
 
 \section*{Methods}
 
@@ -164,6 +168,8 @@ where we denote $[y, z] = [f_y(x), f_z(x)]$ as a bijective mapping between joint
 
 
 \section*{Next Steps}
+
+As was previously discussed, our current setup uses robot simulations composed of revolute joints. In the future we plan on also using prismatic joints.
 
 
 \nocite{*}
