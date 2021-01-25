@@ -108,10 +108,11 @@ The previous two model architectures (cVAE and INN) have been implemented in PyT
 \subsection*{Evaluation protocol}
 The two models have been trained and compared in a fair setting, with same batch sizes and approximately the same amount of trainable parameters. We used a train and test data splot of 70 and 30, respectively. For comparison, we used two metrics following the evaluation protocol of \cite{Kruse2019}:
 
-1. The average mismatch between the true posterior $p_{gt}(x | y_{gt})$ obtained via rejection sampling and the predicted posterior $\tilde p(x | y_{gt})$ is computed for 100 randomly but fixed chosen samples from the test dataset. For each end-effector position of the subset of the test dataset, 100 samples are drawn from the true posterior by rejection sampling and compared with 100 samples predicted by the model via MMD.
+1. The average mismatch between the true posterior obtained via rejection sampling $p_{gt}(x | y_{gt})$ and the predicted posterior $\tilde p(x | y_{gt})$ is computed for 100 randomly but fixed chosen samples from the test dataset. For each end-effector position of the subset of the test dataset, 100 samples are drawn from the true posterior by rejection sampling and compared with 100 samples predicted by the model via MMD.
 \begin{equation}
 e_{posterior} = MMD(\tilde p(x | y_{gt}), p_{gt}(x | y_{gt}))
 \end{equation}
+
 2. The average re-simulation error is computed on the whole test dataset by applying the simulation for the true forward kinematics $y_{resim} = f( \tilde \theta)$ to the generated joint angles $\tilde \theta$ and measure the mean squared distance between the ground truth end-effector position $y_{gt}$ and the re-simulated end-effector position $y_{resim}$ resulting from the predicted joint angles.
 \begin{equation}
 e_{resim} = E_{x \sim \tilde{p}(x|y_{gt})}(|| f(x) - y_{gt}||^2_2)
@@ -124,7 +125,7 @@ The results of the different robots are depicted in Tab. \ref{tab:results}. The 
 \centering
 \begin{tabular}{|c|c|c|c|c|}
 \hline
- DoF & $e_{posterior}$ & $e_{resim}$ & Trainable Parameters & Model \\
+ DOF & $e_{posterior}$ & $e_{resim}$ & Trainable Parameters & Model \\
  \hline
  2  & 0.077 & \textbf{0.003} & 164,808 & \\
  3  & \textbf{0.045} & 0.045 & 370,214 & cVAE \\
@@ -136,9 +137,9 @@ The results of the different robots are depicted in Tab. \ref{tab:results}. The 
  \hline
 \end{tabular}
 \vspace{5pt}
-\caption{\label{tab:results} Results for the CVAE and INN which have been trained on a planar robot with $N$ DoF with $N=[2, 3, 4]$.}
+\caption{\label{tab:results} Results for the CVAE and INN which have been trained on a planar robot with $N$ DOF with $N=[2, 3, 4]$.}
 \end{table}
-In Fig. \ref{fig:posterior:3dof} and Fig. \ref{fig:posterior:4dof}, the predicted and ground truth distributions of the joint angles given a specific end-effector position are shown for a 3 DoF and 4 DoF robot, respectively.
+In Fig. \ref{fig:posterior:3dof} and Fig. \ref{fig:posterior:4dof}, the predicted and ground truth distributions of the joint angles given a specific end-effector position are shown for a 3 DOF and 4 DOF robot, respectively.
 \begin{figure*}[tbh]
 \centering
 	\subfloat[Rejection Sampling]{\includegraphics[width=0.29\linewidth]{figures/rejection_sampling_INN_3DOF.png}
