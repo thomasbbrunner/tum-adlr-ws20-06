@@ -1,9 +1,6 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import pdb
-
-import robotsim
 
 
 def plot(joint_states, robot, title=None, path=None, show=False):
@@ -11,23 +8,23 @@ def plot(joint_states, robot, title=None, path=None, show=False):
     Also accepts batches of joint states.
 
     Args:
-        joint_states: joint states to plot
-        robot: object of RobotSim
-        title: title for plot
-        path: plot is saved to image if path is provided
-        show: show figure
+    joint_states: joint states to plot
+    robot: object of RobotSim
+    title: title for plot
+    path: plot is saved to image if path is provided
+    show: show figure
 
     Returns:
-        fig: figure object of plot for further processing
-        ax: axes object of plot for further processing
+    fig: figure object of plot for further processing
+    ax: axes object of plot for further processing
 
     Examples:
-        js = [1, -2.2, 0.4]
-        robot = Robot2D3DoF([3, 2, 3])
-        fig, ax = robotsim_plot.plot(js, robot)
-   """
+    js = [1, -2.2, 0.4]
+    robot = Robot2D3DoF([3, 2, 3])
+    fig, ax = robotsim_plot.plot(js, robot)
+    """
 
-    joint_coords = robot._get_joint_coords(joint_states)
+    joint_coords = robot.get_joint_coords(joint_states)
 
     fig, ax = plt.subplots()
     ax.grid()
@@ -65,29 +62,29 @@ def plot(joint_states, robot, title=None, path=None, show=False):
 
 def heatmap(joint_states, robot, highlight=None, transparency=None, title=None, path=None, show=False):
     """Plots heatmat of robot for specified joint states.
- 
+
     Args:
-        joint_states: joint states to plot
-        robot: object of RobotSim
-        highlight: index of element in joint_states to highlight
-        transparency: factor for transparency of each arm 
-            (good values are between 0.001 and 0.3)
-            if no value is provided, than a value is automatically calculated.
-        title: title for plot
-        path: plot is saved to image if path is provided
-        show: show figure
+    joint_states: joint states to plot
+    robot: object of RobotSim
+    highlight: index of element in joint_states to highlight
+    transparency: factor for transparency of each arm 
+        (good values are between 0.001 and 0.3)
+        if no value is provided, than a value is automatically calculated.
+    title: title for plot
+    path: plot is saved to image if path is provided
+    show: show figure
 
     Returns:
-        fig: figure object of plot for further processing
-        ax: axes object of plot for further processing
+    fig: figure object of plot for further processing
+    ax: axes object of plot for further processing
 
     Examples:
-        js = [1, -2.2, 0.4]
-        robot = Robot2D3DoF([3, 2, 3])
-        fig, ax = robotsim_plot.heatmap(js, robot)
-   """
+    js = [1, -2.2, 0.4]
+    robot = Robot2D3DoF([3, 2, 3])
+    fig, ax = robotsim_plot.heatmap(js, robot)
+    """
 
-    joint_coords = robot._get_joint_coords(joint_states)
+    joint_coords = robot.get_joint_coords(joint_states)
 
     fig, ax = plt.subplots()
     ax.grid()
@@ -113,15 +110,15 @@ def heatmap(joint_states, robot, highlight=None, transparency=None, title=None, 
             c='b', alpha=transparency)
 
     if highlight is not None:
-        for arm in joint_coords[highlight]:
-            ax.plot(
-                arm[:, 0].flatten(),
-                arm[:, 1].flatten(),
-                c='k', linewidth=2, zorder=10)
-            ax.scatter(
-                arm[:, 0].flatten(),
-                arm[:, 1].flatten(),
-                c='r', s=6, zorder=11)
+        arm = joint_coords[highlight]
+        ax.plot(
+            arm[:, 0].flatten(),
+            arm[:, 1].flatten(),
+            c='k', linewidth=2, zorder=10)
+        ax.scatter(
+            arm[:, 0].flatten(),
+            arm[:, 1].flatten(),
+            c='r', s=6, zorder=11)
 
     if path:
         fig.savefig(path, dpi=300)

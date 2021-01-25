@@ -5,7 +5,6 @@ import pdb
 from torch.utils.data import Dataset
 
 import robotsim
-import robotsim_plot
 
 
 class RobotSimDataset(Dataset):
@@ -38,18 +37,15 @@ class RobotSimDataset(Dataset):
 
         self._robot = robot
         self._num_samples = int(num_samples)
-        self._num_dof = self._robot.NUM_DOF
+        self._num_dof = self._robot.get_dof()
 
         joint_ranges = self._robot.get_joint_ranges()
 
-        # TODO: Check whether better
         if normal:
             # sample from random normal distribution N(0, std) with std=0.5
-            # TODO 0.5 is standard deviation (not variance!)
             self._joint_states = self.random_gen.normal(
                 loc=0.0, scale=0.5, size=(self._num_samples, self._num_dof))
         else:
-            # TODO reset joint limits to normal limits
             self._joint_states = self.random_gen.uniform(
                 joint_ranges[:, 0], joint_ranges[:, 1],
                 (self._num_samples, self._num_dof))
@@ -71,7 +67,7 @@ class RobotSimDataset(Dataset):
         # exclude tcp orientation
         return self._joint_states[item], self._tcp_coords[item][:2]
 
-    def plot(self, path=None, show=False):
+    def plot_tcp(self, path=None, show=False):
 
         fig, ax = plt.subplots()
         ax.grid()
@@ -119,28 +115,14 @@ class RobotSimDataset(Dataset):
 
     def plot_configurations(self, transparency=None, path=None, show=False):
 
-        fig, ax = robotsim_plot.heatmap(
-            self._joint_states,
-            self._robot,
-            transparency, path=None, show=False)
+        fig, ax = robotsim.heatmap(
+            self._joint_states, self._robot,
+            highlight=1, transparency=transparency,
+            path=None, show=False)
 
-        # get a sample to plot
-        joint_coords = self._robot._get_joint_coords(self._joint_states[0])
-
-        for arm in joint_coords:
-
-            ax.plot(
-                arm[:, 0].flatten(),
-                arm[:, 1].flatten(),
-                c='k', linewidth=2, zorder=10)
-
-            ax.scatter(
-                arm[:, 0].flatten(),
-                arm[:, 1].flatten(),
-                c='r', s=6, zorder=11)
-
-        ax.set_xlim([-1, 4])
-        ax.set_ylim([-2.5, 2.5])
+        # prettier limits for publication
+        # ax.set_xlim([-1, 4])
+        # ax.set_ylim([-2.5, 2.5])
 
         ax.set_title(
             "Configurations in Dataset ({} DOF, {} samples)". format(
@@ -159,13 +141,13 @@ if __name__ == "__main__":
     num_samples_limited = 1e4  # for plots that can't handle full dataset
 
     # robots used during training
-    robot_2dof = robotsim.Robot2D2DoF([0.5, 1])
-    robot_3dof = robotsim.Robot2D3DoF([0.5, 0.5, 1.0])
-    robot_4dof = robotsim.Robot2D4DoF([0.5, 0.5, 0.5, 1.0])
-    robot_paper = robotsim.RobotPaper([0.5, 0.5, 1.0])
+    robot_3dof = robotsim.Planar(3, [1, 1, 2])
+    robot_4dof = robotsim.Planar(4, [1, 1, 1, 2])
+    robot_5dof = robotsim.Planar(5, [1, 1, 1, 1, 2])
+    robot_paper = robotsim.Paper([1, 1, 2])
 
-    robots = [robot_2dof, robot_3dof, robot_4dof, robot_paper]
-    names = ["2dof", "3dof", "4dof", "paper"]
+    robots = [robot_3dof, robot_4dof, robot_5dof, robot_paper]
+    names = ["3dof", "4dof", "5dof", "paper"]
 
     # generation of dataset plots
     for robot, name in zip(robots, names):

@@ -5,9 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.spatial import ConvexHull, convex_hull_plot_2d
 
-from robotsim_dataset import RobotSimDataset
 import robotsim
-import robotsim_plot
 
 '''
 Various methods to make life easier
@@ -152,7 +150,7 @@ def rejection_sampling(robot, tcp, dof, samples):
 # from robotsim_dataset
 def plot_configurations(robot, joints, transparency=None, path=None, show=False):
 
-    fig, ax = robotsim_plot.heatmap(joints, robot, transparency=transparency, path=None, show=False)
+    fig, ax = robotsim.heatmap(joints, robot, transparency=transparency, path=None, show=False)
     plt.axis([0.0, 2.7, -1.0, 1.0])
 
     # get a sample to plot
@@ -175,6 +173,63 @@ def plot_configurations(robot, joints, transparency=None, path=None, show=False)
     if show:
         fig.show()
 
+def dh_transformation(alpha, a, d, theta, squeeze=True):
+    """Returns transformation matrix between two frames
+    according to the Denavit-Hartenberg convention presented
+    in 'Introduction to Robotics' by Craig.
+
+    Also accepts batch processing of several joint states (d or theta).
+
+    Transformation from frame i to frame i-1:
+    alpha:  alpha_{i-1}
+    a:      a_{i-1}
+    d:      d_i     (variable in prismatic joints)
+    theta:  theta_i (variable in revolute joints)
+    """
+
+    d = np.atleast_1d(d)
+    theta = np.atleast_1d(theta)
+
+    if d.shape[0] > 1 and theta.shape[0] > 1:
+        raise RuntimeError(
+            "Only one variable joint state is allowed.")
+
+    desired_shape = np.maximum(d.shape[0], theta.shape[0])
+
+    alpha = np.resize(alpha, desired_shape)
+    a = np.resize(a, desired_shape)
+    d = np.resize(d, desired_shape)
+    theta = np.resize(theta, desired_shape)
+    zeros = np.zeros(desired_shape)
+    ones = np.ones(desired_shape)
+
+    sin = np.sin
+    cos = np.cos
+    th = theta
+    al = alpha
+
+    transformation = np.array([
+        [cos(th),           -sin(th),           zeros,          a],
+        [sin(th)*cos(al),   cos(th) * cos(al),  -sin(al),   -sin(al)*d],
+        [sin(th)*sin(al),   cos(th) * sin(al),  cos(al),    cos(al)*d],
+        [zeros,             zeros,              zeros,      ones]
+    ])
+
+    # fix dimensions
+    transformation = np.rollaxis(transformation, 2)
+
+    if squeeze:
+        transformation = np.squeeze(transformation)
+
+    return transformation
+
+def wrap(angles):
+    """Wraps angles to [-pi, pi) range."""
+    # wrap angles to range [-pi, pi)
+    return (angles + np.pi) % (2*np.pi) - np.pi
+
+    # wrap angles to range [0, 2*pi)
+    # return angles % (2*np.pi)
 
 # Testing example
 if __name__ == '__main__':

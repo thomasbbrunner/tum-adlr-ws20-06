@@ -1,11 +1,12 @@
 
+raise RuntimeError("This module is deprecated!")
+
 from abc import ABC, abstractmethod
 import matplotlib.pyplot as plt
 import numpy as np
 import pdb
 
 import robotsim_plot
-# TODO naming with RRRR, PRRR...
 
 
 class RobotSim(ABC):
@@ -93,11 +94,6 @@ class RobotSim(ABC):
                 [[7, 3], [-7, -3], [7, -3]], num_samples=100)
         """
         pass
-
-    def rejection_sampling(self, tcp_coordinates, num_samples):
-
-        joint_states = self.inverse_sampling(
-            tcp_coordinates, num_samples=num_samples, random=True)
 
     @abstractmethod
     def _get_joint_coords(self, joint_states):
