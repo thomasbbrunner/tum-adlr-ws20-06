@@ -16,11 +16,20 @@ import argparse
 Evaluation of the respective model:
 _________________________________________________________________________________________
 
+Usage: call the script with a config file as an argument
+
+Examples:
+# name of file in configs/ directory
+python3 robotsim_test.py robotsim_cVAE_4DOF.yaml
+
+# or direct path to a config file
+python3 robotsim_test.py ./configs/robotsim_cVAE_4DOF.yaml
+_________________________________________________________________________________________
+
 x*: ground truth input joint angles of the robot
 y*: ground truth labels/ end-effector coordinated of the robot
 N: # of test labels drawn from the test dataset
 M: # of generated estimates for each test label to produce full posterior distribution
-
 _________________________________________________________________________________________
 
 1. Generate gt estimate p_gt(x|y*) obtained by rejection sampling
@@ -50,7 +59,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="Testing of neural networks for inverse kinematics.")
     parser.add_argument(
-        "config_file", help="file containing configurations.")
+        "config_file", 
+        help="File containing configurations. "
+        "Can be a name of a file in the configs directory "
+        "or the path to a config file.")
     args = parser.parse_args()
     config = load_config(args.config_file)
 

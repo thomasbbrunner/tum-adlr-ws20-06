@@ -18,13 +18,14 @@ import argparse
 Training of the respective model:
 _________________________________________________________________________________________
 
-For specifying the model and the type of robot, just modify the 'TO MODIFY' section
+Usage: call the script with a config file as an argument
 
-Options:
+Examples:
+# name of file in configs/ directory
+python3 robotsim_train.py robotsim_cVAE_4DOF.yaml
 
-model_name: CVAE, INN
-robot_dof = 2DOF, 3DOF, 4DOF
-
+# or direct path to a config file
+python3 robotsim_train.py ./configs/robotsim_cVAE_4DOF.yaml
 _________________________________________________________________________________________
 '''
 
@@ -37,7 +38,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="Training of neural networks for inverse kinematics.")
     parser.add_argument(
-        "config_file", help="file containing configurations.")
+        "config_file", 
+        help="File containing configurations. "
+        "Can be a name of a file in the configs directory "
+        "or the path to a config file.")
     args = parser.parse_args()
     config = load_config(args.config_file)
 
