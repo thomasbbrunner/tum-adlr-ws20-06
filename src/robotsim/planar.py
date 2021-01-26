@@ -118,43 +118,6 @@ class Planar(Robot):
             raise RuntimeError(
                 "Function not implemented.")
 
-    def rejection_sampling(self, tcp_coordinates, num_samples, eps, mean, std):
-
-        tcp_coordinates = np.atleast_2d(tcp_coordinates)
-
-        if tcp_coordinates.shape[1] != 2:
-            raise RuntimeError(
-                "Wrong shape of TCP coordinates: {}"
-                .format(tcp_coordinates))
-
-        if np.linalg.norm(tcp_coordinates) >= self.get_length():
-            raise RuntimeError(
-                "TCP coordinates are outside workspace: {}"
-                .format(tcp_coordinates))
-
-        joint_states = np.zeros((num_samples, self._num_dof))
-        hit_samples = 0
-
-        batch_size = num_samples*100
-
-        while hit_samples < num_samples:
-
-            sampled_joints = self.random_gen.normal(
-                loc=mean, scale=std, size=(batch_size, self._num_dof))
-            sampled_tcp = self.forward(sampled_joints, squeeze=False)[:, :2]
-
-            distances = np.linalg.norm(sampled_tcp - tcp_coordinates, axis=1)
-
-            sampled_joints = sampled_joints[distances <= eps]
-
-            lo_index = hit_samples
-            hi_index = np.minimum(
-                lo_index + sampled_joints.shape[0], num_samples)
-            joint_states[lo_index:hi_index] = sampled_joints[:hi_index-lo_index]
-            hit_samples += sampled_joints.shape[0]
-
-        return joint_states
-
     def get_joint_coords(self, joint_states):
 
         joint_states = np.atleast_2d(joint_states)
@@ -205,11 +168,13 @@ if __name__ == "__main__":
 
     # one input
     js = [1, -1, 2, -2, 1]
-    plot(js, robot, show=True)
+    # plot(js, robot, show=True)
     tcp = robot.forward(js)
     js_sampling = robot.rejection_sampling(
-        tcp[:2], num_samples=500, eps=0.05, mean=0, std=1)
-    heatmap(js_sampling, robot, show=True)
+        tcp[:2], num_samples=5000, eps=0.05, mean=0, std=1)
+    heatmap(
+        js_sampling, robot, highlight=1, transparency=0.005,
+        path="./figures/robotsim/rejection_sampling_Planar_5DOF.png")
 
     # multiple inputs
     js = np.array([js, js])

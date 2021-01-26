@@ -60,7 +60,6 @@ class Robot(ABC):
         """
         pass
 
-    @abstractmethod
     def rejection_sampling(
             self, tcp_coordinates, num_samples, eps, mean, std):
         """Samples possible robot configurations 
@@ -78,7 +77,45 @@ class Robot(ABC):
         Returns:
         joint_states: state of each joint.
         """
-        pass
+
+        tcp_coordinates = np.atleast_2d(tcp_coordinates)
+
+        if tcp_coordinates.shape[1] != 2:
+            raise RuntimeError(
+                "Wrong shape of TCP coordinates: {}"
+                .format(tcp_coordinates))
+
+        if np.linalg.norm(tcp_coordinates) >= self.get_length():
+            raise RuntimeError(
+                "TCP coordinates are outside workspace: {}"
+                .format(tcp_coordinates))
+
+        joint_states = np.zeros((num_samples, self.get_dof()))
+        hit_samples = 0
+
+        # how many samples to generate in each loop
+        # generating many samples per loop is more efficient
+        batch_size = num_samples*100
+
+        while hit_samples < num_samples:
+
+            sampled_joints = self.random_gen.normal(
+                loc=mean, scale=std, size=(batch_size, self.get_dof()))
+            sampled_tcp = self.forward(sampled_joints, squeeze=False)[:, :2]
+
+            distances = np.linalg.norm(sampled_tcp - tcp_coordinates, axis=1)
+
+            # select samples that are close to target
+            sampled_joints = sampled_joints[distances <= eps]
+
+            # add samples to output array
+            lo_index = hit_samples
+            hi_index = np.minimum(
+                lo_index + sampled_joints.shape[0], num_samples)
+            joint_states[lo_index:hi_index] = sampled_joints[:hi_index-lo_index]
+            hit_samples += sampled_joints.shape[0]
+
+        return joint_states
 
     @abstractmethod
     def get_joint_coords(self, joint_states):
