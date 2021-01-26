@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import yaml
 import json
+import argparse
 
 '''
 Evaluation of the respective model:
@@ -38,61 +39,38 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    model_name = 'INN'
-    robot_dof = '4DOF'
-
     N = 1
     M = 100
     percentile = 0.97
 
     ####################################################################################################################
-    # CHECK FOR VALID INPUT
-    ####################################################################################################################
-
-    if not (model_name == 'CVAE' or model_name == 'INN'):
-        raise Exception('Model not supported')
-
-    if not (robot_dof == '2DOF' or robot_dof == '3DOF' or robot_dof == '4DOF'):
-        raise Exception('DOF not supported')
-
-    ####################################################################################################################
     # LOAD CONFIG AND DATASET, BUILD MODEL
     ####################################################################################################################
 
-    if model_name == 'CVAE':
-        if robot_dof == '2DOF':
-            config = load_config('robotsim_cVAE_2DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D2DoF([0.5, 1])
-            dataset = RobotSimDataset(robot, 1e6)
-            dof=2
-        elif robot_dof == '3DOF':
-            config = load_config('robotsim_cVAE_3DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D3DoF([0.5, 0.5, 1.0])
-            dataset = RobotSimDataset(robot, 1e6)
-            dof = 3
-        else:
-            config = load_config('robotsim_cVAE_4DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D4DoF([0.5, 0.5, 0.5, 1.0])
-            dataset = RobotSimDataset(robot, 1e6)
-            dof = 4
+    parser = argparse.ArgumentParser(
+        description="Testing of neural networks for inverse kinematics.")
+    parser.add_argument(
+        "config_file", help="file containing configurations.")
+    args = parser.parse_args()
+    config = load_config(args.config_file)
+
+    if config["model"] == "CVAE":
         model = CVAE(config)
-    else:
-        if robot_dof == '2DOF':
-            config = load_config('robotsim_INN_2DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D2DoF([0.5, 1])
-            dataset = RobotSimDataset(robot, 1e6)
-            dof = 2
-        elif robot_dof == '3DOF':
-            config = load_config('robotsim_INN_3DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D3DoF([0.5, 0.5, 1.0])
-            dataset = RobotSimDataset(robot, 1e6)
-            dof = 3
-        else:
-            config = load_config('robotsim_INN_4DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D4DoF([0.5, 0.5, 0.5, 1.0])
-            dataset = RobotSimDataset(robot, 1e6)
-            dof = 4
+    elif config["model"] == "INN":
         model = INN(config)
+    else:
+        raise ValueError(
+            "Unknown model in config: {}".format(config["model"]))
+
+    if config["robot"] in ("Planar", "planar"):
+        robot = robotsim.Planar(config["dof"], config["len_links"])
+    elif config["robot"] in ("Paper", "paper"):
+        robot = robotsim.Paper(config["dof"], config["len_links"])
+    else:
+        raise ValueError(
+            "Unknown robot in config: {}".format(config["robot"]))
+
+    dataset = RobotSimDataset(robot, 1e6)
 
     # ensures that models are trained and tested on the same samples
     torch.manual_seed(42)
@@ -128,7 +106,8 @@ if __name__ == '__main__':
         # 1.
         # Generate gt estimate p_gt(x|y*) obtained by rejection sampling with M samples
 
-        joint_states = rejection_sampling(robot=robot, tcp=N_y, dof=dof, samples=M)
+        joint_states = robot.rejection_sampling(
+            tcp_coordinates=N_y, num_samples=M, eps=0.05, mean=0, std=0.5)
 
         # generate plots for visualization for first sample
         if n == 0:
@@ -137,16 +116,17 @@ if __name__ == '__main__':
             print('N_y: ', N_y)
 
             # plot sample configuration from estimated posterior by rejection sampling
-            plot_configurations(robot, joint_states, transparency=0.2, path='figures/rejection_sampling_' +
-                                                                            str(config['name']) + '_' +
-                                                                            str(config['dof']) + '.png', show=False)
+            robotsim.heatmap(
+                joint_states, robot, highlight=22, transparency=0.2, 
+                path='figures/rejection_sampling_{}_{}DOF.png'.format(config['model'], config['dof']))
 
             # Plot contour lines enclose the region containing 97% of the end points
             resimulation_tcp = robot.forward(joint_states=joint_states)
             resimulation_xy = resimulation_tcp[:, :2]
-            plot_contour_lines(points=resimulation_xy, gt=N_y,
-                               PATH='figures/q_quantile_rejection_sampling_' + config['name'] + '_' + config['dof'] + '.png',
-                               percentile=percentile)
+            plot_contour_lines(
+                points=resimulation_xy, gt=N_y,
+                PATH='figures/q_quantile_rejection_sampling_{}_{}DOF.png'.format(config['model'], config['dof']),
+                percentile=percentile)
 
         gt_joint_states = torch.Tensor(joint_states)
 
@@ -169,17 +149,17 @@ if __name__ == '__main__':
         # generate plots for visualization for first sample
         if n == 0:
             # plot sample configuration from predicted posterior
-            plot_configurations(robot, pred_joint_states, transparency=0.2, path='figures/predicted_posterior_' +
-                                                                            model_name + '_' + str(config['dof']) +
-                                                                            '.png', show=False)
+            robotsim.heatmap(
+                pred_joint_states, robot, highlight=22, transparency=0.2,
+                path="figures/predicted_posterior_{}_{}DOF.png".format(config['model'], config['dof']))
 
             # Plot contour lines enclose the region containing 97% of the end points
             resimulation_tcp = robot.forward(joint_states=pred_joint_states)
             resimulation_xy = resimulation_tcp[:, :2]
-            plot_contour_lines(points=resimulation_xy, gt=N_y,
-                               PATH='figures/q_quantile_prediction_' + config['name'] + '_' + config[
-                                   'dof'] + '.png',
-                               percentile=percentile)
+            plot_contour_lines(
+                points=resimulation_xy, gt=N_y,
+                PATH="figures/q_quantile_prediction_{}_{}DOF.png".format(config['model'], config['dof']),
+                percentile=percentile)
 
         # 3.
         # Calculate posterior mismatch between _p(x|y*) and p_gt(x|y*) with MMD
@@ -231,8 +211,8 @@ if __name__ == '__main__':
     num_trainable_parameters = sum(p.numel() for p in model.parameters())
 
     list_results = []
-    list_results.append(config['name'])
-    list_results.append(config['dof'])
+    list_results.append(config['model'])
+    list_results.append('{}DOF'.format(config['dof']))
     list_results.append('# trainable parameters: ' + str(num_trainable_parameters))
     list_results.append('N = ' + str(N))
     list_results.append('M = ' + str(M))
@@ -240,7 +220,7 @@ if __name__ == '__main__':
     list_results.append('Average re-simulation error: ' + str(error_resim_avg[-1]))
     list_results.append('config: ' + str(config))
 
-    with open('results_' + model_name + '_' + robot_dof + '.json', 'w') as fout:
+    with open('results_{}_{}DOF.json'.format(config['model'], config['dof']), 'w') as fout:
         for item in list_results:
             json.dump(item, fout)
             fout.write('\n')

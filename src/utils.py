@@ -3,6 +3,7 @@ import yaml
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+import pathlib
 from scipy.spatial import ConvexHull, convex_hull_plot_2d
 
 import robotsim
@@ -11,10 +12,23 @@ import robotsim
 Various methods to make life easier
 '''
 
-# Function to load yaml configuration file
-def load_config(config_name, config_path):
-    with open(os.path.join(config_path, config_name)) as file:
-        config = yaml.safe_load(file)
+def load_config(config_file):
+    """Loads config file. 
+    If the file can't be found, the function looks in the 
+    .config/ directory.
+    """
+
+    path = pathlib.Path(config_file)
+    if not path.exists():
+        # look in ./config folder
+        path = pathlib.Path("config", config_file)
+        if not path.exists():
+            raise ValueError(
+                "Could not find config file: {}".format(config_file))
+
+    with open(path) as fd:
+        config = yaml.safe_load(fd)
+
     return config
 
 # def onehot(idx, num_classes):
@@ -128,6 +142,9 @@ def plot_contour_lines(points, gt, PATH, percentile=0.97):
 # method to produce a ground truth posterior distribution of the joint angles depending on the tcp
 def rejection_sampling(robot, tcp, dof, samples):
 
+    raise RuntimeError(
+        "Deprecated. Use the rejection_sampling method in the robotsim package instead.")
+
     eps = 0.05
     hit = 0
     hit_samples = []
@@ -150,11 +167,14 @@ def rejection_sampling(robot, tcp, dof, samples):
 # from robotsim_dataset
 def plot_configurations(robot, joints, transparency=None, path=None, show=False):
 
+    raise RuntimeError(
+        "Deprecated. Use the heatmap method in the robotsim package instead.")
+
     fig, ax = robotsim.heatmap(joints, robot, transparency=transparency, path=None, show=False)
     plt.axis([0.0, 2.7, -1.0, 1.0])
 
     # get a sample to plot
-    joint_coords = robot._get_joint_coords(joints[22])
+    joint_coords = robot.get_joint_coords(joints[22])
 
     for arm in joint_coords:
         ax.plot(

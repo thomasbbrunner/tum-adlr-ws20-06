@@ -12,6 +12,7 @@ import robotsim
 import matplotlib.pyplot as plt
 from utils import *
 from train_loader import *
+import argparse
 
 '''
 Training of the respective model:
@@ -30,54 +31,33 @@ ________________________________________________________________________________
 if __name__ == '__main__':
 
     ####################################################################################################################
-    # TO MODIFY
-    ####################################################################################################################
-
-    model_name = 'INN'
-    robot_dof = '3DOF'
-
-    ####################################################################################################################
-    # CHECK FOR VALID INPUT
-    ####################################################################################################################
-
-    if not (model_name == 'CVAE' or model_name == 'INN'):
-        raise Exception('Model not supported')
-
-    if not (robot_dof == '2DOF' or robot_dof == '3DOF' or robot_dof == '4DOF'):
-        raise Exception('DOF not supported')
-
-    ####################################################################################################################
     # LOAD CONFIG AND DATASET, BUILD MODEL
     ####################################################################################################################
 
-    if model_name == 'CVAE':
-        if robot_dof == '2DOF':
-            config = load_config('robotsim_cVAE_2DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D2DoF([0.5, 1])
-            dataset = RobotSimDataset(robot, 1e6)
-        elif robot_dof == '3DOF':
-            config = load_config('robotsim_cVAE_3DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D3DoF([0.5, 0.5, 1.0])
-            dataset = RobotSimDataset(robot, 1e6)
-        else:
-            config = load_config('robotsim_cVAE_4DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D4DoF([0.5, 0.5, 0.5, 1.0])
-            dataset = RobotSimDataset(robot, 1e6)
+    parser = argparse.ArgumentParser(
+        description="Training of neural networks for inverse kinematics.")
+    parser.add_argument(
+        "config_file", help="file containing configurations.")
+    args = parser.parse_args()
+    config = load_config(args.config_file)
+
+    if config["model"] == "CVAE":
         model = CVAE(config)
-    else:
-        if robot_dof == '2DOF':
-            config = load_config('robotsim_INN_2DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D2DoF([0.5, 1])
-            dataset = RobotSimDataset(robot, 1e6)
-        elif robot_dof == '3DOF':
-            config = load_config('robotsim_INN_3DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D3DoF([0.5, 0.5, 1.0])
-            dataset = RobotSimDataset(robot, 1e6)
-        else:
-            config = load_config('robotsim_INN_4DOF.yaml', 'configs/')
-            robot = robotsim.Robot2D4DoF([0.5, 0.5, 0.5, 1.0])
-            dataset = RobotSimDataset(robot, 1e6)
+    elif config["model"] == "INN":
         model = INN(config)
+    else:
+        raise ValueError(
+            "Unknown model in config: {}".format(config["model"]))
+
+    if config["robot"] in ("Planar", "planar"):
+        robot = robotsim.Planar(config["dof"], config["len_links"])
+    elif config["robot"] in ("Paper", "paper"):
+        robot = robotsim.Paper(config["dof"], config["len_links"])
+    else:
+        raise ValueError(
+            "Unknown robot in config: {}".format(config["robot"]))
+
+    dataset = RobotSimDataset(robot, 1e6)
 
     # ensures that models are trained and tested on the same samples
     torch.manual_seed(42)
@@ -92,9 +72,9 @@ if __name__ == '__main__':
     ####################################################################################################################
 
     print('Begin training ...')
-    if model_name == 'CVAE':
+    if config["model"] == "CVAE":
         train_CVAE(model=model, config=config, dataloader=train_dataloader, device=device)
-    elif model_name == 'INN':
+    elif config["model"] == "INN":
         train_INN(model=model, config=config, dataloader=train_dataloader, device=device)
     else:
         raise Exception('Model not supported')

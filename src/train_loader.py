@@ -92,8 +92,9 @@ def train_CVAE(model, config, dataloader, device):
 
         # save checkpoint
         if epoch > 1 and epoch % config['checkpoint_epoch'] == 0:
-            model.save_checkpoint(epoch=epoch, optimizer=optimizer, loss=loss,
-                                  PATH=config['checkpoint_dir'] + 'CVAE_' + str(config['dof']) + '_epoch_' + str(epoch))
+            model.save_checkpoint(
+                epoch=epoch, optimizer=optimizer, loss=loss,
+                PATH='{}CVAE_{}DOF_epoch_{}'.format(config['checkpoint_dir'], config['dof'], epoch))
             print('CHECKPOINT SAVED.')
 
         train_loss_avg[-1] /= num_batches
@@ -111,7 +112,7 @@ def train_CVAE(model, config, dataloader, device):
     plt.ylabel('AVG LOSS')
     plt.plot(train_loss_avg, '-b', label='Total loss')
     # plt.legend()
-    plt.savefig('figures/total_avg_train_loss_CVAE_' + str(config['dof']) + '.png')
+    plt.savefig('figures/total_avg_train_loss_CVAE_{}DOF.png'.format(config['dof']))
 
     fig = plt.figure()
     plt.title('AVG LOSS HISTORY FOR RECONSTRUCTION ERROR')
@@ -119,7 +120,7 @@ def train_CVAE(model, config, dataloader, device):
     plt.ylabel('AVG LOSS')
     plt.plot(recon_loss_avg, '-r', label='MSE loss')
     # plt.legend()
-    plt.savefig('figures/recon_avg_train_loss_CVAE_' + str(config['dof']) + '.png')
+    plt.savefig('figures/recon_avg_train_loss_CVAE_{}DOF.png'.format(config['dof']))
 
     fig = plt.figure()
     plt.title('AVG LOSS HISTORY FOR KL DIVERGENCE')
@@ -127,7 +128,7 @@ def train_CVAE(model, config, dataloader, device):
     plt.ylabel('AVG LOSS')
     plt.plot(kl_loss_avg, '-k', label='KL loss')
     # plt.legend()
-    plt.savefig('figures/kl_avg_train_loss_CVAE_' + str(config['dof']) + '.png')
+    plt.savefig('figures/kl_avg_train_loss_CVAE_{}DOF.png'.format(config['dof']))
 
 
 ########################################################################################################################
@@ -315,8 +316,9 @@ def train_INN(model, config, dataloader, device):
 
         # save checkpoint
         if epoch > 1 and epoch % config['checkpoint_epoch'] == 0:
-            model.save_checkpoint(epoch=epoch, optimizer=optimizer, loss=loss,
-                                  PATH=config['checkpoint_dir'] + 'INN_' + str(config['dof']) + '_epoch_' + str(epoch))
+            model.save_checkpoint(
+                epoch=epoch, optimizer=optimizer, loss=loss,
+                PATH='{}INN_{}DOF_epoch_{}'.format(config['checkpoint_dir'], config['dof'], epoch))
             print('CHECKPOINT SAVED.')
 
         train_loss_avg[-1] /= num_batches
@@ -339,4 +341,4 @@ def train_INN(model, config, dataloader, device):
     plt.plot(train_loss_Lz_avg, '-g', label='z-MMD loss')
     plt.plot(train_loss_Lx_avg, '-k', label='x-MMD loss')
     plt.legend()
-    plt.savefig('figures/avg_train_loss_INN_' + str(config['dof']) + '.png')
+    plt.savefig('figures/avg_train_loss_INN_{}DOF.png'.format(config['dof']))
