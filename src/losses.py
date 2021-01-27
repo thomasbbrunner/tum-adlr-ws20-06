@@ -7,9 +7,22 @@ import torch.nn as nn
 from utils import *
 
 '''
+Definition space of torch.atan2(y / x): x>0
+'''
+def MSEloss4joints(_x, x, config):
+    if config['dof'] == int(x.size()[1]):
+        return consider_singularities(_x, x)
+    elif config['dof'] * 2 == int(x.size()[1]):
+        return custom_loss(_x, x, reduction='sum')
+    else:
+        raise Exception("Input dimension of joints invalid!")
+
+def MSEloss4tcp():
+    pass
+
+'''
 Implementations of losses used for training the models
 '''
-
 # Maximum Mean Discrepancy (MMD)
 # source: https://github.com/masa-su/pixyz/blob/master/pixyz/losses/mmd.py
 def MMD(x, y, device):
@@ -45,52 +58,34 @@ def KL_divergence(mu, logvar):
 def Binary_CE(recon_x, x):
     return F.binary_cross_entropy(recon_x, x, size_average=False)
 
-'''
-This loss is created for unnormalized inputs without activation function in the last layer of the decoder
-'''
-def VAE_loss_ROBOT_SIM(recon_x, x, mu, logvar, variational_beta):
-
-    # try out what is better
-    # recon_loss = F.mse_loss(recon_x, x, reduction='mean')
-    recon_loss = F.mse_loss(recon_x, x, reduction='sum')
-
-    # KL-divergence between the prior distribution over latent vectors
-    kldivergence = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-
-    return recon_loss + variational_beta * kldivergence
+# '''
+# This loss is created for unnormalized inputs without activation function in the last layer of the decoder
+# '''
+# def VAE_loss_ROBOT_SIM(recon_x, x, mu, logvar, variational_beta):
+#
+#     # try out what is better
+#     # recon_loss = F.mse_loss(recon_x, x, reduction='mean')
+#     recon_loss = F.mse_loss(recon_x, x, reduction='sum')
+#
+#     # KL-divergence between the prior distribution over latent vectors
+#     kldivergence = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+#
+#     return recon_loss + variational_beta * kldivergence
 
 # Input x: gt input vector with shape: num_samples x 2 * num_joints
 # Input _x: predicted input vector with shape: num_samples x 2 * num_joints
 def custom_loss(_x, x, reduction):
-
-    if torch.any(torch.isnan(_x)):
-        raise Exception('NaN in _x detected!')
-    if torch.any(torch.isinf(_x)):
-        raise Exception('Inf in _x detected!')
 
     num_joints = int(x.size()[1] / 2)
     samples = x.size()[0]
 
     # vectorize input vectors
     _x_vectorized = vectorize(_x)
-    if torch.any(torch.isnan(_x_vectorized)):
-        raise Exception('NaN in _x_vectorized detected!')
-    if torch.any(torch.isinf(_x_vectorized)):
-        raise Exception('Inf in _x_vectorized detected!')
     x_vectorized = vectorize(x)
-    if torch.any(torch.isnan(x_vectorized)):
-        raise Exception('NaN in x_vectorized detected!')
-    if torch.any(torch.isinf(x_vectorized)):
-        raise Exception('Inf in x_vectorized detected!')
 
     # normalize preds direction vectors
     # eps important in order to avoid dividing by 0
     _x_normalized = nn.functional.normalize(input=_x_vectorized, p=2, dim=2, eps=1e-5)
-
-    if torch.any(torch.isnan(_x_normalized)):
-        raise Exception('NaN in _x_normalized detected!')
-    if torch.any(torch.isinf(_x_normalized)):
-        raise Exception('Inf in _x_normalized detected!')
 
     ones = torch.ones(size=(samples,))
     loss_i = 0.0

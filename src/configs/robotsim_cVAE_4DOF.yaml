@@ -1,4 +1,7 @@
+# -------------------
 # Settings
+# -------------------
+
 model: 'CVAE'
 robot: 'Planar'
 dof: 4
@@ -6,20 +9,25 @@ len_links: [0.5, 0.5, 0.5, 1]
 weight_dir : 'weights/ROBOTSIM_CVAE_4DOF'
 checkpoint_dir: 'checkpoints/'
 
+# -------------------
 # Network parameters
-input_dim: 8 # 2*4 = 2 * number of joints
-hidden_dim: 300 # number of neurons per fully connected layer
-latent_dim: 6
-condition_dim: 2 # (x, y) coordinates of end-effector
-num_layers: 3 # number of hidden layers for each, encoder and decoder
+# -------------------
 
+input_dim: 8 # If vector-based representation: input_dim = 2*dof else input_dim = dof
+condition_dim: 2 # (x, y) coordinates of end-effector
+latent_dim: 6 # input_dim - condition_dim
+num_layers: 3 # number of hidden layers for each, encoder and decoder
+hidden_dim: 300 # number of neurons per fully connected layer
+
+# -------------------
 # Training
+# -------------------
+
 num_epochs: 40
 batch_size: 1000
 lr_rate: 0.01
 weight_decay: 0.0001
-# variational_beta: 0.01 # for weighting KLdivergence / reconstruction loss
-variational_beta: 0.000067
+variational_beta: 0.000067 # for weighting KLdivergence / reconstruction loss
 checkpoint_epoch: 15
 
 # lr-scheduler

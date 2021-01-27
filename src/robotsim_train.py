@@ -4,7 +4,6 @@ from torch.utils.data import DataLoader
 
 from models.CVAE import *
 from models.INN import *
-from losses import VAE_loss_ROBOT_SIM
 
 from robotsim_dataset import RobotSimDataset
 import robotsim
@@ -30,6 +29,12 @@ ________________________________________________________________________________
 '''
 
 if __name__ == '__main__':
+
+    ####################################################################################################################
+    # TO MODIFY
+    ####################################################################################################################
+
+    DATASET_SAMPLES = 1e4
 
     ####################################################################################################################
     # LOAD CONFIG AND DATASET, BUILD MODEL
@@ -61,11 +66,13 @@ if __name__ == '__main__':
         raise ValueError(
             "Unknown robot in config: {}".format(config["robot"]))
 
-    dataset = RobotSimDataset(robot, 1e6)
+    dataset = RobotSimDataset(robot, DATASET_SAMPLES)
 
+    TRAIN_SAMPLES = int(0.7 * DATASET_SAMPLES)
+    TEST_SAMPLES = int(0.3 * DATASET_SAMPLES)
     # ensures that models are trained and tested on the same samples
     torch.manual_seed(42)
-    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 300000])
+    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [TRAIN_SAMPLES, TEST_SAMPLES])
     train_dataloader = DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

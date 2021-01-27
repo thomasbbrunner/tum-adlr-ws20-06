@@ -1,7 +1,5 @@
 import torch
 
-from losses import VAE_loss_ROBOT_SIM
-
 from robotsim_dataset import RobotSimDataset
 import robotsim
 
@@ -53,16 +51,12 @@ def train_CVAE(model, config, dataloader, device):
             coord_batch = coord_batch.float()
 
             # apply sine and cosine to joint angles
-            joint_batch = preprocess(joint_batch)
+            joint_batch = preprocess(joint_batch, config=config)
 
             # forward propagation
             image_batch_recon, latent_mu, latent_logvar = model(joint_batch, coord_batch)
 
-            # compute losses
-            # recon_loss = MSE(image_batch_recon, joint_batch, reduction='sum')
-
-            # very important: reduction='sum', NOT 'mean' !!
-            recon_loss = custom_loss(image_batch_recon, joint_batch, reduction='sum')
+            recon_loss = MSEloss4joints(image_batch_recon, joint_batch, config=config)
             kldivergence = KL_divergence(latent_mu, latent_logvar)
 
             # adapt size of variational beta to epoch
@@ -204,7 +198,7 @@ def train_INN(model, config, dataloader, device):
             y = y.float()
 
             # apply sine and cosine to joint angles
-            x = preprocess(x)
+            x = preprocess(x, config=config)
 
             # This is used later for training the inverse pass
             y_clean = y.clone()
@@ -272,7 +266,7 @@ def train_INN(model, config, dataloader, device):
             output_inv_rand = model(y_inv_rand, inverse=True)
 
             # forces padding dims to be ignored
-            L_xy = config['weight_Lxy'] * custom_loss(output_inv, x, reduction=reduction)
+            L_xy = config['weight_Lxy'] * MSEloss4joints(output_inv, x, config=config)
 
             UNWEIGHTED_LOSS = MMD(output_inv_rand[:, :config['input_dim']], x[:, :config['input_dim']], device)
             L_x = config['weight_Lx'] * loss_factor * UNWEIGHTED_LOSS

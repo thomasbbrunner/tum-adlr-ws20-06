@@ -1,4 +1,7 @@
+# -------------------
 # Settings
+# -------------------
+
 model: 'CVAE'
 robot: 'Planar'
 dof: 2
@@ -6,14 +9,20 @@ len_links: [0.5, 1]
 weight_dir : 'weights/ROBOTSIM_CVAE_2DOF'
 checkpoint_dir: 'checkpoints/'
 
+# -------------------
 # Network parameters
-input_dim: 4 # 2*2 = 2 * number of joints
-hidden_dim: 200 # number of neurons per fully connected layer
-latent_dim: 2
-condition_dim: 2 # (x, y) coordinates of end-effector
-num_layers: 3 # number of hidden layers for each, encoder and decoder
+# -------------------
 
+input_dim: 4 # If vector-based representation: input_dim = 2*dof else input_dim = dof
+condition_dim: 2 # (x, y) coordinates of end-effector
+latent_dim: 2 # input_dim - condition_dim
+num_layers: 3 # number of hidden layers for each, encoder and decoder
+hidden_dim: 200 # number of neurons per fully connected layer
+
+# -------------------
 # Training
+# -------------------
+
 num_epochs: 60
 batch_size: 1000
 lr_rate: 0.01

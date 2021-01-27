@@ -48,6 +48,7 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
+    DATASET_SAMPLES = 1e4
     N = 1
     M = 100
     percentile = 0.97
@@ -82,11 +83,13 @@ if __name__ == '__main__':
         raise ValueError(
             "Unknown robot in config: {}".format(config["robot"]))
 
-    dataset = RobotSimDataset(robot, 1e6)
+    dataset = RobotSimDataset(robot, DATASET_SAMPLES)
 
+    TRAIN_SAMPLES = int(0.7 * DATASET_SAMPLES)
+    TEST_SAMPLES = int(0.3 * DATASET_SAMPLES)
     # ensures that models are trained and tested on the same samples
     torch.manual_seed(42)
-    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [700000, 300000])
+    train_dataset, test_dataset = torch.utils.data.random_split(dataset, [TRAIN_SAMPLES, TEST_SAMPLES])
     test_dataloader = DataLoader(test_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -156,7 +159,7 @@ if __name__ == '__main__':
         pred_joint_states = model.predict(tcp=gen_tcp, device=device)
 
         # Post-ptrocessing
-        pred_joint_states = postprocess(pred_joint_states)
+        pred_joint_states = postprocess(pred_joint_states, config=config)
 
         # generate plots for visualization for first sample
         if n == 0:
@@ -203,7 +206,7 @@ if __name__ == '__main__':
         _x = model.predict(tcp_batch, device)
 
         # Post-ptrocessing
-        _x = postprocess(_x)
+        _x = postprocess(_x, config=config)
 
         # perform forward kinemtatics on _x
         y_resim = torch.Tensor(robot.forward(joint_states=_x.detach()))
@@ -232,7 +235,7 @@ if __name__ == '__main__':
     list_results.append('Average re-simulation error: ' + str(error_resim_avg[-1]))
     list_results.append('config: ' + str(config))
 
-    with open('results_{}_{}DOF.json'.format(config['model'], config['dof']), 'w') as fout:
+    with open('results/results_{}_{}DOF.json'.format(config['model'], config['dof']), 'w') as fout:
         for item in list_results:
             json.dump(item, fout)
             fout.write('\n')

@@ -8,6 +8,10 @@ from scipy.spatial import ConvexHull, convex_hull_plot_2d
 
 import robotsim
 
+def consider_singularities(_x, x):
+    angle2minuspi_pluspi = torch.atan2(torch.sin(_x - x), torch.cos(_x - x))
+    return torch.mean(angle2minuspi_pluspi**2)
+
 '''
 Various methods to make life easier
 '''
@@ -31,6 +35,7 @@ def load_config(config_file):
 
     return config
 
+
 # def onehot(idx, num_classes):
 #
 #     assert idx.shape[1] == 1
@@ -42,37 +47,33 @@ def load_config(config_file):
 #     return onehot
 
 # Takes joints angles as inputs and produces direction vectors from them
-def preprocess(x):
+def preprocess(x, config):
 
-    x_sin = torch.sin(x)
-    x_cos = torch.cos(x)
-    x = torch.cat((x_sin, x_cos), dim=1)
+    if config['dof'] == config['input_dim']:
+        pass
+    elif config['dof'] * 2 == config['input_dim']:
+        x_sin = torch.sin(x)
+        x_cos = torch.cos(x)
+        x = torch.cat((x_sin, x_cos), dim=1)
+    else:
+        raise Exception("Input dimension of joints invalid!")
+
     return x
 
-# def postprocess_old(x):
-#
-#     # see values as complex numbers from which we want to compute its argument
-#     # arg(x + i*y) = arg(cos(phi) + i*sin(phi)) = arctan(y/x)
-#     # special cases
-#
-#     # x = normalize(x)
-#
-#     num_joints = int(x.size()[1] / 2)
-#     _x = torch.zeros(size=(x.size()[0], num_joints))
-#
-#     for i in range(num_joints):
-#         _x[:, i] = torch.atan2(input=x[:, i], other=x[:, num_joints+i])
-#
-#     return _x
-
 # takes direction vectors as input and computes corresponding joint angles
-def postprocess(x):
+def postprocess(x, config):
 
-    num_joints = int(x.size()[1] / 2)
-    _x = torch.zeros(size=(x.size()[0], num_joints))
+    _x = None
+    if config['dof'] == int(x.size()[1]):
+        _x = x
+    elif config['dof'] * 2 == int(x.size()[1]):
+        num_joints = int(x.size()[1] / 2)
+        _x = torch.zeros(size=(x.size()[0], num_joints))
 
-    for i in range(num_joints):
-        _x[:, i] = torch.atan2(input=x[:, i], other=x[:, num_joints+i])
+        for i in range(num_joints):
+            _x[:, i] = torch.atan2(input=x[:, i], other=x[:, num_joints + i])
+    else:
+        raise Exception("Input dimension of joints invalid!")
 
     return _x
 
