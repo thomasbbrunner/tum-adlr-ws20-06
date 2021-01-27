@@ -67,7 +67,7 @@ class Paper(Robot):
 if __name__ == "__main__":
 
     # functionality tests
-    robot = Paper(5, [1, 1, 1, 1])
+    robot = Paper(5, [1, 2, 1, 2])
 
     # one input
     js = [0, 1, -1, 1, -1]

@@ -85,7 +85,7 @@ class Robot(ABC):
                 "Wrong shape of TCP coordinates: {}"
                 .format(tcp_coordinates))
 
-        if np.linalg.norm(tcp_coordinates) >= self.get_length():
+        if np.linalg.norm(tcp_coordinates) > self.get_length():
             raise RuntimeError(
                 "TCP coordinates are outside workspace: {}"
                 .format(tcp_coordinates))

@@ -139,7 +139,7 @@ class Planar(Robot):
         # coordinates of each link
         for i in range(1, self._num_dof):
             T = T @ utils.dh_transformation(
-                0, self._len_links[0], 0, joint_states[:, i], False)
+                0, self._len_links[i-1], 0, joint_states[:, i], False)
             joint_coords[:, i] = T[:, :2, -1]
 
         # coordinates of end-effector
@@ -164,14 +164,15 @@ class Planar(Robot):
 if __name__ == "__main__":
 
     # functionality tests
-    robot = Planar(5, [1, 1, 1, 1, 1])
+    robot = Planar(5, [1, 1, 1, 1, 2])
 
     # one input
-    js = [1, -1, 2, -2, 1]
+    js = [1, -1, -1, 1, -1]
     # plot(js, robot, show=True)
     tcp = robot.forward(js)
     js_sampling = robot.rejection_sampling(
         tcp[:2], num_samples=5000, eps=0.05, mean=0, std=1)
+    robot.get_joint_coords(js)
     heatmap(
         js_sampling, robot, highlight=1, transparency=0.005,
         path="./figures/robotsim/rejection_sampling_Planar_5DOF.png")
