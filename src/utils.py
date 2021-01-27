@@ -9,28 +9,6 @@ import torch.nn.functional as F
 
 import robotsim
 
-'''
-Various methods to make life easier
-'''
-
-def consider_singularities(_x, x, config):
-
-    x_short = x[:, :config['input_dim']]
-    _x_short = _x[:, :config['input_dim']]
-
-    angle2minuspi_pluspi = torch.atan2(torch.sin(_x_short - x_short), torch.cos(_x_short - x_short))
-
-    #  TODO: mean or sum as reduction ?
-    d_x = torch.sum(angle2minuspi_pluspi**2)
-    d_pad = F.mse_loss(_x[:, config['input_dim']:], x[:, config['input_dim']:], reduction='sum')
-
-    # if config['model'] == 'INN':
-    #     d_pad = F.mse_loss(_x[:, config['input_dim']:], x[:, config['input_dim']:], reduction='sum')
-    # else:
-    #     d_pad = 0.0
-
-    return d_x + d_pad
-
 def load_config(config_file):
     """Loads config file. 
     If the file can't be found, the function looks in the 
@@ -50,19 +28,16 @@ def load_config(config_file):
 
     return config
 
-
-# def onehot(idx, num_classes):
-#
-#     assert idx.shape[1] == 1
-#     assert torch.max(idx).item() < num_classes
-#
-#     onehot = torch.zeros(idx.size(0), num_classes)
-#     onehot.scatter_(1, idx.data, 1)
-#
-#     return onehot
-
-# Takes joints angles as inputs and produces direction vectors from them
 def preprocess(x, config):
+    """Preprocess the joint angles depending on the used representation (direct or vector-based)
+
+    Args:
+        x: joint angles
+        config: yaml config file
+
+    Returns: the intial joint angles or the vector-based representation of them
+
+    """
 
     if config['dof'] == config['input_dim']:
         pass
@@ -75,8 +50,16 @@ def preprocess(x, config):
 
     return x
 
-# takes direction vectors as input and computes corresponding joint angles
 def postprocess(x, config):
+    """Transforms the input to direct joint angles again
+
+    Args:
+        x: direct joint angles or vector-based representation of them
+        config: yaml config file
+
+    Returns: Joint angles
+
+    """
 
     x_short = x[:, :config['input_dim']]
 
@@ -93,8 +76,38 @@ def postprocess(x, config):
 
     return _x
 
-# Normalizes vectorized (--> see method vectorize()) direction vectors
+def vectorize(x):
+    """Takes the output x of the network which has 2*num_joints variables and returns num_joints direction vectors
+
+    Args:
+        x: input of shape num_samples x 2 * num_joints
+
+    Returns: vectorized tensor of shape num_samples x num_joints x 2
+
+    """
+
+    num_joints = int(x.size()[1] / 2)
+    samples = x.size()[0]
+
+    x_vectorized = torch.zeros(size=(samples, num_joints, 2))
+    for i in range(num_joints):
+        x_vectorized[:, i, 0] = x[:, i]
+        x_vectorized[:, i, 1] = x[:, num_joints + i]
+
+    return x_vectorized
+
 def normalize(x):
+    """Normalizes the vectorized direction vectors (--> see vectorize() method) of the corresponding joint angles
+
+    Args:
+        x: Tensor of direction vector of shape
+        num_samples * num_joints * 2( --> sin(theta), cos(theta))
+
+        Example: sin(theta1)**2 + cos(theta1)**2  =   1.0
+
+    Returns: Tensor normalized wrt the respective joint angles
+
+    """
 
     num_joints = int(x.size()[1] / 2)
     x_normalized = x.clone()
@@ -109,22 +122,16 @@ def normalize(x):
 
     return x_normalized
 
-# Takes the output x of the network which has 2*num_joints variables and returns num_joints direction vectors
-# Input shape: num_samples x 2 * num_joints
-# Output shape: num_samples x num_joints x 2
-def vectorize(x):
-
-    num_joints = int(x.size()[1] / 2)
-    samples = x.size()[0]
-
-    x_vectorized = torch.zeros(size=(samples, num_joints, 2))
-    for i in range(num_joints):
-        x_vectorized[:, i, 0] = x[:, i]
-        x_vectorized[:, i, 1] = x[:, num_joints + i]
-
-    return x_vectorized
-
 def plot_contour_lines(points, gt, PATH, percentile=0.97):
+    """Draws a convex hull around the points which are the nearest in a percentile
+
+    Args:
+        points: list of (x, y) coordinates of points
+        gt: (x, y) coordinate of ground truth point
+        PATH: path to directory where figure is stored in
+        percentile: between 0.0 and 1.0
+
+    """
 
     # q_quantile = np.quantile(points, q=percentile, axis=0)
     distance = np.linalg.norm(points - gt, axis=1)
@@ -148,16 +155,12 @@ def plot_contour_lines(points, gt, PATH, percentile=0.97):
     plt.axis([gt[0]-3.0, gt[0]+3.0, gt[1]-3.0, gt[1]+3.0])
     plt.scatter(points[:, 0], points[:, 1], c='g')
     plt.scatter(gt[0], gt[1], c='r')
-
     for simplex in hull.simplices:
         plt.plot(selected_points[simplex, 0], selected_points[simplex, 1], 'k-')
     plt.savefig(PATH)
 
-# def RMSE(pred, gt):
-#     return torch.sqrt(torch.mean(torch.sum(torch.square(pred - gt), dim=1)))
-
-# method to produce a ground truth posterior distribution of the joint angles depending on the tcp
 def rejection_sampling(robot, tcp, dof, samples):
+    """method to produce a ground truth posterior distribution of the joint angles depending on the tcp"""
 
     raise RuntimeError(
         "Deprecated. Use the rejection_sampling method in the robotsim package instead.")
@@ -181,8 +184,8 @@ def rejection_sampling(robot, tcp, dof, samples):
 
     return hit_samples
 
-# from robotsim_dataset
 def plot_configurations(robot, joints, transparency=None, path=None, show=False):
+    """from robotsim_dataset"""
 
     raise RuntimeError(
         "Deprecated. Use the heatmap method in the robotsim package instead.")
@@ -265,9 +268,6 @@ def wrap(angles):
     # wrap angles to range [-pi, pi)
     return (angles + np.pi) % (2*np.pi) - np.pi
 
-    # wrap angles to range [0, 2*pi)
-    # return angles % (2*np.pi)
-
 # Testing example
 if __name__ == '__main__':
 
@@ -292,10 +292,12 @@ if __name__ == '__main__':
     # rmse = RMSE(pred, gt)
     # print(rmse)
 
-    robot = robotsim.Robot2D3DoF([3, 2, 3])
-    gt_tcp = [6.0, 5.0]
-    joint_states = rejection_sampling(robot=robot, tcp=gt_tcp, dof=3)
+    # robot = robotsim.Robot2D3DoF([3, 2, 3])
+    # gt_tcp = [6.0, 5.0]
+    # joint_states = rejection_sampling(robot=robot, tcp=gt_tcp, dof=3)
+    #
+    # joint_states = np.array(joint_states)
+    # robotsim_plot.plot(joint_states, robot)
+    # plt.show()
 
-    joint_states = np.array(joint_states)
-    robotsim_plot.plot(joint_states, robot)
-    plt.show()
+    pass

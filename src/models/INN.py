@@ -4,18 +4,9 @@ import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 
-'''
-
- Sources
- -------
- https://github.com/VLL-HD/FrEIA/blob/master/FrEIA/
- 
- https://github.com/VLL-HD/analyzing_inverse_problems
- 
- '''
-
-# Permutes input vector in a random but fixed way
 class FixedRandomPermutation(nn.Module):
+    """Layer with random but fixed permutations in order to mix the data"""
+
     def __init__(self, input_dim, seed):
         super(FixedRandomPermutation, self).__init__()
 
@@ -34,20 +25,15 @@ class FixedRandomPermutation(nn.Module):
             self.permutation = torch.LongTensor(self.permutation)
             self.permutation_inv = torch.LongTensor(self.permutation_inv)
 
-
     def forward(self, x, inverse=False):
-
         if not inverse:
             x = x[:, self.permutation]
         else:
             x = x[:, self.permutation_inv]
-
         return x
 
-    def jacobian(self):
-        pass
-
 class sub_network(nn.Module):
+    """Fully connected subnetwork of a single coupling block"""
 
     def __init__(self, input_dim, hidden_dim, output_dim, num_layers):
         super(sub_network, self).__init__()
@@ -57,15 +43,17 @@ class sub_network(nn.Module):
         self.fcs.extend([nn.Linear(in_features=hidden_dim, out_features=hidden_dim) for i in range(1, num_layers-1)])
         self.fcs.append(nn.Linear(in_features=hidden_dim, out_features=output_dim))
 
-
     def forward(self, x):
-
         for layer in self.fcs:
             x = F.leaky_relu(layer(x))
-
         return x
 
 class AffineCouplingBlock(nn.Module):
+    """Coupling layer with affine transformations and 4 single subnetworks for each learned coefficient
+
+    Refer to implementation: https://github.com/VLL-HD/FrEIA/blob/master/FrEIA/
+
+    """
     def __init__(self, input_dim, hidden_dim, num_layers):
         super(AffineCouplingBlock, self).__init__()
 
@@ -81,6 +69,14 @@ class AffineCouplingBlock(nn.Module):
         self.t2 = sub_network(self.u2_dim, hidden_dim, self.u1_dim, num_layers)
 
     def e(self, x):
+        """Exponential function with clipped values to avoid too big values
+
+        Args:
+            x: input
+
+        Returns: exponential with clipped values
+
+        """
         return torch.exp(self.clamp * 0.636 * torch.atan(x))
 
     def forward(self, x, inverse=False):
@@ -91,40 +87,35 @@ class AffineCouplingBlock(nn.Module):
 
         # Perform forward kinematics
         if not inverse:
-
             # v1 = u1 dotprod exp(s2(u2)) + t2(u2)
-            # exp_2 = torch.exp(self.s2(u2))
             exp_2 = self.e(self.s2(u2))
-
             v1 = u1 * exp_2 + self.t2(u2)
-
             # v2 = u2 dotprod exp(s1(v1)) + t1(v1)
-            # exp_1 = torch.exp(self.s1(v1))
             exp_1 = self.e(self.s1(v1))
-
             v2 = u2 * exp_1 + self.t1(v1)
 
         # Perform inverse kinematics (names of u and v are swapped)
         else:
-
             # u2 = (v2-t1(v1)) dotprod exp(-s1(v1))
-            # exp_1 = torch.exp(-self.s1(u1))
             exp_1 = self.e(-self.s1(u1))
-
             v2 = (u2 - self.t1(u1)) * exp_1
-
             # u1 = (v1-t2(u2)) dotprod exp(-s2(u2))
-            # exp_2 = torch.exp(-self.s2(v2))
             exp_2 = self.e(-self.s2(v2))
-
             v1 = (u1 - self.t2(v2)) * exp_2
 
         return torch.cat((v1, v2), 1)
 
-    def jacobian(self, inverse=False):
-        pass
 
 class INN(nn.Module):
+    """Invertible Neural Network (INN)
+
+    Paper: Analyzing inverse problems with invertible neural networks [L. Ardizzone et al. 2018]
+
+    Implementation inspired from:
+    https://github.com/VLL-HD/FrEIA/blob/master/FrEIA/
+    https://github.com/VLL-HD/analyzing_inverse_problems
+
+    """
 
     def __init__(self, config):
 
@@ -134,9 +125,6 @@ class INN(nn.Module):
         self.output_dim = config['output_dim']
         self.hidden_dim = config['hidden_dim']
         self.latent_dim = config['latent_dim']
-        self.batch_size = config['batch_size']
-        self.y_noise_scale = config['y_noise_scale']
-        self.zeros_noise_scale = config['zeros_noise_scale']
         self.num_layers_subnet = config['num_layers_subnet']
         self.num_coupling_layers = config['num_coupling_layers']
 
@@ -149,63 +137,34 @@ class INN(nn.Module):
 
 
     def forward(self, x, inverse=False):
-
         if not inverse:
             for layer in self.fcs:
                 x = layer(x, inverse)
-
-
         else:
             for layer in reversed(self.fcs):
                 x = layer(x, inverse)
-
         return x
 
     def predict(self, tcp, device):
+        """Predicts joint angles dependent on the tcp + by sampling from N(0, 1)
+
+        Args:
+            tcp: (x, y) coordinates of end-effector
+            device: 'cpu' or 'gpu'
+
+        Returns: predicted joint angles
+
+        """
 
         # Sample z from standard normal distribution
         z = torch.randn(tcp.size()[0], self.latent_dim, device=device)
-
-        # Padding in case yz_dim < total_dim
-        # pad_yz = self.zeros_noise_scale * torch.randn(self.batch_size, self.total_dim -
-        #                                          self.input_dim - self.latent_dim, device=device)
-        pad_yz = torch.zeros(tcp.size()[0], self.total_dim - self.output_dim - self.latent_dim, device=device)
-
+        # Padding in case y_dim + z_dim < total_dim
+        Y_PAD = torch.zeros(tcp.size()[0], self.total_dim - self.output_dim - self.latent_dim, device=device)
         # Perform inverse kinematics
-        y_inv = torch.cat((z, pad_yz, tcp), dim=1)
+        y_inv = torch.cat((z, Y_PAD, tcp), dim=1)
         with torch.no_grad():
             output_inv = self.forward(y_inv, inverse=True)
-
         return output_inv
-
-    def visualise_z(self, config, x):
-
-        assert x.size()[1] == config['total_dim']
-
-        with torch.no_grad():
-            y = self.forward(x, inverse=False)
-
-        z = y[:, :config['latent_dim']]
-
-        if z.size()[1] == 1:
-            raise Exception('Not implemented yet')
-        elif z.size()[1] == 2:
-            fig = plt.figure()
-            plt.title('Latent space')
-            plt.xlabel('Z1')
-            plt.ylabel('Z2')
-            plt.scatter(z[:, 0], z[:, 1], c='g')
-            plt.savefig('figures/Latent_space_INN_' + str(config['dof']) + '.png')
-        else:
-            # Perform principal component analysis to project z int 2D space
-            U, S, V = torch.pca_lowrank(z, center=False)
-            z_projected = torch.matmul(z, V[:, :2])
-            fig = plt.figure()
-            plt.title('Latent space')
-            plt.xlabel('Z1')
-            plt.ylabel('Z2')
-            plt.scatter(z_projected[:, 0], z_projected[:, 1], c='g')
-            plt.savefig('figures/Projected_latent_space_INN_' + str(config['dof']) + '.png')
 
     def save_checkpoint(self, epoch, optimizer, loss, PATH):
         torch.save({

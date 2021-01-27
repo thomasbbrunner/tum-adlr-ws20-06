@@ -225,7 +225,7 @@ def train_INN(model, config, dataloader, device):
 
             L_y = config['weight_Ly'] * MSE(output[:, config['latent_dim']:], y[:, config['latent_dim']:],
                                             reduction='sum')
-            L_z = config['weight_Lz'] * MMD(output_short, y_short, device)
+            L_z = config['weight_Lz'] * MMD(output_short, y_short)
 
             loss_forward = L_y + L_z
             loss = loss_forward.data.detach()
@@ -259,14 +259,14 @@ def train_INN(model, config, dataloader, device):
             L_xy = config['weight_Lxy'] * MSEloss4joints(output_inv, x, config=config)
 
             L_x = config['weight_Lx'] * loss_factor * MMD(output_inv_rand[:, :config['input_dim']],
-                                                          x[:, :config['input_dim']], device)
+                                                          x[:, :config['input_dim']])
 
             loss_backward = L_xy + L_x
             loss += loss_backward.data.detach()
 
             loss_backward.backward()
 
-            # very important such that grads in subnetworks dont explode!!!!!
+            # ensures that grads in subnetworks dont explode
             for p in model.parameters():
                 p.grad.data.clamp_(-15.00, 15.00)
 
