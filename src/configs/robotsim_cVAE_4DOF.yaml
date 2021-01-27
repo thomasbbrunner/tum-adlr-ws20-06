@@ -28,7 +28,7 @@ batch_size: 1000
 lr_rate: 0.01
 weight_decay: 0.0001
 variational_beta: 0.0067 # for weighting KLdivergence / reconstruction loss
-checkpoint_epoch: 1500
+checkpoint_epoch: 50
 
 # lr-scheduler
 milestones: [50, 100]
