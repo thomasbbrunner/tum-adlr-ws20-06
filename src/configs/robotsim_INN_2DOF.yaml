@@ -13,10 +13,10 @@ checkpoint_dir: 'checkpoints/'
 # Network parameters
 # -------------------
 
-input_dim: 4 # If vector-based representation: input_dim = 2*dof else input_dim = dof
-total_dim: 4 # for now: total_dim = input_dim
+input_dim: 2 # If vector-based representation: input_dim = 2*dof else input_dim = dof
+total_dim: 3 # for now: total_dim = input_dim
 output_dim: 2 # (x, y) coordinates of end-effector
-latent_dim: 2 # input_dim - output_dim
+latent_dim: 1 # normally: input_dim - output_dim
 
 num_layers_subnet: 3
 num_coupling_layers: 4
@@ -29,11 +29,11 @@ zeros_noise_scale : 0.005
 # Training
 # -------------------
 
-num_epochs: 60
+num_epochs: 40
 batch_size: 1000
 lr_rate: 0.001
 weight_decay: 0.001
-checkpoint_epoch: 15
+checkpoint_epoch: 20
 
 # loss weights
 weight_Ly: 0.01
@@ -42,5 +42,5 @@ weight_Lx: 100.0
 weight_Lxy: 0.1
 
 # lr-scheduler
-milestones: [40]
+milestones: [30]
 gamma: 0.1

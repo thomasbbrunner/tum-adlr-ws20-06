@@ -143,9 +143,9 @@ class INN(nn.Module):
         # create list of hidden layers
         self.fcs = nn.ModuleList()
         for i in range(self.num_coupling_layers-1):
-            self.fcs.append(AffineCouplingBlock(self.input_dim, self.hidden_dim, self.num_layers_subnet))
-            self.fcs.append(FixedRandomPermutation(self.input_dim, i))
-        self.fcs.append(AffineCouplingBlock(self.input_dim, self.hidden_dim, self.num_layers_subnet))
+            self.fcs.append(AffineCouplingBlock(self.total_dim, self.hidden_dim, self.num_layers_subnet))
+            self.fcs.append(FixedRandomPermutation(self.total_dim, i))
+        self.fcs.append(AffineCouplingBlock(self.total_dim, self.hidden_dim, self.num_layers_subnet))
 
 
     def forward(self, x, inverse=False):

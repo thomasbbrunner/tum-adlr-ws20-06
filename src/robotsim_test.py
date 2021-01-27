@@ -159,7 +159,7 @@ if __name__ == '__main__':
         pred_joint_states = model.predict(tcp=gen_tcp, device=device)
 
         # Post-ptrocessing
-        pred_joint_states = postprocess(pred_joint_states, config=config)
+        pred_joint_states = postprocess(pred_joint_states[:, :config['input_dim']], config=config)
 
         # generate plots for visualization for first sample
         if n == 0:

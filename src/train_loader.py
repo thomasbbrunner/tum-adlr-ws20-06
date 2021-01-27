@@ -158,18 +158,13 @@ def train_INN(model, config, dataloader, device):
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=config['milestones'],
                                                 gamma=config['gamma'])
 
-    # TODO: Implement possible padding
-    # Padding in case xdim < total dim or yz_dim < total_dim
-    # compute possible padding for input
-    diff = config['total_dim'] - config['input_dim']
-    # compute possible padding for output
-    pad = config['total_dim'] - config['output_dim'] - config['latent_dim']
+    # Padding in case x_dim < total dim
+    X_PAD_DIM = config['total_dim'] - config['input_dim']
+    # Padding in case y_dim + z_dim < total_dim
+    Y_PAD_DIM = config['total_dim'] - config['output_dim'] - config['latent_dim']
 
     zeros_noise_scale = config['zeros_noise_scale']
     y_noise_scale = config['y_noise_scale']
-
-    # for MSE loss
-    reduction = 'sum'
 
     for epoch in range(config['num_epochs']):
 
@@ -182,8 +177,8 @@ def train_INN(model, config, dataloader, device):
 
         # If MMD on x-space is present from the start, the model can get stuck.
         # Instead, ramp it up exponentially.
-        # loss_factor = min(1., 2. * 0.002 ** (1. - (float(epoch) / config['num_epochs'])))
-        loss_factor = 1.0
+        loss_factor = min(1., 2. * 0.002 ** (1. - (float(epoch) / config['num_epochs'])))
+        # loss_factor = 1.0
 
         ################################################################################################################
 
@@ -193,13 +188,9 @@ def train_INN(model, config, dataloader, device):
             # y = y_orig.clone()
 
             x, y = x.to(device), y.to(device)
-            # forward pass only accepts float
             x = x.float()
             y = y.float()
-
-            # apply sine and cosine to joint angles
             x = preprocess(x, config=config)
-
             # This is used later for training the inverse pass
             y_clean = y.clone()
 
@@ -208,8 +199,8 @@ def train_INN(model, config, dataloader, device):
             ############################################################################################################
 
             # Insert noise
-            pad_x = zeros_noise_scale * torch.randn(config['batch_size'], diff, device=device)
-            pad_yz = zeros_noise_scale * torch.randn(config['batch_size'], pad, device=device)
+            X_PAD = zeros_noise_scale * torch.randn(config['batch_size'], X_PAD_DIM, device=device)
+            Y_PAD = zeros_noise_scale * torch.randn(config['batch_size'], Y_PAD_DIM, device=device)
 
             y += y_noise_scale * torch.randn(config['batch_size'], config['output_dim'], dtype=torch.float,
                                              device=device)
@@ -220,22 +211,20 @@ def train_INN(model, config, dataloader, device):
             z = torch.randn(config['batch_size'], config['latent_dim'], device=device)
 
             # Concatenate
-            x = torch.cat((x, pad_x), dim=1)
-            y = torch.cat((z, pad_yz, y), dim=1)
-
-            ############################################################################################################
+            x = torch.cat((x, X_PAD), dim=1)
+            y = torch.cat((z, Y_PAD, y), dim=1)
 
             optimizer.zero_grad()
 
             # forward propagation
             output = model(x)
 
-            # shorten y and output for latent loss computation: (z, pad_yz)
+            # shorten y and output: (z, y)
             y_short = torch.cat((y[:, :config['latent_dim']], y[:, -config['output_dim']:]), dim=1)
             output_short = torch.cat((output[:, :config['latent_dim']], output[:, -config['output_dim']:].data), dim=1)
 
             L_y = config['weight_Ly'] * MSE(output[:, config['latent_dim']:], y[:, config['latent_dim']:],
-                                            reduction=reduction)
+                                            reduction='sum')
             L_z = config['weight_Lz'] * MMD(output_short, y_short, device)
 
             loss_forward = L_y + L_z
@@ -250,17 +239,18 @@ def train_INN(model, config, dataloader, device):
             ############################################################################################################
 
             # Insert noise
-            pad_yz = zeros_noise_scale * torch.randn(config['batch_size'], pad, device=device)
+            Y_PAD = zeros_noise_scale * torch.randn(config['batch_size'], Y_PAD_DIM, device=device)
 
             y = y_clean + y_noise_scale * torch.randn(config['batch_size'], config['output_dim'], dtype=torch.float,
-                                                      device=device)
+                                             device=device)
+
             orig_z_perturbed = (output[:, :config['latent_dim']] + y_noise_scale *
                                 torch.randn(config['batch_size'], config['latent_dim'], device=device))
 
-            y_inv = torch.cat((orig_z_perturbed, pad_yz, y), dim=1)
-            y_inv_rand = torch.cat((torch.randn(config['batch_size'], config['latent_dim'], device=device), pad_yz, y),
+            y_inv = torch.cat((orig_z_perturbed, Y_PAD, y), dim=1)
+
+            y_inv_rand = torch.cat((torch.randn(config['batch_size'], config['latent_dim'], device=device), Y_PAD, y),
                                    dim=1)
-            ############################################################################################################
 
             output_inv = model(y_inv, inverse=True)
             output_inv_rand = model(y_inv_rand, inverse=True)
@@ -268,10 +258,10 @@ def train_INN(model, config, dataloader, device):
             # forces padding dims to be ignored
             L_xy = config['weight_Lxy'] * MSEloss4joints(output_inv, x, config=config)
 
-            UNWEIGHTED_LOSS = MMD(output_inv_rand[:, :config['input_dim']], x[:, :config['input_dim']], device)
-            L_x = config['weight_Lx'] * loss_factor * UNWEIGHTED_LOSS
+            L_x = config['weight_Lx'] * loss_factor * MMD(output_inv_rand[:, :config['input_dim']],
+                                                          x[:, :config['input_dim']], device)
 
-            loss_backward = L_x + L_xy
+            loss_backward = L_xy + L_x
             loss += loss_backward.data.detach()
 
             loss_backward.backward()
@@ -321,10 +311,10 @@ def train_INN(model, config, dataloader, device):
         train_loss_Lx_avg[-1] /= num_batches
         train_loss_Lxy_avg[-1] /= num_batches
 
-        print('Epoch [%d / %d] weighted average y-MSE loss: %f, weighted average y-MMD loss: %f, '
-              'weighted average x-MSE loss: %f, weighted average x-MMD loss: %f, Overall average loss: %f'
+        print('Epoch [%d / %d] weighted avg y-MSE loss: %f, weighted avg y-MMD loss: %f, weighted avg x-MMD loss: %f, '
+              'weighted avg x-MSE loss: %f, Overall avg loss: %f'
               % (epoch + 1, config['num_epochs'], train_loss_Ly_avg[-1],
-                                          train_loss_Lz_avg[-1], train_loss_Lxy_avg[-1], train_loss_Lx_avg[-1], train_loss_avg[-1]))
+                                          train_loss_Lz_avg[-1], train_loss_Lx_avg[-1], train_loss_Lxy_avg[-1], train_loss_avg[-1]))
 
     plt.title('AVG LOSS HISTORY')
     plt.xlabel('EPOCHS')

@@ -10,12 +10,17 @@ from utils import *
 Definition space of torch.atan2(y / x): x>0
 '''
 def MSEloss4joints(_x, x, config):
-    if config['dof'] == int(x.size()[1]):
-        return consider_singularities(_x, x)
-    elif config['dof'] * 2 == int(x.size()[1]):
-        return custom_loss(_x, x, reduction='sum')
+
+    if config['dof'] == config['input_dim']:
+        loss = consider_singularities(_x, x, config=config)
+        # loss = MSE(_x, x, reduction='sum')
+    elif config['dof'] * 2 == config['input_dim']:
+        loss = custom_loss(_x, x, config=config)
     else:
         raise Exception("Input dimension of joints invalid!")
+
+    return loss
+
 
 def MSEloss4tcp():
     pass
@@ -74,14 +79,17 @@ def Binary_CE(recon_x, x):
 
 # Input x: gt input vector with shape: num_samples x 2 * num_joints
 # Input _x: predicted input vector with shape: num_samples x 2 * num_joints
-def custom_loss(_x, x, reduction):
+def custom_loss(_x, x, config):
 
-    num_joints = int(x.size()[1] / 2)
+    num_joints = config['dof']
     samples = x.size()[0]
 
+    x_short = x[:, :config['input_dim']]
+    _x_short = _x[:, :config['input_dim']]
+
     # vectorize input vectors
-    _x_vectorized = vectorize(_x)
-    x_vectorized = vectorize(x)
+    _x_vectorized = vectorize(_x_short)
+    x_vectorized = vectorize(x_short)
 
     # normalize preds direction vectors
     # eps important in order to avoid dividing by 0
@@ -91,14 +99,19 @@ def custom_loss(_x, x, reduction):
     loss_i = 0.0
     for i in range(num_joints):
         dot_product = _x_normalized[:, i, 0] * x_vectorized[:, i, 0] + _x_normalized[:, i, 1] * x_vectorized[:, i, 1]
-        loss_i += MSE(dot_product, ones, reduction=reduction)
-        if torch.isnan(loss_i):
-            raise Exception('NaN in loss_i detected!')
+        loss_i += MSE(dot_product, ones, reduction='sum')
 
     # divide by num_joints
     loss_i /= num_joints
 
-    return loss_i
+    loss_pad = F.mse_loss(_x[:, config['input_dim']:], x[:, config['input_dim']:], reduction='sum')
+
+    # if config['model'] == 'INN':
+    #     loss_pad = F.mse_loss(_x[:, config['input_dim']:], x[:, config['input_dim']:], reduction='sum')
+    # else:
+    #     loss_pad = 0.0
+
+    return loss_i + loss_pad
 
 if __name__ == '__main__':
 

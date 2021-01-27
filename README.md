@@ -10,6 +10,7 @@
 - batch_size
 - amount of hidden layers per encoder/decoder  (>= 1)
 - amount of neurons per hidden layer (>= 100)
+- variational beta
 - (loss weightings)
 
 ### INN

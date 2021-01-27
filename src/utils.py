@@ -5,16 +5,31 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pathlib
 from scipy.spatial import ConvexHull, convex_hull_plot_2d
+import torch.nn.functional as F
 
 import robotsim
-
-def consider_singularities(_x, x):
-    angle2minuspi_pluspi = torch.atan2(torch.sin(_x - x), torch.cos(_x - x))
-    return torch.mean(angle2minuspi_pluspi**2)
 
 '''
 Various methods to make life easier
 '''
+
+def consider_singularities(_x, x, config):
+
+    x_short = x[:, :config['input_dim']]
+    _x_short = _x[:, :config['input_dim']]
+
+    angle2minuspi_pluspi = torch.atan2(torch.sin(_x_short - x_short), torch.cos(_x_short - x_short))
+
+    #  TODO: mean or sum as reduction ?
+    d_x = torch.sum(angle2minuspi_pluspi**2)
+    d_pad = F.mse_loss(_x[:, config['input_dim']:], x[:, config['input_dim']:], reduction='sum')
+
+    # if config['model'] == 'INN':
+    #     d_pad = F.mse_loss(_x[:, config['input_dim']:], x[:, config['input_dim']:], reduction='sum')
+    # else:
+    #     d_pad = 0.0
+
+    return d_x + d_pad
 
 def load_config(config_file):
     """Loads config file. 
@@ -63,15 +78,16 @@ def preprocess(x, config):
 # takes direction vectors as input and computes corresponding joint angles
 def postprocess(x, config):
 
-    _x = None
-    if config['dof'] == int(x.size()[1]):
-        _x = x
-    elif config['dof'] * 2 == int(x.size()[1]):
-        num_joints = int(x.size()[1] / 2)
-        _x = torch.zeros(size=(x.size()[0], num_joints))
+    x_short = x[:, :config['input_dim']]
+
+    if config['dof'] == config['input_dim']:
+        _x = x_short
+    elif config['dof'] * 2 == config['input_dim']:
+        num_joints = config['dof']
+        _x = torch.zeros(size=(x_short.size()[0], num_joints))
 
         for i in range(num_joints):
-            _x[:, i] = torch.atan2(input=x[:, i], other=x[:, num_joints + i])
+            _x[:, i] = torch.atan2(input=x_short[:, i], other=x_short[:, num_joints + i])
     else:
         raise Exception("Input dimension of joints invalid!")
 
