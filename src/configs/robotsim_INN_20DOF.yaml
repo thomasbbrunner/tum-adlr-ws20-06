@@ -38,9 +38,9 @@ checkpoint_epoch: 50
 # loss weights
 weight_Ly: 0.001
 weight_Lz: 1000.0
-weight_Lx: 10000.0
+weight_Lx: 1000.0
 weight_Lxy: 0.01
 
 # lr-scheduler
-milestones: [20, 170]
+milestones: [150]
 gamma: 0.1
