@@ -4,19 +4,19 @@
 
 model: 'INN'
 robot: 'Planar'
-dof: 10
-len_links: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.0]
-weight_dir : 'weights/ROBOTSIM_INN_10DOF'
+dof: 8
+len_links: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.0]
+weight_dir : 'weights/ROBOTSIM_INN_8DOF'
 checkpoint_dir: 'checkpoints/'
 
 # -------------------
 # Network parameters
 # -------------------
 
-input_dim: 10 # If vector-based representation: input_dim = 2*dof else input_dim = dof
-total_dim: 10 # for now: total_dim = input_dim
+input_dim: 8 # If vector-based representation: input_dim = 2*dof else input_dim = dof
+total_dim: 8 # for now: total_dim = input_dim
 output_dim: 2 # (x, y) coordinates of end-effector
-latent_dim: 8 # input_dim - output_dim
+latent_dim: 6 # input_dim - output_dim
 
 num_layers_subnet: 4
 num_coupling_layers: 5

@@ -4,23 +4,23 @@
 
 model: 'INN'
 robot: 'Planar'
-dof: 5
-len_links: [0.5, 0.5, 0.5, 1.0, 1.0]
-weight_dir : 'weights/ROBOTSIM_INN_5DOF'
+dof: 20
+len_links: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.0]
+weight_dir : 'weights/ROBOTSIM_INN_10DOF'
 checkpoint_dir: 'checkpoints/'
 
 # -------------------
 # Network parameters
 # -------------------
 
-input_dim: 5 # If vector-based representation: input_dim = 2*dof else input_dim = dof
-total_dim: 5 # for now: total_dim = input_dim
+input_dim: 20 # If vector-based representation: input_dim = 2*dof else input_dim = dof
+total_dim: 20 # for now: total_dim = input_dim
 output_dim: 2 # (x, y) coordinates of end-effector
-latent_dim: 3 # input_dim - output_dim
+latent_dim: 18 # input_dim - output_dim
 
-num_layers_subnet: 3
-num_coupling_layers: 5
-hidden_dim: 132 # number of neurons per fully connected layer
+num_layers_subnet: 5
+num_coupling_layers: 7
+hidden_dim: 200 # number of neurons per fully connected layer
 
 y_noise_scale : 0.001
 zeros_noise_scale : 0.005
@@ -29,11 +29,11 @@ zeros_noise_scale : 0.005
 # Training
 # -------------------
 
-num_epochs: 120
+num_epochs: 80
 batch_size: 1000
 lr_rate: 0.001
 weight_decay: 0.001
-checkpoint_epoch: 50
+checkpoint_epoch: 40
 
 # loss weights
 weight_Ly: 0.01
@@ -42,5 +42,5 @@ weight_Lx: 1000.0
 weight_Lxy: 0.1
 
 # lr-scheduler
-milestones: [100] # [200] # [70]
+milestones: [65]
 gamma: 0.1

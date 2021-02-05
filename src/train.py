@@ -25,7 +25,8 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    DATASET_SAMPLES = 1e4
+    DATASET_SAMPLES = 1e6
+    NORMAL = False
 
     ####################################################################################################################
     # LOAD CONFIG AND DATASET, BUILD MODEL
@@ -57,7 +58,7 @@ if __name__ == '__main__':
         raise ValueError(
             "Unknown robot in config: {}".format(config["robot"]))
 
-    dataset = RobotSimDataset(robot, DATASET_SAMPLES)
+    dataset = RobotSimDataset(robot, DATASET_SAMPLES, normal=NORMAL)
 
     TRAIN_SAMPLES = int(0.7 * DATASET_SAMPLES)
     TEST_SAMPLES = int(0.3 * DATASET_SAMPLES)
