@@ -13,13 +13,13 @@ checkpoint_dir: 'checkpoints/'
 # Network parameters
 # -------------------
 
-input_dim: 40 # If vector-based representation: input_dim = 2*dof else input_dim = dof
-total_dim: 40 # for now: total_dim = input_dim
+input_dim: 20 # If vector-based representation: input_dim = 2*dof else input_dim = dof
+total_dim: 20 # for now: total_dim = input_dim
 output_dim: 2 # (x, y) coordinates of end-effector
-latent_dim: 38 # input_dim - output_dim
+latent_dim: 18 # input_dim - output_dim
 
 num_layers_subnet: 5
-num_coupling_layers: 7
+num_coupling_layers: 6
 hidden_dim: 200 # number of neurons per fully connected layer
 
 y_noise_scale : 0.001
