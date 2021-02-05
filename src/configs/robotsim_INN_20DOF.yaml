@@ -18,7 +18,7 @@ total_dim: 20 # for now: total_dim = input_dim
 output_dim: 2 # (x, y) coordinates of end-effector
 latent_dim: 18 # input_dim - output_dim
 
-num_layers_subnet: 5
+num_layers_subnet: 4
 num_coupling_layers: 6
 hidden_dim: 200 # number of neurons per fully connected layer
 
