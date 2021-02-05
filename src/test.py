@@ -46,6 +46,7 @@ if __name__ == '__main__':
     N = 1
     M = 100
     percentile = 0.97
+    NORMAL = False
 
     ####################################################################################################################
     # LOAD CONFIG AND DATASET, BUILD MODEL
@@ -77,7 +78,7 @@ if __name__ == '__main__':
         raise ValueError(
             "Unknown robot in config: {}".format(config["robot"]))
 
-    dataset = RobotSimDataset(robot, DATASET_SAMPLES)
+    dataset = RobotSimDataset(robot, DATASET_SAMPLES, normal=NORMAL)
 
     TRAIN_SAMPLES = int(0.7 * DATASET_SAMPLES)
     TEST_SAMPLES = int(0.3 * DATASET_SAMPLES)

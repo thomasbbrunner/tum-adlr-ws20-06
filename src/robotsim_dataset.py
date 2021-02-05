@@ -44,7 +44,7 @@ class RobotSimDataset(Dataset):
         if normal:
             # sample from random normal distribution N(0, std) with std=0.5
             self._joint_states = self.random_gen.normal(
-                loc=0.0, scale=0.5, size=(self._num_samples, self._num_dof))
+                loc=0.0, scale=1.0, size=(self._num_samples, self._num_dof))
         else:
             self._joint_states = self.random_gen.uniform(
                 joint_ranges[:, 0], joint_ranges[:, 1],
