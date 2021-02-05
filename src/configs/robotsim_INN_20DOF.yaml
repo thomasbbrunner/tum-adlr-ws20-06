@@ -36,7 +36,7 @@ weight_decay: 0.001
 checkpoint_epoch: 50
 
 # loss weights
-weight_Ly: 0.01
+weight_Ly: 0.001
 weight_Lz: 1000.0
 weight_Lx: 10000.0
 weight_Lxy: 0.01
