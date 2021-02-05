@@ -106,7 +106,7 @@ def train_CVAE(model, config, dataloader, device):
     plt.ylabel('AVG LOSS')
     plt.plot(train_loss_avg, '-b', label='Total loss')
     # plt.legend()
-    plt.savefig('figures/total_avg_train_loss_CVAE_{}DOF.png'.format(config['dof']))
+    plt.savefig('figures/loss_history/total_avg_train_loss_CVAE_{}DOF.png'.format(config['dof']))
 
     fig = plt.figure()
     plt.title('AVG LOSS HISTORY FOR RECONSTRUCTION ERROR')
@@ -114,7 +114,7 @@ def train_CVAE(model, config, dataloader, device):
     plt.ylabel('AVG LOSS')
     plt.plot(recon_loss_avg, '-r', label='MSE loss')
     # plt.legend()
-    plt.savefig('figures/recon_avg_train_loss_CVAE_{}DOF.png'.format(config['dof']))
+    plt.savefig('figures/loss_history/recon_avg_train_loss_CVAE_{}DOF.png'.format(config['dof']))
 
     fig = plt.figure()
     plt.title('AVG LOSS HISTORY FOR KL DIVERGENCE')
@@ -122,7 +122,7 @@ def train_CVAE(model, config, dataloader, device):
     plt.ylabel('AVG LOSS')
     plt.plot(kl_loss_avg, '-k', label='KL loss')
     # plt.legend()
-    plt.savefig('figures/kl_avg_train_loss_CVAE_{}DOF.png'.format(config['dof']))
+    plt.savefig('figures/loss_history/kl_avg_train_loss_CVAE_{}DOF.png'.format(config['dof']))
 
 
 ########################################################################################################################
@@ -325,4 +325,4 @@ def train_INN(model, config, dataloader, device):
     plt.plot(train_loss_Lz_avg, '-g', label='z-MMD loss')
     plt.plot(train_loss_Lx_avg, '-k', label='x-MMD loss')
     plt.legend()
-    plt.savefig('figures/avg_train_loss_INN_{}DOF.png'.format(config['dof']))
+    plt.savefig('figures/loss_history/avg_train_loss_INN_{}DOF.png'.format(config['dof']))
