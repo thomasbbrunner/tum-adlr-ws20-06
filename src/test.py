@@ -47,7 +47,7 @@ if __name__ == '__main__':
     M = 100
     percentile = 0.97
     NORMAL = False
-    model_name= "INN"
+    # model_name = "INN"
 
     ####################################################################################################################
     # LOAD CONFIG AND DATASET, BUILD MODEL
