@@ -47,7 +47,7 @@ if __name__ == '__main__':
     M = 100
     percentile = 0.97
     NORMAL = False
-    # model_name = "INN"
+    model_name = "INN"
 
     ####################################################################################################################
     # LOAD CONFIG AND DATASET, BUILD MODEL
@@ -92,10 +92,10 @@ if __name__ == '__main__':
     model = model.to(device)
 
     # load pre-trained weights
-    model.load_weights(config['weight_dir'])
+    # model.load_weights(config['weight_dir'])
 
     # load pre-trained weights from checkpoint
-    # epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + model_name + '_' + "15DOF" + '_epoch_150')
+    epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + model_name + '_' + "25DOF" + '_epoch_400')
 
     # set to evaluation mode
     model.eval()
