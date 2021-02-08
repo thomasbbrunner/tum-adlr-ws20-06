@@ -23,18 +23,20 @@ if __name__ == '__main__':
 
     # e_posterior
     plt.figure(figsize=(8, 5))
-    plt.plot(names_INN_post, values_INN_post, color="g", label="INN")
-    plt.plot(names_CVAE_post, values_CVAE_post, color="r", label="CVAE")
+    plt.plot(names_INN_post, values_INN_post, color="#073642", label="INN", marker='*')
+    plt.plot(names_CVAE_post, values_CVAE_post, color="r", label="CVAE", marker='*')
+    plt.grid(True, color="#93a1a1", alpha=0.3)
     plt.ylabel('e_posterior')
-    plt.legend()
+    plt.legend(frameon=False)
     plt.title('Comparison between INN and cVAE')
     plt.savefig('comparison_e_posterior.jpg')
 
     # e_resim
     plt.figure(figsize=(8, 5))
-    plt.plot(names_INN_resim, values_INN_resim, color="g", label="INN")
-    plt.plot(names_CVAE_resim, values_CVAE_resim, color="r", label="CVAE")
+    plt.plot(names_INN_resim, values_INN_resim, color="#073642", label="INN", marker='*')
+    plt.plot(names_CVAE_resim, values_CVAE_resim, color="r", label="CVAE", marker='*')
+    plt.grid(True, color="#93a1a1", alpha=0.3)
     plt.ylabel('e_resim')
-    plt.legend()
+    plt.legend(frameon=False)
     plt.title('Comparison between INN and cVAE')
     plt.savefig('comparison_e_resim.jpg')
