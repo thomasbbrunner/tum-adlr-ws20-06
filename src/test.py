@@ -175,7 +175,7 @@ if __name__ == '__main__':
         # 3.
         # Calculate posterior mismatch between _p(x|y*) and p_gt(x|y*) with MMD
 
-        error = MMD(gt_joint_states, pred_joint_states)
+        error = MMD(gt_joint_states.to(device), pred_joint_states.to(device))
         mismatch_avg[-1] += error.item()
 
     # Average error over N different observations y*
