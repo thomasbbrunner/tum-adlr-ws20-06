@@ -43,7 +43,7 @@ if __name__ == '__main__':
     ####################################################################################################################
 
     DATASET_SAMPLES = 1e4
-    N = 1
+    N = 100
     M = 100
     percentile = 0.97
     NORMAL = False
@@ -92,10 +92,10 @@ if __name__ == '__main__':
     model = model.to(device)
 
     # load pre-trained weights
-    # model.load_weights(config['weight_dir'])
+    model.load_weights(config['weight_dir'])
 
     # load pre-trained weights from checkpoint
-    epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + model_name + '_' + "25DOF" + '_epoch_400')
+    # epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + model_name + '_' + "25DOF" + '_epoch_400')
 
     # set to evaluation mode
     model.eval()
@@ -128,7 +128,7 @@ if __name__ == '__main__':
 
             # plot sample configuration from estimated posterior by rejection sampling
             robotsim.heatmap(
-                joint_states, robot, highlight=22, transparency=0.2, 
+                joint_states, robot, highlight=22, transparency=0.2,
                 path='figures/rejection_sampling_{}_{}DOF.png'.format(config['model'], config['dof']))
 
             # Plot contour lines enclose the region containing 97% of the end points
@@ -161,11 +161,11 @@ if __name__ == '__main__':
         if n == 0:
             # plot sample configuration from predicted posterior
             robotsim.heatmap(
-                pred_joint_states, robot, highlight=22, transparency=0.2,
+                pred_joint_states.cpu(), robot, highlight=22, transparency=0.2,
                 path="figures/predicted_posterior_{}_{}DOF.png".format(config['model'], config['dof']))
 
             # Plot contour lines enclose the region containing 97% of the end points
-            resimulation_tcp = robot.forward(joint_states=pred_joint_states)
+            resimulation_tcp = robot.forward(joint_states=pred_joint_states.cpu())
             resimulation_xy = resimulation_tcp[:, :2]
             plot_contour_lines(
                 points=resimulation_xy, gt=N_y,
