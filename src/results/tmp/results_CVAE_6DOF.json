@@ -1,8 +1,0 @@
-"CVAE"
-"6DOF"
-"# trainable parameters: 912014"
-"N = 1"
-"M = 100"
-"Average error of posterior: 0.20973125100135803"
-"Average re-simulation error: tensor(1.4761)"
-"config: {'model': 'CVAE', 'robot': 'Planar', 'dof': 6, 'len_links': [0.5, 0.5, 0.5, 0.5, 0.5, 1.0], 'weight_dir': 'weights/ROBOTSIM_CVAE_6DOF', 'checkpoint_dir': 'checkpoints/', 'input_dim': 6, 'condition_dim': 2, 'latent_dim': 4, 'num_layers': 6, 'hidden_dim': 300, 'num_epochs': 300, 'batch_size': 1000, 'lr_rate': 0.01, 'weight_decay': 0.0001, 'variational_beta': 0.00067, 'checkpoint_epoch': 50, 'milestones': [100, 200], 'gamma': 0.1}"
