@@ -25,11 +25,11 @@ hidden_dim: 410 # number of neurons per fully connected layer
 
 num_epochs: 600
 batch_size: 1000
-lr_rate: 0.01
-weight_decay: 0.0001
-variational_beta: 0.0067 # for weighting KLdivergence / reconstruction loss
+lr_rate: 0.005
+weight_decay: 0.001
+variational_beta: 0.00067 # for weighting KLdivergence / reconstruction loss
 checkpoint_epoch: 150
 
 # lr-scheduler
-milestones: [40, 200, 300, 350, 450]
+milestones: [15, 100, 200, 350, 450]
 gamma: 0.5
