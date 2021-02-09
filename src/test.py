@@ -43,7 +43,7 @@ if __name__ == '__main__':
     ####################################################################################################################
 
     DATASET_SAMPLES = 1e4
-    N = 100
+    N = 1
     M = 100
     percentile = 0.97
     NORMAL = False
@@ -205,7 +205,7 @@ if __name__ == '__main__':
         _x = postprocess(_x, config=config)
 
         # perform forward kinemtatics on _x
-        y_resim = torch.Tensor(robot.forward(joint_states=_x.detach()))
+        y_resim = torch.Tensor(robot.forward(joint_states=_x.cpu().detach()))
         y_resim = y_resim.to(device)
 
         # Exclude orientation
