@@ -34,7 +34,7 @@ num_epochs: 600
 batch_size: 1000
 lr_rate: 0.003
 weight_decay: 0.001
-checkpoint_epoch: 100
+checkpoint_epoch: 150
 
 # loss weights
 weight_Ly: 0.01

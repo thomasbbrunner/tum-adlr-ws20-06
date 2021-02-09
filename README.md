@@ -2,6 +2,8 @@
 
 - run build.sh to install requirements
 
+- Results of both models with different DoFs are stored in src/figures/evaluation/results/
+
 ## Hyper-parameters to tune
 
 ### cVAE

@@ -26,7 +26,7 @@ if __name__ == '__main__':
     ####################################################################################################################
 
     DATASET_SAMPLES = 1e4
-
+    STD = 0.3
     NORMAL = True
 
     ####################################################################################################################
@@ -59,7 +59,7 @@ if __name__ == '__main__':
         raise ValueError(
             "Unknown robot in config: {}".format(config["robot"]))
 
-    dataset = RobotSimDataset(robot, DATASET_SAMPLES, normal=NORMAL)
+    dataset = RobotSimDataset(robot, DATASET_SAMPLES, normal=NORMAL, stddev=STD)
 
     TRAIN_SAMPLES = int(0.7 * DATASET_SAMPLES)
     TEST_SAMPLES = int(0.3 * DATASET_SAMPLES)

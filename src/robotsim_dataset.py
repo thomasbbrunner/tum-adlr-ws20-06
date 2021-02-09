@@ -18,7 +18,7 @@ class RobotSimDataset(Dataset):
     # according to new numpy documentation
     random_gen = np.random.default_rng(seed=42)
 
-    def __init__(self, robot, num_samples, normal=True):
+    def __init__(self, robot, num_samples, normal=True, stddev=0.5):
         """Dataset for robot simulation.
 
         Dataset is generated on demand. 
@@ -44,7 +44,7 @@ class RobotSimDataset(Dataset):
         if normal:
             # sample from random normal distribution N(0, std) with std=0.5
             self._joint_states = self.random_gen.normal(
-                loc=0.0, scale=0.5, size=(self._num_samples, self._num_dof))
+                loc=0.0, scale=stddev, size=(self._num_samples, self._num_dof))
         else:
             self._joint_states = self.random_gen.uniform(
                 joint_ranges[:, 0], joint_ranges[:, 1],

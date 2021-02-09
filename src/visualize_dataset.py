@@ -17,17 +17,26 @@ if __name__ == '__main__':
 
     DATASET_SAMPLES = 1e4
     NORMAL = True
-    DOF = 20
-    LINKS = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.0]
-    name = "20dof"
+    STD = [0.3] # [0.1, 0.25, 0.5, 0.8, 1.5]
+    DOF = [6, 10, 15, 25]
 
     ####################################################################################################################
 
-    robot = robotsim.Planar(DOF, LINKS)
-    dataset = RobotSimDataset(robot, DATASET_SAMPLES, normal=NORMAL)
+    for dof in DOF:
+        print("dof =", dof)
+        links = [0.5 for i in range(dof-1)]
+        links.append(1.0)
+        robot = robotsim.Planar(dof, links)
+        for std in STD:
+            print("std =", std)
+            dataset = RobotSimDataset(robot, DATASET_SAMPLES, normal=NORMAL, stddev=std)
+            dataset.plot_configurations(
+                path="figures/evaluation/dataset/normal_std_" + str(std) + "_" + str(dof) + "DoF.jpg")
+            dataset = RobotSimDataset(robot, DATASET_SAMPLES, normal=NORMAL, stddev=std)
+            dataset.histogram(
+                path="figures/evaluation/dataset/normal_std_" + str(std) + "_" + str(dof) + "DoF_histogram.jpg")
 
-    dataset.plot_configurations(
-        path="./figures/evaluation/dataset/_{}_configs".format(name))
-    dataset = RobotSimDataset(robot, DATASET_SAMPLES)
-    dataset.histogram(
-        path="./figures/evaluation/dataset/_{}_histogram".format(name))
+
+
+
+
