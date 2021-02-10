@@ -92,10 +92,12 @@ if __name__ == '__main__':
     model = model.to(device)
 
     # load pre-trained weights
-    model.load_weights(config['weight_dir'])
+    model.load_weights('{}weights_{}_{}DOF'.format(config['results_dir'], config['model'], config['dof']))
 
     # load pre-trained weights from checkpoint
-    # epoch, loss = model.load_checkpoint(PATH=config['checkpoint_dir'] + model_name + '_' + "25DOF" + '_epoch_400')
+    epoch, loss = model.load_checkpoint(
+        PATH='{}checkpoint_{}_{}DOF_epoch_{}'
+        .format(config['results_dir'], config['model'], config['dof'], 400))
 
     # set to evaluation mode
     model.eval()

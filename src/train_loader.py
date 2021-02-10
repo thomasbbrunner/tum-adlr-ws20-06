@@ -1,9 +1,11 @@
+
+from ray import tune
 import torch
 
 from robotsim_dataset import RobotSimDataset
 import robotsim
 
-import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 from utils import *
 from losses import *
 
@@ -15,7 +17,7 @@ Training pipelines for INN and CVAE
 # TRAIN METHOD FOR CVAE
 ########################################################################################################################
 
-def train_CVAE(model, config, dataloader, device):
+def train_CVAE(model, config, dataloader, device, hp_tuning=False):
 
     # set to training mode
     model.train()
@@ -88,7 +90,7 @@ def train_CVAE(model, config, dataloader, device):
         if epoch > 1 and epoch % config['checkpoint_epoch'] == 0:
             model.save_checkpoint(
                 epoch=epoch, optimizer=optimizer, loss=loss,
-                PATH='{}CVAE_{}DOF_epoch_{}'.format(config['checkpoint_dir'], config['dof'], epoch))
+                PATH='{}checkpoint_CVAE_{}DOF_epoch_{}'.format(config['results_dir'], config['dof'], epoch))
             print('CHECKPOINT SAVED.')
 
         train_loss_avg[-1] /= num_batches
@@ -99,37 +101,42 @@ def train_CVAE(model, config, dataloader, device):
               % (epoch + 1, config['num_epochs'], recon_loss_avg[-1], kl_loss_avg[-1],
                  train_loss_avg[-1]))
 
+        if hp_tuning:
+            tune.report(epoch=epoch, loss=train_loss_avg[-1])
 
-    fig = plt.figure()
-    plt.title('TOTAL AVG LOSS HISTORY')
-    plt.xlabel('EPOCHS')
-    plt.ylabel('AVG LOSS')
-    plt.plot(train_loss_avg, '-b', label='Total loss')
-    # plt.legend()
-    plt.savefig('figures/total_avg_train_loss_CVAE_{}DOF.png'.format(config['dof']))
+    fig = Figure()
+    ax = fig.add_subplot()
+    ax.set_title('TOTAL AVG LOSS HISTORY')
+    ax.set_xlabel('EPOCHS')
+    ax.set_ylabel('AVG LOSS')
+    ax.plot(train_loss_avg, '-b', label='Total loss')
+    # ax.legend()
+    fig.savefig('{}total_avg_train_loss_CVAE_{}DOF.png'.format(config['results_dir'], config['dof']))
 
-    fig = plt.figure()
-    plt.title('AVG LOSS HISTORY FOR RECONSTRUCTION ERROR')
-    plt.xlabel('EPOCHS')
-    plt.ylabel('AVG LOSS')
-    plt.plot(recon_loss_avg, '-r', label='MSE loss')
-    # plt.legend()
-    plt.savefig('figures/recon_avg_train_loss_CVAE_{}DOF.png'.format(config['dof']))
+    fig = Figure()
+    ax = fig.add_subplot()
+    ax.set_title('AVG LOSS HISTORY FOR RECONSTRUCTION ERROR')
+    ax.set_xlabel('EPOCHS')
+    ax.set_ylabel('AVG LOSS')
+    ax.plot(recon_loss_avg, '-r', label='MSE loss')
+    # ax.legend()
+    fig.savefig('{}recon_avg_train_loss_CVAE_{}DOF.png'.format(config['results_dir'], config['dof']))
 
-    fig = plt.figure()
-    plt.title('AVG LOSS HISTORY FOR KL DIVERGENCE')
-    plt.xlabel('EPOCHS')
-    plt.ylabel('AVG LOSS')
-    plt.plot(kl_loss_avg, '-k', label='KL loss')
-    # plt.legend()
-    plt.savefig('figures/kl_avg_train_loss_CVAE_{}DOF.png'.format(config['dof']))
+    fig = Figure()
+    ax = fig.add_subplot()
+    ax.title('AVG LOSS HISTORY FOR KL DIVERGENCE')
+    ax.set_xlabel('EPOCHS')
+    ax.set_ylabel('AVG LOSS')
+    ax.plot(kl_loss_avg, '-k', label='KL loss')
+    # ax.legend()
+    fig.savefig('{}kl_avg_train_loss_CVAE_{}DOF.png'.format(config['results_dir'], config['dof']))
 
 
 ########################################################################################################################
 # TRAIN METHOD FOR INN
 ########################################################################################################################
 
-def train_INN(model, config, dataloader, device):
+def train_INN(model, config, dataloader, device, hp_tuning=False):
 
     # for debugging
     torch.autograd.set_detect_anomaly(True)
@@ -302,7 +309,7 @@ def train_INN(model, config, dataloader, device):
         if epoch > 1 and epoch % config['checkpoint_epoch'] == 0:
             model.save_checkpoint(
                 epoch=epoch, optimizer=optimizer, loss=loss,
-                PATH='{}INN_{}DOF_epoch_{}'.format(config['checkpoint_dir'], config['dof'], epoch))
+                PATH='{}checkpoint_INN_{}DOF_epoch_{}'.format(config['results_dir'], config['dof'], epoch))
             print('CHECKPOINT SAVED.')
 
         train_loss_avg[-1] /= num_batches
@@ -316,13 +323,18 @@ def train_INN(model, config, dataloader, device):
               % (epoch + 1, config['num_epochs'], train_loss_Ly_avg[-1],
                                           train_loss_Lz_avg[-1], train_loss_Lx_avg[-1], train_loss_Lxy_avg[-1], train_loss_avg[-1]))
 
-    plt.title('AVG LOSS HISTORY')
-    plt.xlabel('EPOCHS')
-    plt.ylabel('AVG LOSS')
-    plt.plot(train_loss_avg, '-b', label='Total loss')
-    plt.plot(train_loss_Ly_avg, '-r', label='y-MSE loss')
-    plt.plot(train_loss_Lxy_avg, '-m', label='x-MSE loss')
-    plt.plot(train_loss_Lz_avg, '-g', label='z-MMD loss')
-    plt.plot(train_loss_Lx_avg, '-k', label='x-MMD loss')
-    plt.legend()
-    plt.savefig('figures/avg_train_loss_INN_{}DOF.png'.format(config['dof']))
+        if hp_tuning:
+            tune.report(epoch=epoch, loss=train_loss_avg[-1])
+
+    fig = Figure()
+    ax = fig.add_subplot()
+    ax.set_title('AVG LOSS HISTORY')
+    ax.set_xlabel('EPOCHS')
+    ax.set_ylabel('AVG LOSS')
+    ax.plot(train_loss_avg, '-b', label='Total loss')
+    ax.plot(train_loss_Ly_avg, '-r', label='y-MSE loss')
+    ax.plot(train_loss_Lxy_avg, '-m', label='x-MSE loss')
+    ax.plot(train_loss_Lz_avg, '-g', label='z-MMD loss')
+    ax.plot(train_loss_Lx_avg, '-k', label='x-MMD loss')
+    ax.legend()
+    fig.savefig('{}avg_train_loss_INN_{}DOF.png'.format(config['results_dir'], config['dof']))

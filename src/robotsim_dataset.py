@@ -42,7 +42,7 @@ class RobotSimDataset(Dataset):
         joint_ranges = self._robot.get_joint_ranges()
 
         if normal:
-            # sample from random normal distribution N(0, std) with std=0.5
+            # sample from random normal distribution N(0, std)
             self._joint_states = self.random_gen.normal(
                 loc=0.0, scale=stddev, size=(self._num_samples, self._num_dof))
         else:

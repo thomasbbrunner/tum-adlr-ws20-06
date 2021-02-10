@@ -1,11 +1,16 @@
+
+import argparse
+import pathlib
 import torch
 from torch.utils.data import DataLoader
-import argparse
 
-from train_loader import *
-from models import *
+from models import CVAE, INN
+import robotsim
+from robotsim_dataset import RobotSimDataset
+from train_loader import train_INN, train_CVAE
+from utils import load_config
 
-if __name__ == '__main__':
+def train(config):
 
     """Training of the respective model:
     _________________________________________________________________________________________
@@ -30,18 +35,8 @@ if __name__ == '__main__':
     NORMAL = True
 
     ####################################################################################################################
-    # LOAD CONFIG AND DATASET, BUILD MODEL
+    # BUILD MODEL, CREATE DATASET
     ####################################################################################################################
-
-    parser = argparse.ArgumentParser(
-        description="Training of neural networks for inverse kinematics.")
-    parser.add_argument(
-        "config_file", 
-        help="File containing configurations. "
-        "Can be a name of a file in the configs directory "
-        "or the path to a config file.")
-    args = parser.parse_args()
-    config = load_config(args.config_file)
 
     if config["model"] == "CVAE":
         model = CVAE(config)
@@ -58,6 +53,13 @@ if __name__ == '__main__':
     else:
         raise ValueError(
             "Unknown robot in config: {}".format(config["robot"]))
+    
+    if "hp_tuning" in config:
+        hp_tuning = True
+        # make sure results directory exists
+        pathlib.Path(config["results_dir"]).mkdir()
+    else:
+        hp_tuning = False
 
     dataset = RobotSimDataset(robot, DATASET_SAMPLES, normal=NORMAL, stddev=STD)
 
@@ -77,10 +79,24 @@ if __name__ == '__main__':
 
     print('Begin training ...')
     if config["model"] == "CVAE":
-        train_CVAE(model=model, config=config, dataloader=train_dataloader, device=device)
+        train_CVAE(model=model, config=config, dataloader=train_dataloader, device=device, hp_tuning=hp_tuning)
     elif config["model"] == "INN":
-        train_INN(model=model, config=config, dataloader=train_dataloader, device=device)
+        train_INN(model=model, config=config, dataloader=train_dataloader, device=device, hp_tuning=hp_tuning)
     else:
         raise Exception('Model not supported')
 
-    model.save_weights(config['weight_dir'])
+    model.save_weights('{}weights_{}_{}DOF'.format(config['results_dir'], config['model'], config['dof']))
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(
+        description="Training of neural networks for inverse kinematics.")
+    parser.add_argument(
+        "config_file", 
+        help="File containing configurations. "
+        "Can be a name of a file in the configs directory "
+        "or the path to a config file.")
+    args = parser.parse_args()
+    config = load_config(args.config_file)
+
+    train(config)
