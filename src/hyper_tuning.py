@@ -50,13 +50,16 @@ if __name__ == '__main__':
         raise Exception("Model not supported")
 
     # enable hyperparameter tuning
-    config["hp_tuning"] = True
+    config["hyperparam_tuning"] = True
 
     analysis = tune.run(
         train,
-        config=config,
-        num_samples=2,
-        resources_per_trial={"gpu": 0, "cpu": 2},
         metric="loss",
         mode="min",
+        config=config,
+        num_samples=100,
+        resources_per_trial={"gpu": 0, "cpu": 2},
     )
+
+    print("Best configuration:")
+    print(analysis.best_config)

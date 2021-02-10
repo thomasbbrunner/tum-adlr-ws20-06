@@ -54,12 +54,13 @@ def train(config):
         raise ValueError(
             "Unknown robot in config: {}".format(config["robot"]))
     
-    if "hp_tuning" in config:
-        hp_tuning = True
-        # make sure results directory exists
-        pathlib.Path(config["results_dir"]).mkdir()
+    if "hyperparam_tuning" in config:
+        hyperparam_tuning = True
     else:
-        hp_tuning = False
+        hyperparam_tuning = False
+
+    # create results directory if it does not exist
+    pathlib.Path(config["results_dir"]).mkdir()
 
     dataset = RobotSimDataset(robot, DATASET_SAMPLES, normal=NORMAL, stddev=STD)
 
@@ -79,9 +80,9 @@ def train(config):
 
     print('Begin training ...')
     if config["model"] == "CVAE":
-        train_CVAE(model=model, config=config, dataloader=train_dataloader, device=device, hp_tuning=hp_tuning)
+        train_CVAE(model=model, config=config, dataloader=train_dataloader, device=device, hyperparam_tuning=hyperparam_tuning)
     elif config["model"] == "INN":
-        train_INN(model=model, config=config, dataloader=train_dataloader, device=device, hp_tuning=hp_tuning)
+        train_INN(model=model, config=config, dataloader=train_dataloader, device=device, hyperparam_tuning=hyperparam_tuning)
     else:
         raise Exception('Model not supported')
 

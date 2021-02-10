@@ -17,7 +17,7 @@ Training pipelines for INN and CVAE
 # TRAIN METHOD FOR CVAE
 ########################################################################################################################
 
-def train_CVAE(model, config, dataloader, device, hp_tuning=False):
+def train_CVAE(model, config, dataloader, device, hyperparam_tuning=False):
 
     # set to training mode
     model.train()
@@ -101,8 +101,8 @@ def train_CVAE(model, config, dataloader, device, hp_tuning=False):
               % (epoch + 1, config['num_epochs'], recon_loss_avg[-1], kl_loss_avg[-1],
                  train_loss_avg[-1]))
 
-        if hp_tuning:
-            tune.report(epoch=epoch, loss=train_loss_avg[-1])
+        if hyperparam_tuning:
+            tune.report(loss=train_loss_avg[-1].item(), epoch=epoch)
 
     fig = Figure()
     ax = fig.add_subplot()
@@ -124,7 +124,7 @@ def train_CVAE(model, config, dataloader, device, hp_tuning=False):
 
     fig = Figure()
     ax = fig.add_subplot()
-    ax.title('AVG LOSS HISTORY FOR KL DIVERGENCE')
+    ax.set_title('AVG LOSS HISTORY FOR KL DIVERGENCE')
     ax.set_xlabel('EPOCHS')
     ax.set_ylabel('AVG LOSS')
     ax.plot(kl_loss_avg, '-k', label='KL loss')
@@ -136,7 +136,7 @@ def train_CVAE(model, config, dataloader, device, hp_tuning=False):
 # TRAIN METHOD FOR INN
 ########################################################################################################################
 
-def train_INN(model, config, dataloader, device, hp_tuning=False):
+def train_INN(model, config, dataloader, device, hyperparam_tuning=False):
 
     # for debugging
     torch.autograd.set_detect_anomaly(True)
@@ -323,8 +323,8 @@ def train_INN(model, config, dataloader, device, hp_tuning=False):
               % (epoch + 1, config['num_epochs'], train_loss_Ly_avg[-1],
                                           train_loss_Lz_avg[-1], train_loss_Lx_avg[-1], train_loss_Lxy_avg[-1], train_loss_avg[-1]))
 
-        if hp_tuning:
-            tune.report(epoch=epoch, loss=train_loss_avg[-1])
+        if hyperparam_tuning:
+            tune.report(loss=train_loss_avg[-1].item(), epoch=epoch)
 
     fig = Figure()
     ax = fig.add_subplot()
