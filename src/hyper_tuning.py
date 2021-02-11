@@ -8,16 +8,16 @@ from utils import load_config
 
 
 def stopper(trial_id, result):
-    """Stops trial prematurely if loss explodes.
+    """Stops trial prematurely.
     """
 
     # don't stop unless training has run for a bit
     if result["epoch"] < 10:
         return False
 
+    # stop if loss is unstable
     if math.isnan(result["loss"]):
         return True
-
     if result["loss"] > 10000:
         return True
 
