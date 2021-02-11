@@ -11,6 +11,10 @@ def stopper(trial_id, result):
     """Stops trial prematurely if loss explodes.
     """
 
+    # don't stop unless training has run for a bit
+    if result["epoch"] < 10:
+        return False
+
     if math.isnan(result["loss"]):
         return True
 
