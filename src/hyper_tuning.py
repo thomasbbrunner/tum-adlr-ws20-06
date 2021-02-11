@@ -1,9 +1,24 @@
 
 import argparse
+import math
 from ray import tune
 
 from train import train
 from utils import load_config
+
+
+def stopper(trial_id, result):
+    """Stops trial prematurely if loss explodes.
+    """
+
+    if math.isnan(result["loss"]):
+        return True
+
+    if result["loss"] > 10000:
+        return True
+
+    return False
+
 
 if __name__ == '__main__':
     """Performs hyperparameter tuning for INN and CVAE
@@ -58,7 +73,12 @@ if __name__ == '__main__':
         mode="min",
         config=config,
         num_samples=100,
-        resources_per_trial={"gpu": 0, "cpu": 2},
+        # resources can also be fractional values
+        # this will determine how many workers
+        # are going to run in parallel
+        resources_per_trial={"gpu": 0.25, "cpu": 1},
+        # stop trial if loss explodes
+        stop=stopper
     )
 
     print("Best configuration:")
