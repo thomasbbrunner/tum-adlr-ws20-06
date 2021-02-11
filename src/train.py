@@ -60,7 +60,7 @@ def train(config):
         hyperparam_tuning = False
 
     # create results directory if it does not exist
-    pathlib.Path(config["results_dir"]).mkdir()
+    pathlib.Path(config["results_dir"]).mkdir(exist_ok=True)
 
     dataset = RobotSimDataset(robot, DATASET_SAMPLES, normal=NORMAL, stddev=STD)
 

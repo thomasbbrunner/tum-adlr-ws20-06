@@ -78,9 +78,9 @@ def train_CVAE(model, config, dataloader, device, hyperparam_tuning=False):
             # one step of the optimizer
             optimizer.step()
 
-            train_loss_avg[-1] += loss.detach()
-            recon_loss_avg[-1] += recon_loss.detach()
-            kl_loss_avg[-1] += kldivergence.detach()
+            train_loss_avg[-1] += loss.item()
+            recon_loss_avg[-1] += recon_loss.item()
+            kl_loss_avg[-1] += kldivergence.item()
             num_batches += 1
 
         # perform step of lr-scheduler
@@ -102,7 +102,7 @@ def train_CVAE(model, config, dataloader, device, hyperparam_tuning=False):
                  train_loss_avg[-1]))
 
         if hyperparam_tuning:
-            tune.report(loss=train_loss_avg[-1].item(), epoch=epoch)
+            tune.report(loss=train_loss_avg[-1], epoch=epoch)
 
     fig = Figure()
     ax = fig.add_subplot()
@@ -280,21 +280,21 @@ def train_INN(model, config, dataloader, device, hyperparam_tuning=False):
             # one step of the optimizer
             optimizer.step()
 
-            train_loss_avg[-1] += loss
+            train_loss_avg[-1] += loss.item()
 
-            train_loss_Ly_avg[-1] += L_y.data.detach()
+            train_loss_Ly_avg[-1] += L_y.data.item()
             # if torch.isnan(train_loss_Ly_avg[-1]):
             #     raise Exception('NaN in train_loss_Ly_avg[-1] loss detected!')
 
-            train_loss_Lz_avg[-1] += L_z.data.detach()
+            train_loss_Lz_avg[-1] += L_z.data.item()
             # if torch.isnan(train_loss_Lz_avg[-1]):
             #     raise Exception('NaN in train_loss_Lz_avg[-1] loss detected!')
 
-            train_loss_Lx_avg[-1] += L_x.data.detach()
+            train_loss_Lx_avg[-1] += L_x.data.item()
             # if torch.isnan(train_loss_Lx_avg[-1]):
             #     raise Exception('NaN in Lx loss detected!')
 
-            train_loss_Lxy_avg[-1] += L_xy.data.detach()
+            train_loss_Lxy_avg[-1] += L_xy.data.item()
             # if torch.isnan(train_loss_Lxy_avg[-1]):
             #     raise Exception('NaN in Lxy loss detected!')
 
@@ -324,7 +324,7 @@ def train_INN(model, config, dataloader, device, hyperparam_tuning=False):
                                           train_loss_Lz_avg[-1], train_loss_Lx_avg[-1], train_loss_Lxy_avg[-1], train_loss_avg[-1]))
 
         if hyperparam_tuning:
-            tune.report(loss=train_loss_avg[-1].item(), epoch=epoch)
+            tune.report(loss=train_loss_avg[-1], epoch=epoch)
 
     fig = Figure()
     ax = fig.add_subplot()
