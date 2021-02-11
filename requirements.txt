@@ -3,7 +3,7 @@ torchvision
 numpy
 matplotlib
 # GUI toolkit, so matplotlib can display graphics
-PyQt5==5.9.2
+PyQt5
 pyyaml
 scipy
 # for hyper-parameter tuning
