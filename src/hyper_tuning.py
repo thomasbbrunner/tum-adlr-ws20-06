@@ -29,10 +29,6 @@ if __name__ == '__main__':
 
     Source: https://docs.ray.io/en/master/tune/
 
-    TODO:
-    allow use of cpu and gpu
-    add stop metrics
-    add metric
     """
 
     parser = argparse.ArgumentParser(
@@ -70,6 +66,10 @@ if __name__ == '__main__':
 
     # enable hyperparameter tuning
     config["hyperparam_tuning"] = True
+
+    # disable checkpoints
+    # prevents using too much storage space
+    config["checkpoint_epoch"] = 0
 
     analysis = tune.run(
         train,
