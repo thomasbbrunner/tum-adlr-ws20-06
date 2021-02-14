@@ -87,7 +87,10 @@ def train_CVAE(model, config, dataloader, device, hyperparam_tuning=False):
         scheduler.step()
 
         # save checkpoint
-        if epoch > 1 and epoch % config['checkpoint_epoch'] == 0:
+        # if checkpoint_epoch is set to 0, 
+        # then don't create any checkpoints
+        if (config['checkpoint_epoch'] != 0
+                and epoch > 0 and not epoch % config['checkpoint_epoch']):
             model.save_checkpoint(
                 epoch=epoch, optimizer=optimizer, loss=loss,
                 PATH='{}checkpoint_CVAE_{}DOF_epoch_{}'.format(config['results_dir'], config['dof'], epoch))
@@ -306,7 +309,10 @@ def train_INN(model, config, dataloader, device, hyperparam_tuning=False):
         scheduler.step()
 
         # save checkpoint
-        if epoch > 1 and epoch % config['checkpoint_epoch'] == 0:
+        # if checkpoint_epoch is set to 0, 
+        # then don't create any checkpoints
+        if (config['checkpoint_epoch'] != 0
+                and epoch > 0 and not epoch % config['checkpoint_epoch']):
             model.save_checkpoint(
                 epoch=epoch, optimizer=optimizer, loss=loss,
                 PATH='{}checkpoint_INN_{}DOF_epoch_{}'.format(config['results_dir'], config['dof'], epoch))
