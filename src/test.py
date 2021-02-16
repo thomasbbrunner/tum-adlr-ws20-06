@@ -42,12 +42,12 @@ if __name__ == '__main__':
     # TO MODIFY
     ####################################################################################################################
 
-    DATASET_SAMPLES = 1e4
+    DATASET_SAMPLES = 1e6
     N = 100
     M = 100
     percentile = 0.97
-    NORMAL = False
-    model_name = "INN"
+    STD=0.2
+    NORMAL = True
 
     ####################################################################################################################
     # LOAD CONFIG AND DATASET, BUILD MODEL
@@ -79,7 +79,7 @@ if __name__ == '__main__':
         raise ValueError(
             "Unknown robot in config: {}".format(config["robot"]))
 
-    dataset = RobotSimDataset(robot, DATASET_SAMPLES, normal=NORMAL)
+    dataset = RobotSimDataset(robot, DATASET_SAMPLES, normal=NORMAL, stddev=STD)
 
     TRAIN_SAMPLES = int(0.7 * DATASET_SAMPLES)
     TEST_SAMPLES = int(0.3 * DATASET_SAMPLES)
@@ -92,12 +92,14 @@ if __name__ == '__main__':
     model = model.to(device)
 
     # load pre-trained weights
-    model.load_weights('{}weights_{}_{}DOF'.format(config['results_dir'], config['model'], config['dof']))
+    # model.load_weights('{}weights_{}_{}DOF'.format(config['results_dir'], config['model'], config['dof']))
+    # model.load_weights('./weights/weights_INN_6DOF')
+    model.load_weights('./weights/results/ROBOTSIM_INN_6DOF')
 
     # load pre-trained weights from checkpoint
-    epoch, loss = model.load_checkpoint(
-        PATH='{}checkpoint_{}_{}DOF_epoch_{}'
-        .format(config['results_dir'], config['model'], config['dof'], 400))
+    # epoch, loss = model.load_checkpoint(
+    #     PATH='{}checkpoint_{}_{}DOF_epoch_{}'
+    #     .format(config['results_dir'], config['model'], config['dof'], 400))
 
     # set to evaluation mode
     model.eval()
@@ -131,14 +133,16 @@ if __name__ == '__main__':
             # plot sample configuration from estimated posterior by rejection sampling
             robotsim.heatmap(
                 joint_states, robot, highlight=22, transparency=0.2,
-                path='figures/rejection_sampling_{}_{}DOF.png'.format(config['model'], config['dof']))
+                path='{}rejection_sampling_{}_{}DOF.png'.format(
+                    config['results_dir'], config['model'], config['dof']))
 
             # Plot contour lines enclose the region containing 97% of the end points
             resimulation_tcp = robot.forward(joint_states=joint_states)
             resimulation_xy = resimulation_tcp[:, :2]
             plot_contour_lines(
                 points=resimulation_xy, gt=N_y,
-                PATH='figures/q_quantile_rejection_sampling_{}_{}DOF.png'.format(config['model'], config['dof']),
+                PATH='{}q_quantile_rejection_sampling_{}_{}DOF.png'.format(
+                    config['results_dir'], config['model'], config['dof']),
                 percentile=percentile)
 
         gt_joint_states = torch.Tensor(joint_states)
@@ -164,14 +168,16 @@ if __name__ == '__main__':
             # plot sample configuration from predicted posterior
             robotsim.heatmap(
                 pred_joint_states.cpu(), robot, highlight=22, transparency=0.2,
-                path="figures/predicted_posterior_{}_{}DOF.png".format(config['model'], config['dof']))
+                path="{}predicted_posterior_{}_{}DOF.png".format(
+                    config['results_dir'], config['model'], config['dof']))
 
             # Plot contour lines enclose the region containing 97% of the end points
             resimulation_tcp = robot.forward(joint_states=pred_joint_states.cpu())
             resimulation_xy = resimulation_tcp[:, :2]
             plot_contour_lines(
                 points=resimulation_xy, gt=N_y,
-                PATH="figures/q_quantile_prediction_{}_{}DOF.png".format(config['model'], config['dof']),
+                PATH="{}q_quantile_prediction_{}_{}DOF.png".format(
+                    config['results_dir'], config['model'], config['dof']),
                 percentile=percentile)
 
         # 3.
@@ -233,7 +239,7 @@ if __name__ == '__main__':
     list_results.append('Average re-simulation error: ' + str(error_resim_avg[-1]))
     list_results.append('config: ' + str(config))
 
-    with open('results/results_{}_{}DOF.json'.format(config['model'], config['dof']), 'w') as fout:
+    with open('{}results_{}_{}DOF.json'.format(config['results_dir'], config['model'], config['dof']), 'w') as fout:
         for item in list_results:
             json.dump(item, fout)
             fout.write('\n')
