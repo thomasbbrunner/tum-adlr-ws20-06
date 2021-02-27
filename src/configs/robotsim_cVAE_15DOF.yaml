@@ -22,7 +22,7 @@ hidden_dim: 400 # number of neurons per fully connected layer
 # Training
 # -------------------
 
-num_epochs: 200
+num_epochs: 100
 batch_size: 1000
 lr_rate: 0.01
 weight_decay: 0.0001

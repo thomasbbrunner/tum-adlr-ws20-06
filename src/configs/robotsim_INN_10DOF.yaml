@@ -28,7 +28,7 @@ zeros_noise_scale : 0.005
 # Training
 # -------------------
 
-num_epochs: 200
+num_epochs: 100
 batch_size: 1000
 lr_rate: 0.001
 weight_decay: 0.001
