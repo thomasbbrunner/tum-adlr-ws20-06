@@ -43,10 +43,10 @@ if __name__ == '__main__':
     ####################################################################################################################
 
     DATASET_SAMPLES = 1e6
-    N = 100
+    N = 1
     M = 100
     percentile = 0.97
-    STD=0.2
+    STD = 0.2
     NORMAL = True
 
     ####################################################################################################################
@@ -92,9 +92,9 @@ if __name__ == '__main__':
     model = model.to(device)
 
     # load pre-trained weights
-    # model.load_weights('{}weights_{}_{}DOF'.format(config['results_dir'], config['model'], config['dof']))
+    model.load_weights('{}weights_{}_{}DOF'.format(config['results_dir'], config['model'], config['dof']))
     # model.load_weights('./weights/weights_INN_6DOF')
-    model.load_weights('./weights/results/ROBOTSIM_INN_6DOF')
+    # model.load_weights('./weights/results/ROBOTSIM_INN_6DOF')
 
     # load pre-trained weights from checkpoint
     # epoch, loss = model.load_checkpoint(

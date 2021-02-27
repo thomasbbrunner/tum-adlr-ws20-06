@@ -85,7 +85,7 @@ if __name__ == '__main__':
         metric="loss",
         mode="min",
         config=config,
-        num_samples=100,
+        num_samples=15,
         # resources can also be fractional values
         # this will determine how many workers
         # are going to run in parallel
