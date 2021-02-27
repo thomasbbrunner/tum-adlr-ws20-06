@@ -49,6 +49,9 @@ if __name__ == '__main__':
     # dummy values for now
     e_posterior_CVAE = [0.001, 0.69, 0.54, 0.8]
 
+    # annotations
+    annotations = ['4DoF', '6DoF', '10DoF', '15DoF']
+
     ####################################################################################################################
 
     # e_posterior
@@ -76,6 +79,12 @@ if __name__ == '__main__':
     plt.figure(figsize=(8, 5), dpi=80)
     plt.plot(params_INN, e_posterior_INN, color="#073642", label="INN", marker='o')
     plt.plot(params_CVAE, e_posterior_CVAE, color="#bc5090", label="CVAE", marker='o')
+
+    for i, txt in enumerate(annotations):
+        plt.annotate(txt, (params_INN[i], e_posterior_INN[i]))
+        plt.annotate(txt, (params_CVAE[i], e_posterior_CVAE[i]))
+
+
     plt.grid(True, color="#93a1a1", alpha=0.3)
     plt.xlabel('number of parameters')
     plt.ylabel('error of posterior')
