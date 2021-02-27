@@ -22,13 +22,13 @@ hidden_dim: 300 # number of neurons per fully connected layer
 # Training
 # -------------------
 
-num_epochs: 300
+num_epochs: 200
 batch_size: 1000
 lr_rate: 0.01
 weight_decay: 0.0001
 variational_beta: 0.00067 # for weighting KLdivergence / reconstruction loss
-checkpoint_epoch: 50
+checkpoint_epoch: 0
 
 # lr-scheduler
-milestones: [100, 200] # [50, 150]
-gamma: 0.1
+# milestones: [100, 200] # [50, 150]
+# gamma: 0.1

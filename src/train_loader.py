@@ -33,8 +33,10 @@ def train_CVAE(model, config, dataloader, device, hyperparam_tuning=False):
                                  weight_decay=config['weight_decay'])
 
     # define learning rate scheduler
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=config['milestones'],
-                                                     gamma=config['gamma'])
+    # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=config['milestones'],
+    #                                                  gamma=config['gamma'])
+
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, mode='min', factor=0.05, patience=20)
 
     for epoch in range(config['num_epochs']):
 
@@ -84,7 +86,7 @@ def train_CVAE(model, config, dataloader, device, hyperparam_tuning=False):
             num_batches += 1
 
         # perform step of lr-scheduler
-        scheduler.step()
+        scheduler.step(train_loss_avg[-1])
 
         # save checkpoint
         # if checkpoint_epoch is set to 0, 
@@ -165,8 +167,10 @@ def train_INN(model, config, dataloader, device, hyperparam_tuning=False):
     optimizer = torch.optim.Adam(params=trainable_parameters, lr=config['lr_rate'], eps=1e-6,
                                  weight_decay=config['weight_decay'])
     # define learning rate scheduler
-    scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=config['milestones'],
-                                                gamma=config['gamma'])
+    # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=config['milestones'],
+    #                                             gamma=config['gamma'])
+
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, mode='min', factor=0.05, patience=10)
 
     # Padding in case x_dim < total dim
     X_PAD_DIM = config['total_dim'] - config['input_dim']
@@ -306,7 +310,7 @@ def train_INN(model, config, dataloader, device, hyperparam_tuning=False):
         ################################################################################################################
 
         # perform step of lr-scheduler
-        scheduler.step()
+        scheduler.step(train_loss_avg[-1])
 
         # save checkpoint
         # if checkpoint_epoch is set to 0, 

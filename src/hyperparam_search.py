@@ -5,6 +5,7 @@ from ray import tune
 
 from train import train
 from utils import load_config
+from hyperparam_search import *
 
 
 def stopper(trial_id, result):
@@ -49,15 +50,21 @@ if __name__ == '__main__':
     if config["model"] == "INN":
 
         config["lr_rate"] = tune.loguniform(0.01, 0.0001)
-        # config["batch_size"] = tune.qrandint(100, 3000, 100)
+        config["batch_size"] = tune.choice([100, 250, 500, 1000])
         config["num_layers_subnet"] = tune.qrandint(3, 7, 1)
-        config["num_coupling_layers"] = tune.qrandint(4, 8, 1)
+        config["num_coupling_layers"] = tune.qrandint(4, 10, 1)
         config["hidden_dim"] = tune.qrandint(100, 300, 50)
+        config["weight_Ly"] = tune.loguniform(0.001, 1.0)
+        config["weight_Lz"] = tune.loguniform(1.0, 1000)
+        config["weight_Lx"] = tune.loguniform(1.0, 1000)
+        config["weight_Lxy"] = tune.loguniform(0.001, 1.0)
+
 
     elif config["model"] == "CVAE":
 
         config["lr_rate"] = tune.loguniform(0.01, 0.0001)
-        # config["batch_size"] = tune.qrandint(100, 3000, 100)
+        config["variational_beta"] = tune.loguniform(0.00001, 0.01)
+        config["batch_size"] = tune.choice([100, 250, 500, 1000])
         config["num_layers"] = tune.qrandint(3, 15, 1)
         config["hidden_dim"] = tune.qrandint(200, 500, 50)
 

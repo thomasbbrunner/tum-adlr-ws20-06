@@ -7,6 +7,8 @@ if __name__ == '__main__':
     --> evaluation graphs are stored in figures/evaluation/
     """
 
+    ####################################################################################################################
+
     data_INN_post = {'2DoF': 0.061, '3DoF': 0.066, '4DoF': 0.0438, '6DoF': 0.173, '10DoF': 0.127, '15DoF': 0.072,
                      '25DoF': 0.127}
     names_INN_post = list(data_INN_post.keys())
@@ -27,8 +29,30 @@ if __name__ == '__main__':
     names_CVAE_resim = list(data_CVAE_resim.keys())
     values_CVAE_resim = list(data_CVAE_resim.values())
 
+    ####################################################################################################################
+
+    # alternative figures
+
+    # INN: # of parameters
+    # dummy values for now
+    params_INN = [10000, 20000, 40000, 100000]
+
+    # INN: e_posterior
+    # dummy values for now
+    e_posterior_INN = [0.01, 0.89, 0.34, 0.9]
+
+    # CVAE: # of parameters
+    # dummy values for now
+    params_CVAE = [20000, 27000, 33000, 110080]
+
+    # CVAE: e_posterior
+    # dummy values for now
+    e_posterior_CVAE = [0.001, 0.69, 0.54, 0.8]
+
+    ####################################################################################################################
+
     # e_posterior
-    plt.figure(figsize=(8, 5), dpi= 80)
+    plt.figure(figsize=(8, 5), dpi=80)
     plt.plot(names_INN_post, values_INN_post, color="#073642", label="INN", marker='o')
     plt.plot(names_CVAE_post, values_CVAE_post, color="#bc5090", label="CVAE", marker='o')
     plt.grid(True, color="#93a1a1", alpha=0.3)
@@ -38,7 +62,7 @@ if __name__ == '__main__':
     plt.savefig('figures/evaluation/comparison_e_posterior.jpg')
 
     # e_resim
-    plt.figure(figsize=(8, 5), dpi= 80)
+    plt.figure(figsize=(8, 5), dpi=80)
     plt.plot(names_INN_resim, values_INN_resim, color="#073642", label="INN", marker='o')
     plt.plot(names_CVAE_resim, values_CVAE_resim, color="#bc5090", label="CVAE", marker='o')
     plt.grid(True, color="#93a1a1", alpha=0.3)
@@ -46,3 +70,15 @@ if __name__ == '__main__':
     plt.legend(frameon=False)
     plt.title('Comparison between INN and cVAE')
     plt.savefig('figures/evaluation/comparison_e_resim.jpg')
+
+    # alternative plot
+    # e_posterior
+    plt.figure(figsize=(8, 5), dpi=80)
+    plt.plot(params_INN, e_posterior_INN, color="#073642", label="INN", marker='o')
+    plt.plot(params_CVAE, e_posterior_CVAE, color="#bc5090", label="CVAE", marker='o')
+    plt.grid(True, color="#93a1a1", alpha=0.3)
+    plt.xlabel('number of parameters')
+    plt.ylabel('error of posterior')
+    plt.legend(frameon=False)
+    plt.title('Comparison between INN and cVAE')
+    plt.savefig('figures/evaluation/comparison_e_posterior_alternative.jpg')
