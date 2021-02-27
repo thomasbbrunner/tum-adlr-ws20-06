@@ -58,15 +58,17 @@ if __name__ == '__main__':
         # config["weight_Lz"] = tune.loguniform(1.0, 10000)
         # config["weight_Lx"] = tune.loguniform(1.0, 10000)
         # config["weight_Lxy"] = tune.loguniform(0.0001, 1.0)
+        config["weight_decay"] = tune.loguniform(0.00001, 0.001)
 
 
     elif config["model"] == "CVAE":
 
         config["lr_rate"] = tune.loguniform(0.01, 0.0001)
-        config["variational_beta"] = tune.loguniform(0.00001, 0.01)
+        # config["variational_beta"] = tune.loguniform(0.00001, 0.01)
         # config["batch_size"] = tune.choice([100, 250, 500, 1000])
         config["num_layers"] = tune.qrandint(3, 15, 1)
         config["hidden_dim"] = tune.qrandint(200, 500, 50)
+        config["weight_decay"] = tune.loguniform(0.00001, 0.001)
 
     else:
         raise Exception("Model not supported")
