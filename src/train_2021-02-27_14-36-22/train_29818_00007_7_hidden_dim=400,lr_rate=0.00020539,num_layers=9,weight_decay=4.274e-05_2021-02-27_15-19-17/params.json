@@ -1,0 +1,35 @@
+{
+  "batch_size": 1000,
+  "checkpoint_epoch": 0,
+  "condition_dim": 2,
+  "dof": 10,
+  "gamma": 0.1,
+  "hidden_dim": 400,
+  "hyperparam_tuning": true,
+  "input_dim": 10,
+  "latent_dim": 8,
+  "len_links": [
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    1.0
+  ],
+  "lr_rate": 0.0002053890327137607,
+  "milestones": [
+    100,
+    250
+  ],
+  "model": "CVAE",
+  "num_epochs": 60,
+  "num_layers": 9,
+  "results_dir": "results/",
+  "robot": "Planar",
+  "variational_beta": 0.0067,
+  "weight_decay": 4.2740218869871026e-05
+}
