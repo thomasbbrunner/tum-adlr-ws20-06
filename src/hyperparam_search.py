@@ -49,22 +49,22 @@ if __name__ == '__main__':
     # https://docs.ray.io/en/master/tune/api_docs/search_space.html#random-distributions-api
     if config["model"] == "INN":
 
-        config["lr_rate"] = tune.loguniform(0.01, 0.0001)
-        config["batch_size"] = tune.choice([100, 250, 500, 1000])
+        config["lr_rate"] = tune.loguniform(0.001, 0.0001)
+        # config["batch_size"] = tune.choice([100, 250, 500, 1000])
         config["num_layers_subnet"] = tune.qrandint(3, 7, 1)
         config["num_coupling_layers"] = tune.qrandint(4, 10, 1)
         config["hidden_dim"] = tune.qrandint(100, 300, 50)
-        config["weight_Ly"] = tune.loguniform(0.001, 1.0)
-        config["weight_Lz"] = tune.loguniform(1.0, 1000)
-        config["weight_Lx"] = tune.loguniform(1.0, 1000)
-        config["weight_Lxy"] = tune.loguniform(0.001, 1.0)
+        config["weight_Ly"] = tune.loguniform(0.0001, 1.0)
+        config["weight_Lz"] = tune.loguniform(1.0, 10000)
+        config["weight_Lx"] = tune.loguniform(1.0, 10000)
+        config["weight_Lxy"] = tune.loguniform(0.0001, 1.0)
 
 
     elif config["model"] == "CVAE":
 
         config["lr_rate"] = tune.loguniform(0.01, 0.0001)
         config["variational_beta"] = tune.loguniform(0.00001, 0.01)
-        config["batch_size"] = tune.choice([100, 250, 500, 1000])
+        # config["batch_size"] = tune.choice([100, 250, 500, 1000])
         config["num_layers"] = tune.qrandint(3, 15, 1)
         config["hidden_dim"] = tune.qrandint(200, 500, 50)
 
