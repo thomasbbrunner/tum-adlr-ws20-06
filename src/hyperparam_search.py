@@ -49,10 +49,10 @@ if __name__ == '__main__':
     # https://docs.ray.io/en/master/tune/api_docs/search_space.html#random-distributions-api
     if config["model"] == "INN":
 
-        config["lr_rate"] = tune.loguniform(0.007, 0.0001)
+        config["lr_rate"] = tune.loguniform(0.005, 0.0001)
         # config["batch_size"] = tune.choice([100, 250, 500, 1000])
         config["num_layers_subnet"] = tune.qrandint(3, 7, 1)
-        config["num_coupling_layers"] = tune.qrandint(4, 10, 1)
+        config["num_coupling_layers"] = tune.qrandint(6, 10, 1)
         config["hidden_dim"] = tune.qrandint(100, 300, 50)
         # config["weight_Ly"] = tune.loguniform(0.0001, 1.0)
         # config["weight_Lz"] = tune.loguniform(1.0, 10000)
