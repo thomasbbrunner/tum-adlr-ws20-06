@@ -89,8 +89,8 @@ if __name__ == '__main__':
         # resources can also be fractional values
         # this will determine how many workers
         # are going to run in parallel
-        resources_per_trial={"gpu": 0.5, "cpu": 2},
-        # resources_per_trial={"gpu": 0.2, "cpu": 1},
+        # resources_per_trial={"gpu": 0.5, "cpu": 2},
+        resources_per_trial={"gpu": 0.2, "cpu": 1},
         # stop trial if loss explodes
         stop=stopper
     )
