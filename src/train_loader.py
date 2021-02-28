@@ -36,7 +36,7 @@ def train_CVAE(model, config, dataloader, device, hyperparam_tuning=False):
     # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=config['milestones'],
     #                                                  gamma=config['gamma'])
 
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, mode='min', factor=0.05, patience=20)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, mode='min', factor=0.05, patience=7)
 
     for epoch in range(config['num_epochs']):
 
@@ -170,7 +170,7 @@ def train_INN(model, config, dataloader, device, hyperparam_tuning=False):
     # scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer=optimizer, milestones=config['milestones'],
     #                                             gamma=config['gamma'])
 
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, mode='min', factor=0.05, patience=10)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, mode='min', factor=0.05, patience=7)
 
     # Padding in case x_dim < total dim
     X_PAD_DIM = config['total_dim'] - config['input_dim']
