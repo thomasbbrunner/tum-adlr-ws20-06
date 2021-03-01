@@ -13,7 +13,7 @@
 
 src/data/
 venv/
-src/results/
+# src/results/
 
 # Python
 *__pycache__
