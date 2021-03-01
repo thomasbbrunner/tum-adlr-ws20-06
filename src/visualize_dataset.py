@@ -9,18 +9,22 @@ if __name__ == '__main__':
     """
     Creating the datasets based on a Gaussian distribution with varying stddev
     --> figures are stored in figures/evaluation/dataset/
+    --> visualizing the workspace which is used for the training and testing dataset
     """
 
     ####################################################################################################################
     # TO MODIFY
     ####################################################################################################################
 
-    DATASET_SAMPLES = 1e4
+    DATASET_SAMPLES = 1e6
     NORMAL = True
-    STD = [0.3, 0.5, 1.5] # [0.3] # [0.1, 0.25, 0.5, 0.8, 1.5]
-    DOF = [25] # [6, 10, 15, 25]
+    STD = [0.2] # [0.3, 0.5, 1.5] # [0.3] # [0.1, 0.25, 0.5, 0.8, 1.5]
+    DOF = [6, 10, 15] # [25] # [6, 10, 15, 25]
 
     ####################################################################################################################
+
+    # create  directory if it does not exist
+    pathlib.Path("figures/evaluation/dataset/").mkdir(exist_ok=True)
 
     for dof in DOF:
         print("dof =", dof)
@@ -35,8 +39,3 @@ if __name__ == '__main__':
             dataset = RobotSimDataset(robot, DATASET_SAMPLES, normal=NORMAL, stddev=std)
             dataset.histogram(
                 path="figures/evaluation/dataset/normal_std_" + str(std) + "_" + str(dof) + "DoF_histogram.jpg")
-
-
-
-
-

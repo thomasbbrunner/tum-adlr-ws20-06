@@ -1,8 +1,0 @@
-"INN"
-"25DOF"
-"# trainable parameters: 3019500"
-"N = 100"
-"M = 100"
-"Average error of posterior: 0.051368925385177136"
-"Average re-simulation error: tensor(35.2040, device='cuda:0')"
-"config: {'model': 'INN', 'robot': 'Planar', 'dof': 25, 'len_links': [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.0], 'weight_dir': 'weights/ROBOTSIM_INN_25DOF', 'checkpoint_dir': 'checkpoints/', 'input_dim': 25, 'total_dim': 25, 'output_dim': 2, 'latent_dim': 23, 'num_layers_subnet': 5, 'num_coupling_layers': 6, 'hidden_dim': 200, 'y_noise_scale': 0.001, 'zeros_noise_scale': 0.005, 'num_epochs': 600, 'batch_size': 1000, 'lr_rate': 0.003, 'weight_decay': 0.001, 'checkpoint_epoch': 150, 'weight_Ly': 0.01, 'weight_Lz': 100.0, 'weight_Lx': 100.0, 'weight_Lxy': 0.1, 'milestones': [40, 200, 300, 350, 450], 'gamma': 0.5}"

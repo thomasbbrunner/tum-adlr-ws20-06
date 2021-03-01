@@ -35,22 +35,23 @@ if __name__ == '__main__':
 
     # INN: # of parameters
     # dummy values for now
-    params_INN = [10000, 20000, 40000, 100000]
+    params_INN = [6876180]
 
     # INN: e_posterior
     # dummy values for now
-    e_posterior_INN = [0.01, 0.89, 0.34, 0.9]
+    e_posterior_INN = [0.049]
 
     # CVAE: # of parameters
     # dummy values for now
-    params_CVAE = [20000, 27000, 33000, 110080]
+    params_CVAE = [1303226, 395291]
 
     # CVAE: e_posterior
     # dummy values for now
-    e_posterior_CVAE = [0.001, 0.69, 0.54, 0.8]
+    e_posterior_CVAE = [0.053, 0.060]
 
     # annotations
-    annotations = ['4DoF', '6DoF', '10DoF', '15DoF']
+    annotations_cVAE = ['10DoF', '15DoF']
+    annotations_INN = ['10DoF']
 
     ####################################################################################################################
 
@@ -80,10 +81,11 @@ if __name__ == '__main__':
     plt.plot(params_INN, e_posterior_INN, color="#073642", label="INN", marker='o')
     plt.plot(params_CVAE, e_posterior_CVAE, color="#bc5090", label="CVAE", marker='o')
 
-    for i, txt in enumerate(annotations):
-        plt.annotate(txt, (params_INN[i], e_posterior_INN[i]))
+    for i, txt in enumerate(annotations_cVAE):
         plt.annotate(txt, (params_CVAE[i], e_posterior_CVAE[i]))
 
+    for i, txt in enumerate(annotations_INN):
+        plt.annotate(txt, (params_INN[i], e_posterior_INN[i]))
 
     plt.grid(True, color="#93a1a1", alpha=0.3)
     plt.xlabel('number of parameters')
