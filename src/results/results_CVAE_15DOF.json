@@ -1,0 +1,8 @@
+"CVAE"
+"15DOF"
+"# trainable parameters: 395291"
+"N = 100"
+"M = 100"
+"Average error of posterior: 0.060870426800102"
+"Average re-simulation error: tensor(0.0050, device='cuda:0')"
+"config: {'model': 'CVAE', 'robot': 'Planar', 'dof': 15, 'len_links': [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.0], 'results_dir': 'results/', 'input_dim': 15, 'condition_dim': 2, 'latent_dim': 13, 'num_layers': 4, 'hidden_dim': 250, 'num_epochs': 60, 'batch_size': 1000, 'lr_rate': 0.00030392954160436285, 'weight_decay': 4.808095752796534e-05, 'variational_beta': 0.0067, 'checkpoint_epoch': 50, 'milestones': [100, 250], 'gamma': 0.1}"
