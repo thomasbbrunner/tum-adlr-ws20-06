@@ -35,11 +35,12 @@ if __name__ == '__main__':
 
     # INN: # of parameters
     # dummy values for now
-    params_INN = [6876180]
+    params_INN = [2566284, 6876180]
 
     # INN: e_posterior
     # dummy values for now
-    e_posterior_INN = [0.049]
+    e_posterior_INN = [0.0422, 0.0490]
+    e_resim_INN = [0.0097, 0.0083]
 
     # CVAE: # of parameters
     # dummy values for now
@@ -47,11 +48,12 @@ if __name__ == '__main__':
 
     # CVAE: e_posterior
     # dummy values for now
-    e_posterior_CVAE = [0.053, 0.060]
+    e_posterior_CVAE = [0.0534, 0.0608]
+    e_resim_CVAE = [0.0012, 0.0050]
 
     # annotations
     annotations_cVAE = ['10DoF', '15DoF']
-    annotations_INN = ['10DoF']
+    annotations_INN = ['6DOF', '10DoF']
 
     ####################################################################################################################
 
@@ -93,3 +95,21 @@ if __name__ == '__main__':
     plt.legend(frameon=False)
     plt.title('Comparison between INN and cVAE')
     plt.savefig('figures/evaluation/comparison_e_posterior_alternative.jpg')
+
+    # e_resim
+    plt.figure(figsize=(8, 5), dpi=80)
+    plt.plot(params_INN, e_resim_INN, color="#073642", label="INN", marker='o')
+    plt.plot(params_CVAE, e_resim_CVAE, color="#bc5090", label="CVAE", marker='o')
+
+    for i, txt in enumerate(annotations_cVAE):
+        plt.annotate(txt, (params_CVAE[i], e_resim_CVAE[i]))
+
+    for i, txt in enumerate(annotations_INN):
+        plt.annotate(txt, (params_INN[i], e_resim_INN[i]))
+
+    plt.grid(True, color="#93a1a1", alpha=0.3)
+    plt.xlabel('number of parameters')
+    plt.ylabel('re-simulation error')
+    plt.legend(frameon=False)
+    plt.title('Comparison between INN and cVAE')
+    plt.savefig('figures/evaluation/comparison_e_resim_alternative.jpg')

@@ -243,3 +243,4 @@ if __name__ == '__main__':
         for item in list_results:
             json.dump(item, fout)
             fout.write('\n')
+    print("Results written to file")
