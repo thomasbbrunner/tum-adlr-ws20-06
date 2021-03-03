@@ -1,6 +1,7 @@
 
 from ray import tune
 import torch
+import json
 
 from robotsim_dataset import RobotSimDataset
 import robotsim
@@ -109,32 +110,47 @@ def train_CVAE(model, config, dataloader, device, hyperparam_tuning=False):
         if hyperparam_tuning:
             tune.report(loss=train_loss_avg[-1], epoch=epoch)
 
-    fig = Figure()
-    ax = fig.add_subplot()
-    ax.set_title('TOTAL AVG LOSS HISTORY')
-    ax.set_xlabel('EPOCHS')
-    ax.set_ylabel('AVG LOSS')
-    ax.plot(train_loss_avg, '-b', label='Total loss')
-    # ax.legend()
-    fig.savefig('{}total_avg_train_loss_CVAE_{}DOF.png'.format(config['results_dir'], config['dof']))
+    # fig = Figure()
+    # ax = fig.add_subplot()
+    # ax.set_title('TOTAL AVG LOSS HISTORY')
+    # ax.set_xlabel('EPOCHS')
+    # ax.set_ylabel('AVG LOSS')
+    # ax.plot(train_loss_avg, '-b', label='Total loss')
+    # # ax.legend()
+    # fig.savefig('{}total_avg_train_loss_CVAE_{}DOF.png'.format(config['results_dir'], config['dof']))
+    #
+    # fig = Figure()
+    # ax = fig.add_subplot()
+    # ax.set_title('AVG LOSS HISTORY FOR RECONSTRUCTION ERROR')
+    # ax.set_xlabel('EPOCHS')
+    # ax.set_ylabel('AVG LOSS')
+    # ax.plot(recon_loss_avg, '-r', label='MSE loss')
+    # # ax.legend()
+    # fig.savefig('{}recon_avg_train_loss_CVAE_{}DOF.png'.format(config['results_dir'], config['dof']))
+    #
+    # fig = Figure()
+    # ax = fig.add_subplot()
+    # ax.set_title('AVG LOSS HISTORY FOR KL DIVERGENCE')
+    # ax.set_xlabel('EPOCHS')
+    # ax.set_ylabel('AVG LOSS')
+    # ax.plot(kl_loss_avg, '-k', label='KL loss')
+    # # ax.legend()
+    # fig.savefig('{}kl_avg_train_loss_CVAE_{}DOF.png'.format(config['results_dir'], config['dof']))
 
-    fig = Figure()
-    ax = fig.add_subplot()
-    ax.set_title('AVG LOSS HISTORY FOR RECONSTRUCTION ERROR')
-    ax.set_xlabel('EPOCHS')
-    ax.set_ylabel('AVG LOSS')
-    ax.plot(recon_loss_avg, '-r', label='MSE loss')
-    # ax.legend()
-    fig.savefig('{}recon_avg_train_loss_CVAE_{}DOF.png'.format(config['results_dir'], config['dof']))
+    list_results = []
+    list_results.append("train_loss_avg: ")
+    list_results.append(train_loss_avg)
+    list_results.append("recon_loss_avg: ")
+    list_results.append(recon_loss_avg)
+    list_results.append("kl_loss_avg: ")
+    list_results.append(kl_loss_avg)
 
-    fig = Figure()
-    ax = fig.add_subplot()
-    ax.set_title('AVG LOSS HISTORY FOR KL DIVERGENCE')
-    ax.set_xlabel('EPOCHS')
-    ax.set_ylabel('AVG LOSS')
-    ax.plot(kl_loss_avg, '-k', label='KL loss')
-    # ax.legend()
-    fig.savefig('{}kl_avg_train_loss_CVAE_{}DOF.png'.format(config['results_dir'], config['dof']))
+    with open('{}loss_history_{}_{}DOF.json'.format(config['results_dir'], config['model'], config['dof']),
+              'w') as fout:
+        for item in list_results:
+            json.dump(item, fout)
+            fout.write('\n')
+    print("Results written to file")
 
 
 ########################################################################################################################
@@ -336,15 +352,33 @@ def train_INN(model, config, dataloader, device, hyperparam_tuning=False):
         if hyperparam_tuning:
             tune.report(loss=train_loss_avg[-1], epoch=epoch)
 
-    fig = Figure()
-    ax = fig.add_subplot()
-    ax.set_title('AVG LOSS HISTORY')
-    ax.set_xlabel('EPOCHS')
-    ax.set_ylabel('AVG LOSS')
-    ax.plot(train_loss_avg, '-b', label='Total loss')
-    ax.plot(train_loss_Ly_avg, '-r', label='y-MSE loss')
-    ax.plot(train_loss_Lxy_avg, '-m', label='x-MSE loss')
-    ax.plot(train_loss_Lz_avg, '-g', label='z-MMD loss')
-    ax.plot(train_loss_Lx_avg, '-k', label='x-MMD loss')
-    ax.legend()
-    fig.savefig('{}avg_train_loss_INN_{}DOF.png'.format(config['results_dir'], config['dof']))
+    # fig = Figure()
+    # ax = fig.add_subplot()
+    # ax.set_title('AVG LOSS HISTORY')
+    # ax.set_xlabel('EPOCHS')
+    # ax.set_ylabel('AVG LOSS')
+    # ax.plot(train_loss_avg, '-b', label='Total loss')
+    # ax.plot(train_loss_Ly_avg, '-r', label='y-MSE loss')
+    # ax.plot(train_loss_Lxy_avg, '-m', label='x-MSE loss')
+    # ax.plot(train_loss_Lz_avg, '-g', label='z-MMD loss')
+    # ax.plot(train_loss_Lx_avg, '-k', label='x-MMD loss')
+    # ax.legend()
+    # fig.savefig('{}avg_train_loss_INN_{}DOF.png'.format(config['results_dir'], config['dof']))
+
+    list_results = []
+    list_results.append("train_loss_avg: ")
+    list_results.append(train_loss_avg)
+    list_results.append("train_loss_Ly_avg: ")
+    list_results.append(train_loss_Ly_avg)
+    list_results.append("train_loss_Lxy_avg: ")
+    list_results.append(train_loss_Lxy_avg)
+    list_results.append("train_loss_Lz_avg: ")
+    list_results.append(train_loss_Lz_avg)
+    list_results.append("train_loss_Lx_avg: ")
+    list_results.append(train_loss_Lx_avg)
+
+    with open('{}loss_history_{}_{}DOF.json'.format(config['results_dir'], config['model'], config['dof']), 'w') as fout:
+        for item in list_results:
+            json.dump(item, fout)
+            fout.write('\n')
+    print("Results written to file")
