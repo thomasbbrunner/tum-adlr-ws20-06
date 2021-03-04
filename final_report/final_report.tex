@@ -1,9 +1,10 @@
 % The format for the report has to be the standard IEEE conference format: https://www.ieee.org/conferences/publishing/templates.html
 
 \documentclass[conference]{IEEEtran}
-\usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{algorithmic}
+\usepackage{cite}
+\usepackage{bm}
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
@@ -32,10 +33,37 @@
 
 \section*{Introduction}
 
+In our project, we are evaluating the feasibility of using neural networks for inverse kinematics problems in robotics. In this report, we outline the progress made since the start and discuss the results we have obtained. Lastly, we explore possible next steps for our project.
+
 \section*{Methods}
 \subsection*{Robot Simulations}
 
+To train and test our models, we developed simulations of planar robotic arms with revolute joints. As we are interested in testing the limits of our models, we created simulations of arbitraty degrees of freedom (DOFs). In general, the forward kinematics equation of a planar robot arm with link lengths \( l_i \) and \( N \) revolute joints with joint angles \( \theta_i \) can be described as:
+\begin{equation}
+    x_{TCP} = \sum_{i=1}^{N}{l_i \cos\left( \sum_{j=1}^{i}{\theta_j} \right)}
+\end{equation}
+\begin{equation}
+    y_{TCP} = \sum_{i=1}^{N}{l_i \sin\left( \sum_{j=1}^{i}{\theta_j} \right)}
+\end{equation}
+\begin{equation}
+    \theta_{TCP} = \sum_{i=1}^{N}{\theta_i}
+\end{equation}
+
+These equations were modified for fast vectorized numerical computation by multiplying the joint angles vector \( \bm{\theta} \) with the upper triangular matrix with ones as elements \( \bm{U} \):
+\begin{equation}
+    x_{TCP} = \cos \left( \bm{\theta}\ \bm{U} \right) \bm{l}
+\end{equation}
+\begin{equation}
+    y_{TCP} = \sin \left( \bm{\theta}\ \bm{U} \right) \bm{l}
+\end{equation}
+
+In our current setup, we do not take the angle of the tool center point (TCP) into consideration. Thus, the location of the TCP is defined by its \( x, y \) coordinates. As a result of this, all simulations with more than 2 DOF can up to infinite solutions of the inverse kinematics for a given TCP position. The 2 DOF robot arm can have up to two solutions.
+
 \subsection*{Dataset}
+
+The dataset used for training is composed of one million samples of robot configurations for each robot simulation (X DOF). Figure~\ref{fig:datasets} shows an illustration of the datasets. Each configuration was sampled from a normal distribution $ \theta_i \sim \mathcal{N}(\mu=0, \sigma=0.2) $. Thus, the dataset is composed mostly of configurations in which the robot arm is extended. This reflects real-world use cases of robot arms, which have limited workspaces and whose tasks are focused on one section of the workspace. Moreover, limiting the range of the joints improved the performance of the networks, as this avoids the discontinuity in the angles at \( \theta = \pi \).
+
+% add images of datasets
 
 \subsection*{Considering Singularities}
 
