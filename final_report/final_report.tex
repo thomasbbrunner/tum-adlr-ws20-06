@@ -20,7 +20,7 @@
 \begin{document}
 
 
-\title{Final Report}
+\title{Neural Networks for Inverse Kinematics Problems in Robotics}
 
 \author{\IEEEauthorblockN{Franziska Schwaiger}
     \IEEEauthorblockA{\textit{Matriculation number: 03658670}}
@@ -33,12 +33,12 @@
 
 \section*{Introduction}
 
-In our project, we are evaluating the feasibility of using neural networks for inverse kinematics problems in robotics. In this report, we outline the progress made since the start and discuss the results we have obtained. Lastly, we explore possible next steps for our project.
+In our project, we are evaluating the feasibility of using neural networks for inverse kinematics problems in robotics. In this report, we outline the progress made and discuss the results we have obtained.
 
 \section*{Methods}
 \subsection*{Robot Simulations}
 
-To train and test our models, we developed simulations of planar robotic arms with revolute joints. As we are interested in testing the limits of our models, we created simulations of arbitraty degrees of freedom (DOFs). In general, the forward kinematics equation of a planar robot arm with link lengths \( l_i \) and \( N \) revolute joints with joint angles \( \theta_i \) can be described as:
+To train and test our models, we developed simulations of planar robotic arms with revolute joints. As we are interested in testing the limits of our models, we created simulations of arbitraty degrees of freedom (DOFs). In general, the forward kinematics equations of a planar robot arm with link lengths \( l_i \) and \( N \) revolute joints with joint angles \( \theta_i \) can be described as:
 \begin{equation}
     x_{TCP} = \sum_{i=1}^{N}{l_i \cos\left( \sum_{j=1}^{i}{\theta_j} \right)}
 \end{equation}
@@ -61,14 +61,26 @@ In our current setup, we do not take the angle of the tool center point (TCP) in
 
 \subsection*{Dataset}
 
-The dataset used for training is composed of one million samples of robot configurations for each robot simulation (X DOF). Figure~\ref{fig:datasets} shows an illustration of the datasets. Each configuration was sampled from a normal distribution $ \theta_i \sim \mathcal{N}(\mu=0, \sigma=0.2) $. Thus, the dataset is composed mostly of configurations in which the robot arm is extended. This reflects real-world use cases of robot arms, which have limited workspaces and whose tasks are focused on one section of the workspace. Moreover, limiting the range of the joints improved the performance of the networks, as this avoids the discontinuity in the angles at \( \theta = \pi \).
+The dataset used for training is composed of one million samples of robot configurations for each DOF. Figure~\ref{fig:datasets} shows an illustration of the datasets. Each configuration was sampled from a normal distribution $ \theta_i \sim \mathcal{N}(\mu=0, \sigma=0.2) $. Thus, the dataset is composed mostly of configurations in which the robot arm is extended. This reflects real-world use cases of robot arms, which have limited workspaces and whose tasks are focused on one section of the workspace. Moreover, limiting the range of the joints improved the performance of the networks, as this avoids the discontinuity in the angles at \( \theta = \pi \).
 
-% add images of datasets
+% TODO add images of datasets
 
 \subsection*{Considering Singularities}
 
+\subsection*{Conditional Variational Autoencoder}
+
+\subsection*{Invertible Neural Networks}
+
 \subsection*{Hyperparameter Optimization}
 
+For our tests, we trained a network for each robot simulation (DOF). Thus, the sizes and selection of hyperparameters of each network had to match the compleity of the simulation. To compare the performance of the networks across different DOFs in a fair setting, we used Tune \cite{liaw2018tune} to perform a random search of the hyperparameters. To reduce computation time, we trained the models using a subset of the main dataset, which was composed of \( 1e4 \) samples.
+
+% TODO eventually add table with tuned parameters and 
+% the range of the parameters!
+
+\subsection*{Implementation}
+
+The previous two model architectures (cVAE and INN) have been implemented in PyTorch and are inspired by existing implementations in  \cite{graviraja2019}, \cite{freia2020}. We utilized the Google Compute Engine to train our models.
 
 \section*{Experimental Evaluation}
 \subsection*{Evaluation protocol}
