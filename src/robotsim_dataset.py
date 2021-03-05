@@ -8,11 +8,6 @@ import robotsim
 
 
 class RobotSimDataset(Dataset):
-    """TODO:
-    - improve interface: 
-        commenting out code to enable features is not ideal
-        (e.g. joint ranges)
-    """
 
     # for generation of random values
     # according to new numpy documentation
