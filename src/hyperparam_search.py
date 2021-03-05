@@ -2,7 +2,7 @@
 import argparse
 import math
 from ray import tune
-from ray.tune.suggest.bayesopt import BayesOptSearch
+from ray.tune.suggest.skopt import SkOptSearch
 
 from train import train
 from utils import load_config
@@ -93,7 +93,7 @@ if __name__ == '__main__':
         # are going to run in parallel
         #resources_per_trial={"gpu": 0.5, "cpu": 2},
         resources_per_trial={"gpu": 0.25, "cpu": 1},
-        search_alg=BayesOptSearch(),
+        search_alg=SkOptSearch(),
         # stop trial if loss explodes
         stop=stopper,
     )
