@@ -30,7 +30,6 @@ def train(config):
     # TO MODIFY
     ####################################################################################################################
 
-    DATASET_SAMPLES = 1e4
     STD = 0.2
     NORMAL = True
 
@@ -62,10 +61,10 @@ def train(config):
     # create results directory if it does not exist
     pathlib.Path(config["results_dir"]).mkdir(exist_ok=True)
 
-    dataset = RobotSimDataset(robot, DATASET_SAMPLES, normal=NORMAL, stddev=STD)
+    dataset = RobotSimDataset(robot, config["dataset_samples"], normal=NORMAL, stddev=STD)
 
-    TRAIN_SAMPLES = int(0.7 * DATASET_SAMPLES)
-    TEST_SAMPLES = int(0.3 * DATASET_SAMPLES)
+    TRAIN_SAMPLES = int(0.7 * config["dataset_samples"])
+    TEST_SAMPLES = int(0.3 * config["dataset_samples"])
     # ensures that models are trained and tested on the same samples
     torch.manual_seed(42)
     train_dataset, test_dataset = torch.utils.data.random_split(dataset, [TRAIN_SAMPLES, TEST_SAMPLES])

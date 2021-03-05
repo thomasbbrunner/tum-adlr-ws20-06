@@ -49,7 +49,7 @@ if __name__ == '__main__':
     # https://docs.ray.io/en/master/tune/api_docs/search_space.html#random-distributions-api
     if config["model"] == "INN":
 
-        config["lr_rate"] = tune.loguniform(0.005, 0.0001)
+        config["lr_rate"] = tune.loguniform(0.0001, 0.005)
         # config["batch_size"] = tune.choice([100, 250, 500, 1000])
         config["num_layers_subnet"] = tune.qrandint(3, 7, 1)
         config["num_coupling_layers"] = tune.qrandint(6, 10, 1)
@@ -59,7 +59,6 @@ if __name__ == '__main__':
         # config["weight_Lx"] = tune.loguniform(1.0, 10000)
         # config["weight_Lxy"] = tune.loguniform(0.0001, 1.0)
         config["weight_decay"] = tune.loguniform(0.00001, 0.001)
-
 
     elif config["model"] == "CVAE":
 
@@ -79,6 +78,9 @@ if __name__ == '__main__':
     # disable checkpoints
     # prevents using too much storage space
     config["checkpoint_epoch"] = 0
+
+    # reduce number of samples to reduce search time
+    config["dataset_samples"] = 10000
 
     analysis = tune.run(
         train,

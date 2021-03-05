@@ -28,6 +28,7 @@ zeros_noise_scale : 0.005
 # Training
 # -------------------
 
+dataset_samples: 1000000
 num_epochs: 60
 batch_size: 1000
 lr_rate: 0.0001
