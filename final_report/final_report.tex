@@ -49,12 +49,14 @@ To train and test our models, we developed simulations of planar robotic arms wi
     \theta_{TCP} = \sum_{i=1}^{N}{\theta_i}
 \end{equation}
 
-These equations were modified for fast vectorized numerical computation by multiplying the joint angles vector \( \bm{\theta} \) with the upper triangular matrix with ones as elements \( \bm{U} \):
+These equations were modified for fast vectorized numerical computation by the element-wise computation of the sine and cosine of the matrix multiplication of the joint angles vector \( \bm{\theta} = \left[ \theta_1, \theta_2 , ... \right]^\text{T} \) with an upper triangular matrix with ones as elements \( \bm{U} \). The results are then multiplied with the link lengths vector \( \bm{l} = \left[ l_1, l_2, ... \right]^\text{T} \), as shown in Equations \ref{xtcp vectorized} and \ref{ytcp vectorized}.
 \begin{equation}
     x_{TCP} = \cos \left( \bm{\theta}\ \bm{U} \right) \bm{l}
+    \label{xtcp vectorized}
 \end{equation}
 \begin{equation}
     y_{TCP} = \sin \left( \bm{\theta}\ \bm{U} \right) \bm{l}
+    \label{ytcp vectorized}
 \end{equation}
 
 In our current setup, we do not take the angle of the tool center point (TCP) into consideration. Thus, the location of the TCP is defined by its \( x, y \) coordinates. As a result of this, all simulations with more than 2 DOF can up to infinite solutions of the inverse kinematics for a given TCP position. The 2 DOF robot arm can have up to two solutions.
@@ -80,7 +82,7 @@ For our tests, we trained a network for each robot simulation (DOF). Thus, the s
 
 \subsection*{Implementation}
 
-The previous two model architectures (cVAE and INN) have been implemented in PyTorch and are inspired by existing implementations in  \cite{graviraja2019}, \cite{freia2020}. We utilized the Google Compute Engine to train our models.
+The previous two model architectures (cVAE and INN) have been implemented in PyTorch and are inspired by existing implementations in  \cite{graviraja2019, freia2020}. We utilized the Google Compute Engine to train our models.
 
 \section*{Experimental Evaluation}
 \subsection*{Evaluation protocol}
