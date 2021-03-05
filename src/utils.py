@@ -122,7 +122,7 @@ def normalize(x):
 
     return x_normalized
 
-def plot_contour_lines(points, gt, PATH, percentile=0.97):
+def plot_contour_lines(points, gt, PATH, title="", percentile=0.97):
     """Draws a convex hull around the points which are the nearest in a percentile
 
     Args:
@@ -151,9 +151,11 @@ def plot_contour_lines(points, gt, PATH, percentile=0.97):
 
     fig = plt.figure()
     plt.title('Area of convex hull: ' + str(area))
+    plt.suptitle(title)
+    plt.grid(True, color="#93a1a1", alpha=0.3)
     # define axis limits dynamically
-    plt.axis([gt[0]-3.0, gt[0]+3.0, gt[1]-3.0, gt[1]+3.0])
-    plt.scatter(points[:, 0], points[:, 1], c='g')
+    plt.axis([gt[0]-0.15, gt[0]+0.15, gt[1]-0.15, gt[1]+0.15])
+    plt.scatter(points[:, 0], points[:, 1], c='g', s=0.5)
     plt.scatter(gt[0], gt[1], c='r')
     for simplex in hull.simplices:
         plt.plot(selected_points[simplex, 0], selected_points[simplex, 1], 'k-')

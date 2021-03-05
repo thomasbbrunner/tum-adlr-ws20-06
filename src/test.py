@@ -142,7 +142,7 @@ if __name__ == '__main__':
             plot_contour_lines(
                 points=resimulation_xy, gt=N_y,
                 PATH='{}q_quantile_rejection_sampling_{}_{}DOF.png'.format(
-                    config['results_dir'], config['model'], config['dof']),
+                    config['results_dir'], config['model'], config['dof']), title="Rejection Sampling ({} DoF)".format(config['dof']),
                 percentile=percentile)
 
         gt_joint_states = torch.Tensor(joint_states)
@@ -177,7 +177,8 @@ if __name__ == '__main__':
             plot_contour_lines(
                 points=resimulation_xy, gt=N_y,
                 PATH="{}q_quantile_prediction_{}_{}DOF.png".format(
-                    config['results_dir'], config['model'], config['dof']),
+                    config['results_dir'], config['model'], config['dof']), title="Model: {} ({} DoF)".format(config['model'],
+                                                                                                     config['dof']),
                 percentile=percentile)
 
         # 3.

@@ -30,7 +30,7 @@ def train(config):
     # TO MODIFY
     ####################################################################################################################
 
-    DATASET_SAMPLES = 1e4
+    DATASET_SAMPLES = 1e6
     STD = 0.2
     NORMAL = True
 
