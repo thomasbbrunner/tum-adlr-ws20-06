@@ -1,3 +1,5 @@
+% Final Report
+% The final reports should be in the style of a short research paper of three pages (about one page text plus plots & figures).
 % The format for the report has to be the standard IEEE conference format: https://www.ieee.org/conferences/publishing/templates.html
 
 \documentclass[conference]{IEEEtran}
@@ -69,6 +71,16 @@ The dataset used for training is composed of one million samples of robot config
 
 \subsection*{Considering Singularities}
 
+As already mentioned in the previous section, we avoid discontinuities by restricting the configuratoin space of the robot. Yet we implemented two approaches which consider this discontinuity in the angles at \( \theta = \pi \) to generalize the implemented networks to inverse kinematics problems.
+
+\subsubsection*{First approach}
+The first approach uses a  non-minimal parameterization of ...
+
+\subsubsection*{Second approach}
+
+
+
+
 \subsection*{Conditional Variational Autoencoder}
 
 \subsection*{Invertible Neural Networks}
@@ -88,6 +100,10 @@ The previous two model architectures (cVAE and INN) have been implemented in PyT
 \subsection*{Evaluation protocol}
 
 \subsection*{Results}
+
+% In Figures ... the area of the convex hull of the 0.97 percentile of the end-effector coordinates is visualized. In the case of 100 samples, this means the value of the area which includes the 97 nearest points to the ground truth, allowing 3 outliers. The actual end point of each sample may deviate slightly from the target. Also to mention is that the convex hull of rejections sampling (eps = ...) produces a value of ....
+% contour lines enclose the regions containing $97\%$ of these end points.
+
 
 \section*{Conclusion}
 
