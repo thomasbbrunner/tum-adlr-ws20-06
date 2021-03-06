@@ -90,10 +90,13 @@ if __name__ == '__main__':
         plt.annotate(txt, (params_INN[i], e_posterior_INN[i]))
 
     plt.grid(True, color="#93a1a1", alpha=0.3)
-    plt.xlabel('number of parameters')
-    plt.ylabel('error of posterior')
+    plt.xticks(fontsize=14, rotation=0)
+    plt.yticks(fontsize=14, rotation=0)
+    plt.xlabel('number of parameters', fontsize=20)
+    plt.ylabel('error of posterior', fontsize=20)
+
     plt.legend(frameon=False)
-    plt.title('Comparison between INN and cVAE')
+    plt.title('Comparison between INN and cVAE', fontsize=25)
     plt.savefig('figures/evaluation/comparison_e_posterior_alternative.jpg')
 
     # e_resim
@@ -108,8 +111,10 @@ if __name__ == '__main__':
         plt.annotate(txt, (params_INN[i], e_resim_INN[i]))
 
     plt.grid(True, color="#93a1a1", alpha=0.3)
-    plt.xlabel('number of parameters')
-    plt.ylabel('re-simulation error')
+    plt.xticks(fontsize=14, rotation=0)
+    plt.yticks(fontsize=14, rotation=0)
+    plt.xlabel('number of parameters', fontsize=20)
+    plt.ylabel('re-simulation error', fontsize=20)
     plt.legend(frameon=False)
-    plt.title('Comparison between INN and cVAE')
+    plt.title('Comparison between INN and cVAE', fontsize=25)
     plt.savefig('figures/evaluation/comparison_e_resim_alternative.jpg')

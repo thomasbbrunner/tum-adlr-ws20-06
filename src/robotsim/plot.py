@@ -89,7 +89,8 @@ def heatmap(joint_states, robot, highlight=None, transparency=None, title=None, 
     fig, ax = plt.subplots()
     ax.grid()
     plot_limit = np.sum(robot.get_length())*1.1
-    ax.set_xlim([-plot_limit, plot_limit])
+    # ax.set_xlim([-plot_limit, plot_limit])
+    ax.set_xlim([0.0, plot_limit])
     ax.set_ylim([-plot_limit, plot_limit])
     ax.set_xlabel("$x_1$")
     ax.set_ylabel("$x_2$")

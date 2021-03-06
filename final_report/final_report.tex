@@ -85,6 +85,8 @@ The first approach uses a  non-minimal parameterization of ...
 
 \subsection*{Invertible Neural Networks}
 
+Autoregressive flows ...
+
 \subsection*{Hyperparameter Optimization}
 
 For our tests, we trained a network for each robot simulation (DOF). Thus, the sizes and selection of hyperparameters of each network had to match the compleity of the simulation. To compare the performance of the networks across different DOFs in a fair setting, we used Tune \cite{liaw2018tune} to perform a random search of the hyperparameters. To reduce computation time, we trained the models using a subset of the main dataset, which was composed of \( 1e4 \) samples.
@@ -104,6 +106,62 @@ The previous two model architectures (cVAE and INN) have been implemented in PyT
 % In Figures ... the area of the convex hull of the 0.97 percentile of the end-effector coordinates is visualized. In the case of 100 samples, this means the value of the area which includes the 97 nearest points to the ground truth, allowing 3 outliers. The actual end point of each sample may deviate slightly from the target. Also to mention is that the convex hull of rejections sampling (eps = ...) produces a value of ....
 % contour lines enclose the regions containing $97\%$ of these end points.
 
+\begin{itemize}
+	\item For evaluation, we considered discontinuities of the joint space by modifying the loss function (2st approach) 
+	\item Minimal representation of joint angles, as number of DoF increases, doubling the number (1st approach) is not a good idea
+	\item Because of HPO, the number of parameters over the amount of DoF differs and does not increase cosistently
+	\item The INN Does a better job in estimating the full posterior of the joint configuration as the cVAE
+\end{itemize}
+
+\begin{figure}[!ht]
+\centering
+	\includegraphics[width=\linewidth]{figures/comparison_e_posterior_alternative.jpg}
+    \label{fig:plot:posterior}
+    \caption{\label{fig:plot:posterior} Results. Mismatch of posterior. Needs to be completed.}
+\end{figure}
+
+\begin{figure}[!ht]
+\centering
+	\includegraphics[width=\linewidth]{figures/comparison_e_resim_alternative.jpg}
+    \label{fig:plot:posterior}
+    \caption{\label{fig:plot:resim} Results. Mismatch of re-simulation error. Needs to be completed.}
+\end{figure}
+
+\begin{figure*}[tbh]
+\centering
+	\subfloat[Rejection Sampling]{\includegraphics[width=0.29\linewidth]{figures/rejection_sampling_CVAE_10DOF.png}
+    \label{fig:rejection_sampling:10DOF}}
+    %
+    \subfloat[cVAE]{\includegraphics[width=0.29\linewidth]{figures/predicted_posterior_CVAE_10DOF.png}
+        \label{fig:cVAE:10DOF}}
+    %
+    \subfloat[INN]{\includegraphics[width=0.29\linewidth]{figures/predicted_posterior_INN_10DOF.png}
+        \label{fig:INN:10DOF}}
+
+    \caption{\label{fig:posterior:10dof} Arm configuration of a planar manipulator with 10 revolute joints and end-effector position at $(x, y) = [4.70 -2.50]$. 100 samples are drawn from each model's predicted posterior $\tilde{p}(x | y_{gt})$, one random sample configuration is highlighted.}
+\end{figure*}
+
+\begin{figure*}[tbh]
+\centering
+	\subfloat[Rejection Sampling]{\includegraphics[width=0.45\linewidth]{figures/q_quantile_rejection_sampling_CVAE_10DOF.png}
+    \label{fig:q_quantile:rejection_sampling:cVAE:10DOF}}
+    %
+    \subfloat[cVAE]{\includegraphics[width=0.45\linewidth]{figures/q_quantile_prediction_CVAE_10DOF.png}
+        \label{fig:q_quantile:cVAE:10DOF}}
+
+    \caption{\label{fig:q_quantile:cVAE:10dof} Area of the convex hull of the 0.97 percentile of the end-effector coordinates with the ground truth end-effector position at $(x, y) = [4.70 -2.50]$. Number of DoF: 10.}
+\end{figure*}
+
+\begin{figure*}[tbh]
+\centering
+	\subfloat[Rejection Sampling]{\includegraphics[width=0.45\linewidth]{figures/q_quantile_rejection_sampling_INN_10DOF.png}
+    \label{fig:q_quantile:rejection_sampling:INN:10DOF}}
+    %
+    \subfloat[INN]{\includegraphics[width=0.45\linewidth]{figures/q_quantile_prediction_INN_10DOF.png}
+        \label{fig:q_quantile:INN:10DOF}}
+
+    \caption{\label{fig:q_quantile:INN:10dof} Area of the convex hull of the 0.97 percentile of the end-effector coordinates with the ground truth end-effector position at $(x, y) = [4.70 -2.50]$. Number of DoF: 10.}
+\end{figure*}
 
 \section*{Conclusion}
 
