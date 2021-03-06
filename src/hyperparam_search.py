@@ -96,6 +96,9 @@ if __name__ == '__main__':
         search_alg=SkOptSearch(),
         # stop trial if loss explodes
         stop=stopper,
+        # retry failed attempts 
+        # some INNs require more than one try
+        max_failures=3,
     )
 
     print("Best configuration:")

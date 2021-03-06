@@ -52,12 +52,10 @@ def get_best(analysis):
 
     df = analysis.trial_dataframes
 
+    best_any = {}
     best_final = {}
     for key, value in df.items():
         best_final[key] = value.at[value.index[-1], "loss"]
-
-    best_any = {}
-    for key, value in df.items():
         best_any[key] = value["loss"].min()
 
     # sort best
@@ -80,7 +78,7 @@ def get_best(analysis):
 if __name__ == "__main__":
 
     analysis = tune.Analysis(
-        "./results/train_2021-02-14_11-12-08",
+        "~/ray_results/train_2021-03-05_11-25-43",
         "loss", "min")
 
     # make sure results directory exists

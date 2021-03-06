@@ -8,3 +8,4 @@ pyyaml
 scipy
 # for hyper-parameter tuning
 ray[tune]
+scikit-optimize
