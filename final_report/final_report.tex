@@ -178,11 +178,23 @@ In Fig. \ref{fig:q_quantile:cVAE:6DOF} and \ref{fig:q_quantile:INN:6DOF}, the ar
     \subfloat[INN]{\includegraphics[width=0.47\linewidth]{figures/q_quantile_prediction_INN_6DOF.png}
         \label{fig:q_quantile:INN:6DOF}}
 
-    \caption{\label{fig:q_quantile:cVAE:6dof} Area of the convex hull of the 0.97 percentile of the re-simulated end-effector coordinates with the ground truth end-effector position at $(x, y) = [3.47, 0.19]$ and $1000$ samples. Number of DoF: 6.}
+    \caption{Area of the convex hull of the 0.97 percentile of the re-simulated end-effector coordinates with the ground truth end-effector position at $(x, y) = [3.47, 0.19]$ and $1000$ samples. Number of DoF: 6.}
+\end{figure*}
+
+\begin{figure*}[tbh]
+\centering
+	\subfloat[cVAE]{\includegraphics[width=0.47\linewidth]{figures/q_quantile_prediction_CVAE_10DOF.png}
+    \label{fig:q_quantile:cVAE:10DOF}}
+    %
+    \subfloat[INN]{\includegraphics[width=0.47\linewidth]{figures/q_quantile_prediction_INN_10DOF.png}
+        \label{fig:q_quantile:INN:10DOF}}
+
+    \caption{Area of the convex hull of the 0.97 percentile of the re-simulated end-effector coordinates with the ground truth end-effector position at $(x, y) = [5.00 0.53]$ and $1000$ samples. Number of DoF: 10.}
 \end{figure*}
 %%%%%%%%%%%%%%%%%%%%%%
 % FIGURES, POSTERIOR
 %%%%%%%%%%%%%%%%%%%%%%
+
 \begin{figure*}[tbh]
 \centering
 	\subfloat[Rejection Sampling]{\includegraphics[width=0.32\linewidth]{figures/rejection_sampling_INN_6DOF.png}
@@ -194,7 +206,21 @@ In Fig. \ref{fig:q_quantile:cVAE:6DOF} and \ref{fig:q_quantile:INN:6DOF}, the ar
     \subfloat[INN]{\includegraphics[width=0.32\linewidth]{figures/predicted_posterior_INN_6DOF.png}
         \label{fig:INN:6DOF}}
 
-    \caption{\label{fig:posterior:6dof} Arm configuration of a planar manipulator with $6$ revolute joints and end-effector position at $(x, y) = [3.47, 0.19]$. 100 samples are drawn from each model's predicted posterior $\tilde{p}(x | y_{gt})$, one random sample configuration is highlighted. $e_{posterior} = 0.032$ for the cVAE and $e_{posterior} = 0.018$ for the INN.}
+    \caption{\label{fig:posterior:6dof} Arm configuration of a planar manipulator with $6$ revolute joints and end-effector position at $(x, y) = [3.47, 0.19]$. 1000 samples are drawn from each model's predicted posterior $\tilde{p}(x | y_{gt})$, one random sample configuration is highlighted. $e_{posterior} = 0.032$ for the cVAE and $e_{posterior} = 0.018$ for the INN.}
+\end{figure*}
+
+\begin{figure*}[tbh]
+\centering
+	\subfloat[Rejection Sampling]{\includegraphics[width=0.32\linewidth]{figures/rejection_sampling_INN_10DOF.png}
+    \label{fig:rejection_sampling:10DOF}}
+    %
+    \subfloat[cVAE]{\includegraphics[width=0.32\linewidth]{figures/predicted_posterior_CVAE_10DOF.png}
+        \label{fig:cVAE:10DOF}}
+    %
+    \subfloat[INN]{\includegraphics[width=0.32\linewidth]{figures/predicted_posterior_INN_10DOF.png}
+        \label{fig:INN:10DOF}}
+
+    \caption{\label{fig:posterior:10dof} Arm configuration of a planar manipulator with $10$ revolute joints and end-effector position at $(x, y) = [5.00 0.53]$. 1000 samples are drawn from each model's predicted posterior $\tilde{p}(x | y_{gt})$, one random sample configuration is highlighted. $e_{posterior} = 0.057$ for the cVAE and $e_{posterior} = 0.025$ for the INN.}
 \end{figure*}
 
 \section*{Conclusion}
