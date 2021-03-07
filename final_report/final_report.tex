@@ -99,7 +99,12 @@ For our tests, we trained a network for each robot simulation (DOF). Thus, the s
 The previous two model architectures (cVAE and INN) have been implemented in PyTorch and are inspired by existing implementations in  \cite{graviraja2019, freia2020}. We utilized the Google Compute Engine to train our models.
 
 \section*{Experimental Evaluation}
+
 \subsection*{Evaluation protocol}
+
+We extended the DoF of the robots up to 15 DoF and performed Baysian optimization for the hyperparameters for $DoF = [4, 6, 10, 15]$. But now it is important to mention that due to HPO, the number of trainable parameters differs between cVAE and INN. 
+For the cVAE, we optimized the learning rate, the weight decay, the number of hidden layers for the encoder and decoder and the amount of neurons per layer. For the INN, we optimized the learning rate, the weight decay, the number of coupling layers, the amount of layers per subnet and also the number of neurons per subnet layer. 
+Both networks have been trained for 60 epochs. Both networks have been trained on a dataset with 1 million samples and a train and test spit of 70 and 30, respectively. For evaluation, we used again the two evaluation metrics  we have already described in the midterm report.
 
 \subsection*{Results}
 
