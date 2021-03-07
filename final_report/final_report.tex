@@ -79,13 +79,15 @@ The first approach uses a  non-minimal parameterization of ...
 \subsubsection*{Second approach}
 
 
+\subsection*{Network Architectures}
 
+As described in the midterm report, we implemented two network architecture for generating the full posterior of the joint angles: Unlike VAE, cVAE are able to control the data generation process by conditioning the latent space $z$. Considering the application of inverse kinematics,  samples are drawn from $p(z) \sim N(0, 1)$ and the predicted posterior of the joint angles is then generated conditioned on the end-effector position.
 
-\subsection*{Conditional Variational Autoencoder}
+INNs model a bijective mapping from the joint angles to the end-effector position by stacking invertible blocks together. Here, the dimensionality of the joint angles $x$ is the same as the concatenated output consisting of the latent space $z$ and the end-effector position $y$. The predicted posterior of the joint angles is then generated similar to cVAE by sampling from $p(z) \sim N(0, 1)$ and then running the network backwards condition on $y$.
 
-\subsection*{Invertible Neural Networks}
+Additionally, INNs share properties with normalizing flows \cite{normalizingFlows2010, normalizingFlows2013} which gradually transform a normal density into the desired datadensity. They are also bijective and for both normalizing flows and INNs, a tractable Jacobian exists hich allows explicit computation of posterior probabilities.
 
-Autoregressive flows ...
+As stated in \cite{Ardizzone2018}, the INN only needs to be trained on the well-understood forward process and then the inverse process can be obtained for free by just running the network backwards at prediction time. The also mention that results can be improved with additional unsupervised backward training. When applying INNs to the inverse kinemtaics proble, we found that to match the performance of the cVAE, unsupervides brackward training is crucial. This results in two network passes per training step to accumulate the gradients and slows down training a lot. Additionally, when training INNs the parameters need to be adjusted carefully as training can be become unstable.
 
 \subsection*{Hyperparameter Optimization}
 
@@ -102,11 +104,44 @@ The previous two model architectures (cVAE and INN) have been implemented in PyT
 
 \subsection*{Evaluation protocol}
 
-We extended the DoF of the robots up to 15 DoF and performed Baysian optimization for the hyperparameters for $DoF = [4, 6, 10, 15]$. But now it is important to mention that due to HPO, the number of trainable parameters differs between cVAE and INN. 
-For the cVAE, we optimized the learning rate, the weight decay, the number of hidden layers for the encoder and decoder and the amount of neurons per layer. For the INN, we optimized the learning rate, the weight decay, the number of coupling layers, the amount of layers per subnet and also the number of neurons per subnet layer. 
-Both networks have been trained for 60 epochs. Both networks have been trained on a dataset with 1 million samples and a train and test spit of 70 and 30, respectively. For evaluation, we used again the two evaluation metrics  we have already described in the midterm report.
+We extended the DoF of the robots up to 15 DoF and performed Baysian optimization for the hyperparameters for $DoF = [4, 6, 10, 15]$. But now it is important to mention that due to HPO, the number of trainable parameters differs between cVAE and INN. The batch size is was kept fixed to $1000$ for both networks.
+For the cVAE, we optimized the learning rate, the weight decay, the number of hidden layers for the encoder and decoder and the amount of neurons per layer. For the INN, we optimized the learning rate, the weight decay, the number of coupling layers, the amount of layers per subnet and also the number of neurons per subnet layer.
+Both networks have been trained for 60 epochs on a dataset with 1 million samples and a train and test spit of 70 and 30, respectively. For evaluation, we used again the two evaluation metrics  we have already described in the midterm report.
 
 \subsection*{Results}
+
+\begin{table*}[h]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+ DOF & learning rate & weight decay & \# hidden layers & \# neurons & \# trainable parameters\\
+ \hline
+ 4  & ...& ... & ... & ... & ...\\
+ 6  & ... & ...& ... & ... & ...\\
+ 10  & ... & ... & ... & ... & ...\\
+ 15  & ... & ... & ... & ... & ...\\
+ \hline
+\end{tabular}
+\vspace{5pt}
+\caption{\label{tab:results}  Hyperparameters for cvae which has been trained on a planar robot with $N$ DOF with $N=[4, 6, 10, 15]$.}
+\end{table*}
+
+\begin{table*}[h]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|c|}
+\hline
+ DOF & learning rate & weight decay & \# coupling layers & \# subnet layers & \# neurons per subnet layer &  \# trainable parameters\\
+ \hline
+ 4  & ...& ... & ... & ... & ... & ...\\
+ 6  & ... & ...& ... & ... & ... & ...\\
+ 10  & ... & ... & ... & ... & ... & ...\\
+ 15  & ... & ... & ... & ... & ... & ...\\
+ \hline
+\end{tabular}
+\vspace{5pt}
+\caption{\label{tab:results}  Hyperparameters for inn which has been trained on a planar robot with $N$ DOF with $N=[4, 6, 10, 15]$.}
+\end{table*}
+
 
 % In Figures ... the area of the convex hull of the 0.97 percentile of the end-effector coordinates is visualized. In the case of 100 samples, this means the value of the area which includes the 97 nearest points to the ground truth, allowing 3 outliers. The actual end point of each sample may deviate slightly from the target. Also to mention is that the convex hull of rejections sampling (eps = ...) produces a value of ....
 % contour lines enclose the regions containing $97\%$ of these end points.
@@ -116,6 +151,7 @@ Both networks have been trained for 60 epochs. Both networks have been trained o
 	\item Minimal representation of joint angles, as number of DoF increases, doubling the number (1st approach) is not a good idea
 	\item Because of HPO, the number of parameters over the amount of DoF differs and does not increase cosistently
 	\item The INN Does a better job in estimating the full posterior of the joint configuration as the cVAE
+	\item INN needs two forward processes
 \end{itemize}
 
 \begin{figure}[!ht]
@@ -169,6 +205,9 @@ Both networks have been trained for 60 epochs. Both networks have been trained o
 \end{figure*}
 
 \section*{Conclusion}
+
+We have compared the two networks cVAE and INN to the application of inverse kinematics. ...
+The focus in this work was on the study of the INN which in theory, is a powerful tool to recover the full posterior parameters distribution. When applied to inverse kinemtaics though, ...
 
 
 \nocite{*}
