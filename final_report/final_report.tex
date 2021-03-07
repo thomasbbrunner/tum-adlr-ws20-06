@@ -71,27 +71,25 @@ The dataset used for training is composed of one million samples of robot config
 
 \subsection*{Considering Singularities}
 
-As already mentioned in the previous section, we avoid discontinuities by restricting the configuratoin space of the robot. Yet we implemented two approaches which consider this discontinuity in the angles at \( \theta = \pi \) to generalize the implemented networks to inverse kinematics problems.
+As already mentioned in the previous section, we avoid discontinuities by restricting the configuration space of the robot. Yet we implemented two approaches which consider this discontinuity in the angles at $\theta \in (- \pi , \pi)$ to extend the implemented networks to inverse kinematics problems with general configuration spaces.
 
-\subsubsection*{First approach}
-The first approach uses a  non-minimal parameterization of ...
+The first approach is a non-minimal parameterization of the configuration space as it uses a vector-based representation which was already described in the midterm report to avoid singularities at the boundaries of the joint angles. The drawback of this approach is that the input space is doubled which becomes more and more a problem when increasing the amount of revolute joints of the planar robot.
 
-\subsubsection*{Second approach}
-
+Therefore, we also considered an alternative approach where we just consider the joint angles resulting in a minimal-reparameterization of the configuration space, again. The discontinuities are now considered in the loss function for the reconstruction error of the of the joint angle space. It ensures that, for example when having a ground truth joint angle $\theta _{gt} = 178^\circ$ and a predicted joint angle $\theta _{pred} = -178^\circ$, the difference between these two angles is only $4^\circ$ instead of $356^\circ$ resulting in a smaller loss.
 
 \subsection*{Network Architectures}
 
-As described in the midterm report, we implemented two network architecture for generating the full posterior of the joint angles: Unlike VAE, cVAE are able to control the data generation process by conditioning the latent space $z$. Considering the application of inverse kinematics,  samples are drawn from $p(z) \sim N(0, 1)$ and the predicted posterior of the joint angles is then generated conditioned on the end-effector position.
+As described in the midterm report, we implemented two network architectures for generating the full posterior distribution of the joint angles: Unlike Variational Autoencoders (VAE), conditional Variational Autoencoders (cVAE) are able to control the data generation process by conditioning the latent space $z$. Considering the application of inverse kinematics,  samples are drawn from $p(z) \sim N(0, 1)$ and the predicted posterior distribution of the joint angles is then generated conditioned on the end-effector position.
 
-INNs model a bijective mapping from the joint angles to the end-effector position by stacking invertible blocks together. Here, the dimensionality of the joint angles $x$ is the same as the concatenated output consisting of the latent space $z$ and the end-effector position $y$. The predicted posterior of the joint angles is then generated similar to cVAE by sampling from $p(z) \sim N(0, 1)$ and then running the network backwards condition on $y$.
+Invertible Neural Networks (INN) model a bijective mapping from the joint angles to the end-effector position by stacking invertible blocks together. Here, the dimensionality of the joint angles $x$ is the same as the concatenated output consisting of the latent space $z$ and the end-effector position $y$. The predicted posterior of the joint angles is then generated similar to cVAE by sampling from $p(z) \sim N(0, 1)$ and then running the network backwards conditioned on $y$.
 
-Additionally, INNs share properties with normalizing flows \cite{normalizingFlows2010, normalizingFlows2013} which gradually transform a normal density into the desired datadensity. They are also bijective and for both normalizing flows and INNs, a tractable Jacobian exists hich allows explicit computation of posterior probabilities.
+Additionally, INNs share properties with normalizing flows \cite{normalizingFlows2010, normalizingFlows2013} which gradually transform a normal density into the desired data density. They are also bijective and for both normalizing flows and INNs, a tractable Jacobian exists which allows explicit computation of posterior probabilities. As the focus in this work lies on the comparison between cVAE and INN, normalizing flows are not considered anymore.
 
-As stated in \cite{Ardizzone2018}, the INN only needs to be trained on the well-understood forward process and then the inverse process can be obtained for free by just running the network backwards at prediction time. The also mention that results can be improved with additional unsupervised backward training. When applying INNs to the inverse kinemtaics proble, we found that to match the performance of the cVAE, unsupervides brackward training is crucial. This results in two network passes per training step to accumulate the gradients and slows down training a lot. Additionally, when training INNs the parameters need to be adjusted carefully as training can be become unstable.
+As stated in \cite{Ardizzone2018}, the INN only needs to be trained on the well-understood forward process and then the inverse process can be obtained for free by just running the network backwards at prediction time. The authors also mention that results can be improved with additional unsupervised backward training. When applying INNs to the inverse kinematics problem, we found that to match the performance of the cVAE, unsupervised brackward training is crucial. This results in two network passes per training step to accumulate the gradients and slows down training a lot. Additionally, when training INNs the parameters need to be adjusted carefully as training can be become unstable.
 
 \subsection*{Hyperparameter Optimization}
 
-For our tests, we trained a network for each robot simulation (DOF). Thus, the sizes and selection of hyperparameters of each network had to match the compleity of the simulation. To compare the performance of the networks across different DOFs in a fair setting, we used Tune \cite{liaw2018tune} to perform a random search of the hyperparameters. To reduce computation time, we trained the models using a subset of the main dataset, which was composed of \( 1e4 \) samples.
+For our tests, we trained a network for each robot simulation (DOF). Thus, the sizes and selection of hyperparameters of each network had to match the complexity of the simulation. To compare the performance of the networks across different DOFs in a fair setting, we used Tune \cite{liaw2018tune} to perform a random search of the hyperparameters. To reduce computation time, we trained the models using a subset of the main dataset, which was composed of \( 1e4 \) samples.
 
 % TODO eventually add table with tuned parameters and 
 % the range of the parameters!
@@ -104,13 +102,13 @@ The previous two model architectures (cVAE and INN) have been implemented in PyT
 
 \subsection*{Evaluation protocol}
 
-We extended the DoF of the robots up to 15 DoF and performed Baysian optimization for the hyperparameters for $DoF = [6, 10, 15]$ by evaluating $100$ points in the hyperparameters space for each DoF. But now it is important to mention that due to HPO, the number of trainable parameters differs between cVAE and INN. The batch size is was kept fixed to $1000$ for both networks.
+We extended the degrees of freedoms (DoF) of the robots up to 10 DoF and performed hyperparameter optimization (HPO) for the hyperparameters for $DoF = [6, 8, 10]$ by evaluating $100$ points in the hyperparameters space for each DoF. But now it is important to mention that due to HPO, the number of trainable parameters differs between cVAE and INN. The batch size is kept fixed to $1000$ for both networks.
 For the cVAE, we optimized the learning rate, the weight decay, the number of hidden layers for the encoder and decoder and the amount of neurons per layer. For the INN, we optimized the learning rate, the weight decay, the number of coupling layers, the amount of layers per subnet and also the number of neurons per subnet layer.
-Both networks have been trained for 60 epochs on a dataset with 1 million samples and a train and test spit of 70 and 30, respectively. For evaluation, we used again the two evaluation metrics  we have already described in the midterm report:
+Both networks have been trained for 60 epochs on a dataset with 1 million samples and a train and test spit of 70 and 30, respectively. For evaluation, we used again the two evaluation metrics which have been described in the midterm report:
 
-1. The average mismatch between the true posterior obtained via rejection sampling and the predicted posterior computed for now 1000 instead of 100 randomly but fixed chosed samples from the test dataset.
+1. The average posterior mismatch between the distribution generated by the model and the ground truth estimate obtained via rejection sampling. For generating the posterior, we used 100 samples per ground truth position and averaged over 1000 samples from the dataset.
 
-2. The average re-simulation error computed on the whole test dataset by applying the simulation for the true forward kinematics to the generated joint angles and measure the mean squared distance between the ground truth end-effector position and the re-simulated end-effector position resulting from the predicted joint angles.
+2. The average re-simulation error as the mean squared distance between the ground truth end-effector position and the re-simulated end-effector position obtained from the predicted joint angles. The re-simulation error was averaged over the whole test dataset.
 
 \subsection*{Results}
 
@@ -147,9 +145,9 @@ Both networks have been trained for 60 epochs on a dataset with 1 million sample
 \caption{\label{tab:results:inn}  Hyperparameters for inn which has been trained on a planar robot with $N$ DOF with $N=[4, 6, 10, 15]$.}
 \end{table*}
 
-The hyperparameters for the cVAE and INN chosen by Bayesian optimization are depicted in Table \ref{tab:results:cvae} and \ref{tab:results:inn}, respectively. Because of HPO, the number of parameters per robot is not approximately equal, anymore. As it can be seen in the tables, the best architectures are not the architectures with the most numbers of trainable parameters. This also shows that the hyperparameters search space is sufficient. 
+The hyperparameters for the cVAE and INN chosen by HPO are depicted in Table \ref{tab:results:cvae} and \ref{tab:results:inn}, respectively. Because of HPO, the number of parameters per robot is not approximately equal, anymore. As it can be seen in the tables, the best architectures are not the architectures with the most numbers of trainable parameters. This also shows that the hyperparameters search space is sufficient. 
 
-For both networks, the mismatch of the posterior and the re-simulation error is plotted over the number of parameters in Fig. \ref{fig:plot:posterior} and \ref{fig:plot:resim}, respectively. Each plotted point is labelled with the corresponding robot of different DoF. As it can be seen, when increasing the number of degrees of freedom, the number of parameters does not have to be increased, as well. This is also a result of the HPO. 
+For both networks, the mismatch of the posterior distribution and the re-simulation error is plotted over the number of parameters in Fig. \ref{fig:plot:posterior} and \ref{fig:plot:resim}, respectively. Each plotted point is labelled with the corresponding robot of different DoF. As it can be seen, when increasing the number of degrees of freedom, the number of parameters does not have to be increased, as well. This is also a result of the HPO. 
 The mismatch of the predicted posterior (see Fig. \ref{fig:plot:posterior}) with the ground truth posterior obtained from rejection sampling is less for the INN as for the cVAE. But in contrast to that, the cVAE performs consistently better on the re-simulation error as the INN (see Fig. \ref{fig:plot:resim}).
 
 %%%%%%%%%%%%%%%%%%%%%%
@@ -158,14 +156,12 @@ The mismatch of the predicted posterior (see Fig. \ref{fig:plot:posterior}) with
 \begin{figure}[!ht]
 \centering
 	\includegraphics[width=\linewidth]{figures/comparison_e_posterior_alternative.jpg}
-    \label{fig:plot:posterior}
     \caption{\label{fig:plot:posterior} Results. Mismatch of posterior. Needs to be completed.}
 \end{figure}
 
 \begin{figure}[!ht]
 \centering
 	\includegraphics[width=\linewidth]{figures/comparison_e_resim_alternative.jpg}
-    \label{fig:plot:posterior}
     \caption{\label{fig:plot:resim} Results. Mismatch of re-simulation error. Needs to be completed.}
 \end{figure}
 
