@@ -104,11 +104,19 @@ The previous two model architectures (cVAE and INN) have been implemented in PyT
 
 \subsection*{Evaluation protocol}
 
-We extended the DoF of the robots up to 15 DoF and performed Baysian optimization for the hyperparameters for $DoF = [4, 6, 10, 15]$. But now it is important to mention that due to HPO, the number of trainable parameters differs between cVAE and INN. The batch size is was kept fixed to $1000$ for both networks.
+We extended the DoF of the robots up to 15 DoF and performed Baysian optimization for the hyperparameters for $DoF = [4, 6, 10, 15]$ by evaluating $100$ points in the hyperparameters space for each DoF. But now it is important to mention that due to HPO, the number of trainable parameters differs between cVAE and INN. The batch size is was kept fixed to $1000$ for both networks.
 For the cVAE, we optimized the learning rate, the weight decay, the number of hidden layers for the encoder and decoder and the amount of neurons per layer. For the INN, we optimized the learning rate, the weight decay, the number of coupling layers, the amount of layers per subnet and also the number of neurons per subnet layer.
 Both networks have been trained for 60 epochs on a dataset with 1 million samples and a train and test spit of 70 and 30, respectively. For evaluation, we used again the two evaluation metrics  we have already described in the midterm report.
 
 \subsection*{Results}
+
+The hyperparameters for the cVAE and INN chosen by Bayesian optimization are depicted in Table \ref{tab:results:cvae} and \ref{tab:results:inn}, respectively. Because of HPO, the number of parameters per robot is not approximately equal, anymore. As it can be seen in the tables, the best architectures are not the architectures with the most numbers of trainable parameters. This also shows that the hyperparameters search space is sufficient. 
+
+For both networks, the mismatch of the posterior and the re-simulation error is plotted over the number of parameters in Fig. \ref{fig:plot:posterior} and \ref{fig:plot:resim}, respectively. Each plotted point is labelled with the corresponding robot of different DoF. As it can be seen, when increasing the number of degrees of freedom, the number of parameters does not have to be increased, as well. This is also a result of the HPO. 
+The mismatch of the predicted posterior (see Fig. \ref{fig:plot:posterior}) with the ground truth posterior obtained from rejection sampling is less for the INN as for the cVAE. But in contrast to that, the cVAE performs consistently better on the re-simulation error as the INN (see Fig. \ref{fig:plot:resim}).
+
+Look at the convex hull!!!!!
+
 
 \begin{table*}[h]
 \centering
@@ -123,7 +131,7 @@ Both networks have been trained for 60 epochs on a dataset with 1 million sample
  \hline
 \end{tabular}
 \vspace{5pt}
-\caption{\label{tab:results}  Hyperparameters for cvae which has been trained on a planar robot with $N$ DOF with $N=[4, 6, 10, 15]$.}
+\caption{\label{tab:results:cvae}  Hyperparameters for cvae which has been trained on a planar robot with $N$ DOF with $N=[4, 6, 10, 15]$.}
 \end{table*}
 
 \begin{table*}[h]
@@ -139,7 +147,7 @@ Both networks have been trained for 60 epochs on a dataset with 1 million sample
  \hline
 \end{tabular}
 \vspace{5pt}
-\caption{\label{tab:results}  Hyperparameters for inn which has been trained on a planar robot with $N$ DOF with $N=[4, 6, 10, 15]$.}
+\caption{\label{tab:results:inn}  Hyperparameters for inn which has been trained on a planar robot with $N$ DOF with $N=[4, 6, 10, 15]$.}
 \end{table*}
 
 
