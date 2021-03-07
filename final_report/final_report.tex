@@ -106,7 +106,11 @@ The previous two model architectures (cVAE and INN) have been implemented in PyT
 
 We extended the DoF of the robots up to 15 DoF and performed Baysian optimization for the hyperparameters for $DoF = [4, 6, 10, 15]$ by evaluating $100$ points in the hyperparameters space for each DoF. But now it is important to mention that due to HPO, the number of trainable parameters differs between cVAE and INN. The batch size is was kept fixed to $1000$ for both networks.
 For the cVAE, we optimized the learning rate, the weight decay, the number of hidden layers for the encoder and decoder and the amount of neurons per layer. For the INN, we optimized the learning rate, the weight decay, the number of coupling layers, the amount of layers per subnet and also the number of neurons per subnet layer.
-Both networks have been trained for 60 epochs on a dataset with 1 million samples and a train and test spit of 70 and 30, respectively. For evaluation, we used again the two evaluation metrics  we have already described in the midterm report.
+Both networks have been trained for 60 epochs on a dataset with 1 million samples and a train and test spit of 70 and 30, respectively. For evaluation, we used again the two evaluation metrics  we have already described in the midterm report:
+
+1. The average mismatch between the true posterior obtained via rejection sampling and the predicted posterior computed for now 1000 instead of 100 randomly but fixed chosed samples from the test dataset.
+
+2. The average re-simulation error computed on the whole test dataset by applying the simulation for the true forward kinematics to the generated joint angles and measure the mean squared distance between the ground truth end-effector position and the re-simulated end-effector position resulting from the predicted joint angles.
 
 \subsection*{Results}
 
@@ -116,15 +120,18 @@ For both networks, the mismatch of the posterior and the re-simulation error is 
 The mismatch of the predicted posterior (see Fig. \ref{fig:plot:posterior}) with the ground truth posterior obtained from rejection sampling is less for the INN as for the cVAE. But in contrast to that, the cVAE performs consistently better on the re-simulation error as the INN (see Fig. \ref{fig:plot:resim}).
 
 Look at the convex hull!!!!!
+% In Figures ... the area of the convex hull of the 0.97 percentile of the end-effector coordinates is visualized. In the case of 100 samples, this means the value of the area which includes the 97 nearest points to the ground truth, allowing 3 outliers. The actual end point of each sample may deviate slightly from the target. Also to mention is that the convex hull of rejections sampling (eps = ...) produces a value of ....
+% contour lines enclose the regions containing $97\%$ of these end points.
 
-
+%%%%%%%%%%%%%%%%%%%%%%
+% TABLES
+%%%%%%%%%%%%%%%%%%%%%%
 \begin{table*}[h]
 \centering
 \begin{tabular}{|c|c|c|c|c|c|}
 \hline
  DOF & learning rate & weight decay & \# hidden layers & \# neurons & \# trainable parameters\\
  \hline
- 4  & ...& ... & ... & ... & ...\\
  6  & ... & ...& ... & ... & ...\\
  10  & ... & ... & ... & ... & ...\\
  15  & ... & ... & ... & ... & ...\\
@@ -140,7 +147,6 @@ Look at the convex hull!!!!!
 \hline
  DOF & learning rate & weight decay & \# coupling layers & \# subnet layers & \# neurons per subnet layer &  \# trainable parameters\\
  \hline
- 4  & ...& ... & ... & ... & ... & ...\\
  6  & ... & ...& ... & ... & ... & ...\\
  10  & ... & ... & ... & ... & ... & ...\\
  15  & ... & ... & ... & ... & ... & ...\\
@@ -149,19 +155,9 @@ Look at the convex hull!!!!!
 \vspace{5pt}
 \caption{\label{tab:results:inn}  Hyperparameters for inn which has been trained on a planar robot with $N$ DOF with $N=[4, 6, 10, 15]$.}
 \end{table*}
-
-
-% In Figures ... the area of the convex hull of the 0.97 percentile of the end-effector coordinates is visualized. In the case of 100 samples, this means the value of the area which includes the 97 nearest points to the ground truth, allowing 3 outliers. The actual end point of each sample may deviate slightly from the target. Also to mention is that the convex hull of rejections sampling (eps = ...) produces a value of ....
-% contour lines enclose the regions containing $97\%$ of these end points.
-
-\begin{itemize}
-	\item For evaluation, we considered discontinuities of the joint space by modifying the loss function (2st approach) 
-	\item Minimal representation of joint angles, as number of DoF increases, doubling the number (1st approach) is not a good idea
-	\item Because of HPO, the number of parameters over the amount of DoF differs and does not increase cosistently
-	\item The INN Does a better job in estimating the full posterior of the joint configuration as the cVAE
-	\item INN needs two forward processes
-\end{itemize}
-
+%%%%%%%%%%%%%%%%%%%%%%
+% RESULTS, FIGURES
+%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}[!ht]
 \centering
 	\includegraphics[width=\linewidth]{figures/comparison_e_posterior_alternative.jpg}
@@ -175,48 +171,40 @@ Look at the convex hull!!!!!
     \label{fig:plot:posterior}
     \caption{\label{fig:plot:resim} Results. Mismatch of re-simulation error. Needs to be completed.}
 \end{figure}
-
+%%%%%%%%%%%%%%%%%%%%%%
+% FIGURES, CONVEX HULL
+%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}[tbh]
 \centering
-	\subfloat[Rejection Sampling]{\includegraphics[width=0.29\linewidth]{figures/rejection_sampling_CVAE_10DOF.png}
-    \label{fig:rejection_sampling:10DOF}}
+	\subfloat[cVAE]{\includegraphics[width=0.47\linewidth]{figures/q_quantile_prediction_CVAE_6DOF.png}
+    \label{fig:q_quantile:cVAE:6DOF}}
     %
-    \subfloat[cVAE]{\includegraphics[width=0.29\linewidth]{figures/predicted_posterior_CVAE_10DOF.png}
-        \label{fig:cVAE:10DOF}}
-    %
-    \subfloat[INN]{\includegraphics[width=0.29\linewidth]{figures/predicted_posterior_INN_10DOF.png}
-        \label{fig:INN:10DOF}}
+    \subfloat[INN]{\includegraphics[width=0.47\linewidth]{figures/q_quantile_prediction_INN_6DOF.png}
+        \label{fig:q_quantile:INN:6DOF}}
 
-    \caption{\label{fig:posterior:10dof} Arm configuration of a planar manipulator with 10 revolute joints and end-effector position at $(x, y) = [4.70 -2.50]$. 100 samples are drawn from each model's predicted posterior $\tilde{p}(x | y_{gt})$, one random sample configuration is highlighted.}
+    \caption{\label{fig:q_quantile:cVAE:6dof} Area of the convex hull of the 0.97 percentile of the re-simulated end-effector coordinates with the ground truth end-effector position at $(x, y) = [3.47, 0.19]$ and $1000$ samples. Number of DoF: 6.}
 \end{figure*}
-
+%%%%%%%%%%%%%%%%%%%%%%
+% FIGURES, POSTERIOR
+%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure*}[tbh]
 \centering
-	\subfloat[Rejection Sampling]{\includegraphics[width=0.45\linewidth]{figures/q_quantile_rejection_sampling_CVAE_10DOF.png}
-    \label{fig:q_quantile:rejection_sampling:cVAE:10DOF}}
+	\subfloat[Rejection Sampling]{\includegraphics[width=0.32\linewidth]{figures/rejection_sampling_INN_6DOF.png}
+    \label{fig:rejection_sampling:6DOF}}
     %
-    \subfloat[cVAE]{\includegraphics[width=0.45\linewidth]{figures/q_quantile_prediction_CVAE_10DOF.png}
-        \label{fig:q_quantile:cVAE:10DOF}}
-
-    \caption{\label{fig:q_quantile:cVAE:10dof} Area of the convex hull of the 0.97 percentile of the end-effector coordinates with the ground truth end-effector position at $(x, y) = [4.70 -2.50]$. Number of DoF: 10.}
-\end{figure*}
-
-\begin{figure*}[tbh]
-\centering
-	\subfloat[Rejection Sampling]{\includegraphics[width=0.45\linewidth]{figures/q_quantile_rejection_sampling_INN_10DOF.png}
-    \label{fig:q_quantile:rejection_sampling:INN:10DOF}}
+    \subfloat[cVAE]{\includegraphics[width=0.32\linewidth]{figures/predicted_posterior_CVAE_6DOF.png}
+        \label{fig:cVAE:6DOF}}
     %
-    \subfloat[INN]{\includegraphics[width=0.45\linewidth]{figures/q_quantile_prediction_INN_10DOF.png}
-        \label{fig:q_quantile:INN:10DOF}}
+    \subfloat[INN]{\includegraphics[width=0.32\linewidth]{figures/predicted_posterior_INN_6DOF.png}
+        \label{fig:INN:6DOF}}
 
-    \caption{\label{fig:q_quantile:INN:10dof} Area of the convex hull of the 0.97 percentile of the end-effector coordinates with the ground truth end-effector position at $(x, y) = [4.70 -2.50]$. Number of DoF: 10.}
+    \caption{\label{fig:posterior:6dof} Arm configuration of a planar manipulator with $6$ revolute joints and end-effector position at $(x, y) = [3.47, 0.19]$. 100 samples are drawn from each model's predicted posterior $\tilde{p}(x | y_{gt})$, one random sample configuration is highlighted. $e_{posterior} = 0.032$ for the cVAE and $e_{posterior} = 0.018$ for the INN.}
 \end{figure*}
 
 \section*{Conclusion}
 
 We have compared the two networks cVAE and INN to the application of inverse kinematics. ...
 The focus in this work was on the study of the INN which in theory, is a powerful tool to recover the full posterior parameters distribution. When applied to inverse kinemtaics though, ...
-
 
 \nocite{*}
 \bibliographystyle{IEEEtran}

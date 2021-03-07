@@ -43,8 +43,8 @@ if __name__ == '__main__':
     ####################################################################################################################
 
     DATASET_SAMPLES = 1e6
-    N = 1000
-    M = 100
+    N = 1
+    M = 1000
     percentile = 0.97
     STD = 0.2
     NORMAL = True
@@ -85,7 +85,9 @@ if __name__ == '__main__':
     TEST_SAMPLES = int(0.3 * DATASET_SAMPLES)
     # ensures that models are trained and tested on the same samples
     # torch.manual_seed(42)
-    torch.manual_seed(123)
+    # torch.manual_seed(123)
+    torch.manual_seed(321)
+
     train_dataset, test_dataset = torch.utils.data.random_split(dataset, [TRAIN_SAMPLES, TEST_SAMPLES])
     test_dataloader = DataLoader(test_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
 
@@ -196,53 +198,53 @@ if __name__ == '__main__':
     # Apply the forward process f to the generated samples _p(x|y*): y_resim = f(_p(x|y*)) and
     # measure the re-simulation error between y_resim and y*
 
-    # Now consider the whole test dataset
-    num_batches = 0
-    error_resim_avg = []
-    error_resim_avg.append(0)
-    for joint_batch, tcp_batch in test_dataloader:
-
-        joint_batch = joint_batch.to(device)
-        tcp_batch = tcp_batch.to(device)
-
-        # only accepts float
-        joint_batch = joint_batch.float()
-        tcp_batch = tcp_batch.float()
-
-        _x = model.predict(tcp_batch, device)
-
-        # Post-ptrocessing
-        _x = postprocess(_x, config=config)
-
-        # perform forward kinemtatics on _x
-        y_resim = torch.Tensor(robot.forward(joint_states=_x.cpu().detach()))
-        y_resim = y_resim.to(device)
-
-        # Exclude orientation
-        y_resim = y_resim[:, :2]
-        error_resim = MSE(y_resim, tcp_batch, reduction='mean')
-        error_resim_avg[-1] += error_resim
-        num_batches += 1
-
-    error_resim_avg[-1] /= num_batches
-    print('Average re-simulation error: %.3f' % error_resim_avg[-1])
-
-    # show trainable parameters
-    trainable_parameters = [p for p in model.parameters() if p.requires_grad]
-    num_trainable_parameters = sum(p.numel() for p in model.parameters())
-
-    list_results = []
-    list_results.append(config['model'])
-    list_results.append('{}DOF'.format(config['dof']))
-    list_results.append('# trainable parameters: ' + str(num_trainable_parameters))
-    list_results.append('N = ' + str(N))
-    list_results.append('M = ' + str(M))
-    list_results.append('Average error of posterior: ' + str(mismatch_avg[-1]))
-    list_results.append('Average re-simulation error: ' + str(error_resim_avg[-1]))
-    list_results.append('config: ' + str(config))
-
-    with open('{}results_{}_{}DOF.json'.format(config['results_dir'], config['model'], config['dof']), 'w') as fout:
-        for item in list_results:
-            json.dump(item, fout)
-            fout.write('\n')
-    print("Results written to file")
+    # # Now consider the whole test dataset
+    # num_batches = 0
+    # error_resim_avg = []
+    # error_resim_avg.append(0)
+    # for joint_batch, tcp_batch in test_dataloader:
+    #
+    #     joint_batch = joint_batch.to(device)
+    #     tcp_batch = tcp_batch.to(device)
+    #
+    #     # only accepts float
+    #     joint_batch = joint_batch.float()
+    #     tcp_batch = tcp_batch.float()
+    #
+    #     _x = model.predict(tcp_batch, device)
+    #
+    #     # Post-ptrocessing
+    #     _x = postprocess(_x, config=config)
+    #
+    #     # perform forward kinemtatics on _x
+    #     y_resim = torch.Tensor(robot.forward(joint_states=_x.cpu().detach()))
+    #     y_resim = y_resim.to(device)
+    #
+    #     # Exclude orientation
+    #     y_resim = y_resim[:, :2]
+    #     error_resim = MSE(y_resim, tcp_batch, reduction='mean')
+    #     error_resim_avg[-1] += error_resim
+    #     num_batches += 1
+    #
+    # error_resim_avg[-1] /= num_batches
+    # print('Average re-simulation error: %.3f' % error_resim_avg[-1])
+    #
+    # # show trainable parameters
+    # trainable_parameters = [p for p in model.parameters() if p.requires_grad]
+    # num_trainable_parameters = sum(p.numel() for p in model.parameters())
+    #
+    # list_results = []
+    # list_results.append(config['model'])
+    # list_results.append('{}DOF'.format(config['dof']))
+    # list_results.append('# trainable parameters: ' + str(num_trainable_parameters))
+    # list_results.append('N = ' + str(N))
+    # list_results.append('M = ' + str(M))
+    # list_results.append('Average error of posterior: ' + str(mismatch_avg[-1]))
+    # list_results.append('Average re-simulation error: ' + str(error_resim_avg[-1]))
+    # list_results.append('config: ' + str(config))
+    #
+    # with open('{}results_{}_{}DOF.json'.format(config['results_dir'], config['model'], config['dof']), 'w') as fout:
+    #     for item in list_results:
+    #         json.dump(item, fout)
+    #         fout.write('\n')
+    # print("Results written to file")

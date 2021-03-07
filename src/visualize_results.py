@@ -52,8 +52,8 @@ if __name__ == '__main__':
     e_resim_CVAE = [4.2692e-05, 0.0002, 0.0012, 0.0050]
 
     # annotations
-    annotations_cVAE = ['4DOF', '6DOF', '10DoF', '15DoF']
-    annotations_INN = ['6DOF', '10DoF']
+    annotations_cVAE = ['6DOF', '10DoF', '15DoF']
+    annotations_INN = ['6DOF', '10DoF', '15DoF']
 
     ####################################################################################################################
 

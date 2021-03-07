@@ -154,7 +154,7 @@ def plot_contour_lines(points, gt, PATH, title="", percentile=0.97):
     plt.suptitle(title)
     plt.grid(True, color="#93a1a1", alpha=0.3)
     # define axis limits dynamically
-    plt.axis([gt[0]-0.15, gt[0]+0.15, gt[1]-0.15, gt[1]+0.15])
+    plt.axis([gt[0]-0.25, gt[0]+0.15, gt[1]-0.25, gt[1]+0.25])
     plt.scatter(points[:, 0], points[:, 1], c='g', s=0.5)
     plt.scatter(gt[0], gt[1], c='r')
     for simplex in hull.simplices:
