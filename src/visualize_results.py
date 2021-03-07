@@ -63,7 +63,7 @@ if __name__ == '__main__':
     plt.plot(names_CVAE_post, values_CVAE_post, color="#bc5090", label="CVAE", marker='o')
     plt.grid(True, color="#93a1a1", alpha=0.3)
     plt.ylabel('error of posterior')
-    plt.legend(frameon=False)
+    plt.legend(frameon=False, fontsize=20)
     plt.title('Comparison between INN and cVAE')
     plt.savefig('figures/evaluation/comparison_e_posterior.jpg')
 
@@ -77,6 +77,8 @@ if __name__ == '__main__':
     plt.title('Comparison between INN and cVAE')
     plt.savefig('figures/evaluation/comparison_e_resim.jpg')
 
+    ####################################################################################################################
+
     # alternative plot
     # e_posterior
     plt.figure(figsize=(15, 8), dpi=80)
@@ -84,18 +86,18 @@ if __name__ == '__main__':
     plt.plot(params_CVAE, e_posterior_CVAE, color="#bc5090", label="CVAE", marker='o')
 
     for i, txt in enumerate(annotations_cVAE):
-        plt.annotate(txt, (params_CVAE[i], e_posterior_CVAE[i]))
+        plt.annotate(txt, (params_CVAE[i], e_posterior_CVAE[i]), fontsize=15)
 
     for i, txt in enumerate(annotations_INN):
-        plt.annotate(txt, (params_INN[i], e_posterior_INN[i]))
+        plt.annotate(txt, (params_INN[i], e_posterior_INN[i]), fontsize=15)
 
     plt.grid(True, color="#93a1a1", alpha=0.3)
-    plt.xticks(fontsize=14, rotation=0)
-    plt.yticks(fontsize=14, rotation=0)
+    plt.xticks(fontsize=20, rotation=0)
+    plt.yticks(fontsize=20, rotation=0)
     plt.xlabel('number of parameters', fontsize=20)
     plt.ylabel('error of posterior', fontsize=20)
 
-    plt.legend(frameon=False)
+    plt.legend(frameon=False, fontsize=20)
     plt.title('Comparison between INN and cVAE', fontsize=25)
     plt.savefig('figures/evaluation/comparison_e_posterior_alternative.jpg')
 
@@ -105,16 +107,16 @@ if __name__ == '__main__':
     plt.plot(params_CVAE, e_resim_CVAE, color="#bc5090", label="CVAE", marker='o')
 
     for i, txt in enumerate(annotations_cVAE):
-        plt.annotate(txt, (params_CVAE[i], e_resim_CVAE[i]))
+        plt.annotate(txt, (params_CVAE[i], e_resim_CVAE[i]), fontsize=15)
 
     for i, txt in enumerate(annotations_INN):
-        plt.annotate(txt, (params_INN[i], e_resim_INN[i]))
+        plt.annotate(txt, (params_INN[i], e_resim_INN[i]), fontsize=15)
 
     plt.grid(True, color="#93a1a1", alpha=0.3)
-    plt.xticks(fontsize=14, rotation=0)
-    plt.yticks(fontsize=14, rotation=0)
+    plt.xticks(fontsize=20, rotation=0)
+    plt.yticks(fontsize=20, rotation=0)
     plt.xlabel('number of parameters', fontsize=20)
     plt.ylabel('re-simulation error', fontsize=20)
-    plt.legend(frameon=False)
+    plt.legend(frameon=False, fontsize=20)
     plt.title('Comparison between INN and cVAE', fontsize=25)
     plt.savefig('figures/evaluation/comparison_e_resim_alternative.jpg')
