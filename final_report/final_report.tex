@@ -42,22 +42,22 @@ In our project, we are evaluating the feasibility of using neural networks for i
 
 To train and test our models, we developed simulations of planar robotic arms with revolute joints. As we are interested in testing the limits of our models, we created simulations of arbitraty degrees of freedom (DoFs). In general, the forward kinematics equations of a planar robot arm with link lengths \( l_i \) and \( N \) revolute joints with joint angles \( \theta_i \) can be described as:
 \begin{equation}
-    x_{TCP} = \sum_{i=1}^{N}{l_i \cos\left( \sum_{j=1}^{i}{\theta_j} \right)}
+    x_\text{TCP} = \sum_{i=1}^{N}{l_i \cos\left( \sum_{j=1}^{i}{\theta_j} \right)}
 \end{equation}
 \begin{equation}
-    y_{TCP} = \sum_{i=1}^{N}{l_i \sin\left( \sum_{j=1}^{i}{\theta_j} \right)}
+    y_\text{TCP} = \sum_{i=1}^{N}{l_i \sin\left( \sum_{j=1}^{i}{\theta_j} \right)}
 \end{equation}
 \begin{equation}
-    \theta_{TCP} = \sum_{i=1}^{N}{\theta_i}
+    \theta_\text{TCP} = \sum_{i=1}^{N}{\theta_i}
 \end{equation}
 
 These equations were modified for fast vectorized numerical computation by the element-wise computation of the sine and cosine of the matrix multiplication of the joint angles vector \( \bm{\theta} = \left[ \theta_1, \theta_2 , ... \right]^\text{T} \) with an upper triangular matrix with ones as elements \( \bm{U} \). The results are then multiplied with the link lengths vector \( \bm{l} = \left[ l_1, l_2, ... \right]^\text{T} \), as shown in Equations \ref{xtcp vectorized} and \ref{ytcp vectorized}.
 \begin{equation}
-    x_{TCP} = \cos \left( \bm{\theta}\ \bm{U} \right) \bm{l}
+    x_\text{TCP} = \cos \left( \bm{\theta}\ \bm{U} \right) \bm{l}
     \label{xtcp vectorized}
 \end{equation}
 \begin{equation}
-    y_{TCP} = \sin \left( \bm{\theta}\ \bm{U} \right) \bm{l}
+    y_\text{TCP} = \sin \left( \bm{\theta}\ \bm{U} \right) \bm{l}
     \label{ytcp vectorized}
 \end{equation}
 
@@ -65,7 +65,7 @@ In our current setup, we do not take the angle of the tool center point (TCP) in
 
 \subsection*{Dataset}
 
-The dataset used for training is composed of one million samples of robot configurations for each DoF. Figure~\ref{fig:datasets} shows an illustration of the datasets. Each configuration was sampled from a normal distribution $ \theta_i \sim \mathcal{N}(\mu=0, \sigma=0.2) $. Thus, the dataset is composed mostly of configurations in which the robot arm is extended. This reflects real-world use cases of robot arms, which have limited workspaces and whose tasks are focused on one section of the workspace. Moreover, limiting the range of the joints improved the performance of the networks, as this avoids the discontinuity in the angles at \( \theta = \pi \).
+The dataset used for training is composed of one million samples of robot configurations for each DoF. Figure~\ref{fig:datasets} shows an illustration of the datasets. Each configuration was sampled from a normal distribution \( \theta_i \sim \mathcal{N}(\mu=0, \sigma=0.2) \). Thus, the dataset is composed mostly of configurations in which the robot arm is extended. This reflects real-world use cases of robot arms, which have limited workspaces and whose tasks are focused on one section of the workspace. Moreover, limiting the range of the joints improved the performance of the networks, as this avoids the discontinuity in the angles at \( \theta = \pi \).
 
 % TODO add images of datasets
 
