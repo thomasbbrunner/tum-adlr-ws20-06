@@ -35,25 +35,25 @@ if __name__ == '__main__':
 
     # INN: # of parameters
     # dummy values for now
-    params_INN = [2566284, 2494380]
+    params_INN = [2566284, 997884, 2494380]
 
     # INN: e_posterior
     # dummy values for now
-    e_posterior_INN = [0.0428, 0.0447]
-    e_resim_INN = [0.0100, 0.0038]
+    e_posterior_INN = [0.0428, 0.0429, 0.0447]
+    e_resim_INN = [0.0100, 0.0035, 0.0038]
 
     # CVAE: # of parameters
     # dummy values for now
-    params_CVAE = [166814, 1303226]
+    params_CVAE = [166814, 1022020, 1303226]
 
     # CVAE: e_posterior
     # dummy values for now
-    e_posterior_CVAE = [0.0449, 0.0528]
-    e_resim_CVAE = [0.0002, 0.0012]
+    e_posterior_CVAE = [0.0449, 0.0494, 0.0528]
+    e_resim_CVAE = [0.0002, 0.0007, 0.0012]
 
     # annotations
-    annotations_cVAE = ['6DOF', '10DoF']
-    annotations_INN = ['6DOF', '10DoF']
+    annotations_cVAE = ['6DOF', '8DoF', '10DoF']
+    annotations_INN = ['6DOF', '8DoF', '10DoF']
 
     ####################################################################################################################
 
