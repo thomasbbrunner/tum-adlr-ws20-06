@@ -22,7 +22,7 @@
 \begin{document}
 
 
-\title{Neural Networks for Inverse Kinematics Problems in Robotics}
+\title{Neural Networks for \\Inverse Kinematics Problems in Robotics}
 
 \author{\IEEEauthorblockN{Franziska Schwaiger}
     \IEEEauthorblockA{\textit{Matriculation number: 03658670}}
@@ -57,7 +57,7 @@ In our current setup, we do not take the angle of the tool center point (TCP) in
 
 \subsection*{Dataset}
 
-The dataset used for training is composed of \( 10^6 \) samples of robot configurations for each DoF. Figure~\ref{fig:datasets} shows an illustration of the datasets. Each configuration was sampled from a normal distribution \( \theta_i \sim \mathcal{N}(\mu=0, \sigma=0.2) \). Thus, the dataset is composed mostly of configurations in which the robot arm is extended. This reflects real-world use cases of robot arms, which have limited workspaces and whose tasks are focused on one section of the workspace. Moreover, limiting the range of the joints improved the performance of the networks, as this avoids the discontinuity in the angles at \( \theta = \pi \).
+The dataset used for training is composed of \( 10^6 \) samples of robot configurations for each DoF. In our experiments, we used simulations with 4, 6, 8 and 10 DoF. Figure~\ref{fig:datasets} shows an illustration of the datasets. Each configuration was sampled from a normal distribution \( \theta_i \sim \mathcal{N}(\mu=0, \sigma=0.2) \). Thus, the dataset is composed mostly of configurations in which the robot arm is extended. This reflects real-world use cases of robot arms, which have limited workspaces and whose tasks are focused on one section of the workspace. Moreover, limiting the range of the joints improved the performance of the networks, as this avoids the discontinuity in the angles at \( \theta = \pi \).
 
 % TODO add images of datasets
 
@@ -133,14 +133,14 @@ Both networks have been trained for 60 epochs on a dataset with 1 million sample
 % TABLES
 %%%%%%%%%%%%%%%%%%%%%%
 \begin{table*}[h]
-\caption{Hyperparameters for cvae which has been trained on a planar robot with $N$ DoF with $N=[4, 6, 10, 15]$.}
+\caption{Hyperparameters for cvae trained on a planar robot with revolute joints}
 \label{tab:results:cvae}
 \centering
 \begin{tabular}{|c|c|c|c|c|c|}
 \hline
 DoF & Learning rate & \# Layers & \# Neurons per layer & Weight decay & \# Trainable parameters \\
 \hline
-4  & ... & ...& ... & ... & ... \\
+4  & 0.009 & 3 & 230 & 0.0002 & 217128 \\
 6  & 0.0041 & 3 & 200 & 0.00001 & 166814 \\
 8  & 0.0001 & 3 & 500 & 0.00001 & 1022020 \\
 10  & 0.00063 & 5 & 400 & 0.00029 & 1303226 \\
@@ -149,7 +149,7 @@ DoF & Learning rate & \# Layers & \# Neurons per layer & Weight decay & \# Train
 \end{table*}
 
 \begin{table*}[h]
-\caption{Hyperparameters for inn which has been trained on a planar robot with $N$ DoF with $N=[4, 6, 10, 15]$.}
+\caption{Hyperparameters for inn trained on a planar robot with revolute joints}
 \label{tab:results:inn}
 \centering
 \begin{tabular}{|c|c|c|c|c|c|c|c|}
@@ -157,7 +157,7 @@ DoF & Learning rate & \# Layers & \# Neurons per layer & Weight decay & \# Train
 DoF & Learning rate & \# Subnet layers & \# Coupling layers & \# Neurons per layer & Weight decay & \# Trainable parameters \\
 \hline
 4  & ... & ...& ... & ... & ... & ... \\
-6  & ... & ... & ... & ... & ... & ... \\
+6  & 0.001 & 5 & 7 & 180 & 0.0003 & 2772084 \\
 8  & 0.0014 & 4 & 9 & 115 & 0.0004 & 997884 \\
 10  & 0.002 & 5 & 7 & 170 & 0.0005 & 2494380 \\
 \hline
