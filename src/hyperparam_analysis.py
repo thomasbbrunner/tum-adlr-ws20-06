@@ -78,7 +78,7 @@ def get_best(analysis):
 if __name__ == "__main__":
 
     analysis = tune.Analysis(
-        "~/ray_results/train_2021-03-05_11-25-43",
+        "~/ray_results/train_2021-03-06_14-39-43",
         "loss", "min")
 
     # make sure results directory exists
