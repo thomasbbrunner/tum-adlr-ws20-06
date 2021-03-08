@@ -1,0 +1,8 @@
+"INN"
+"15DOF"
+"# trainable parameters: 697840"
+"N = 100"
+"M = 100"
+"Average error of posterior: 0.054741358011960985"
+"Average re-simulation error: tensor(5.2882, device='cuda:0')"
+"config: {'model': 'INN', 'robot': 'Planar', 'dof': 15, 'len_links': [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.0], 'results_dir': 'results/', 'input_dim': 15, 'total_dim': 15, 'output_dim': 2, 'latent_dim': 13, 'num_layers_subnet': 4, 'num_coupling_layers': 8, 'hidden_dim': 100, 'y_noise_scale': 0.001, 'zeros_noise_scale': 0.005, 'num_epochs': 60, 'batch_size': 1000, 'lr_rate': 0.000177905, 'weight_decay': 4.78448e-05, 'checkpoint_epoch': 15, 'weight_Ly': 0.01, 'weight_Lz': 100.0, 'weight_Lx': 100.0, 'weight_Lxy': 0.1}"

@@ -5,7 +5,7 @@
 model: 'INN'
 robot: 'Planar'
 dof: 8
-len_links: [0.5, 0.5, 0.5, 0.5, 0.5, 1.0]
+len_links: [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 1.0]
 results_dir: 'results/'
 
 # -------------------
@@ -17,9 +17,9 @@ total_dim: 8 # for now: total_dim = input_dim
 output_dim: 2 # (x, y) coordinates of end-effector
 latent_dim: 6 # input_dim - output_dim
 
-num_layers_subnet: 6
-num_coupling_layers: 7
-hidden_dim: 150 # number of neurons per fully connected layer
+num_layers_subnet: 4
+num_coupling_layers: 9
+hidden_dim: 115 # number of neurons per fully connected layer
 
 y_noise_scale : 0.001
 zeros_noise_scale : 0.005
@@ -28,12 +28,12 @@ zeros_noise_scale : 0.005
 # Training
 # -------------------
 
-dataset_samples: 10000
+dataset_samples: 1000000
 num_epochs: 60
 batch_size: 1000
-lr_rate: 0.0001
-weight_decay: 0.001
-checkpoint_epoch: 50
+lr_rate: 0.0014
+weight_decay: 0.0004
+checkpoint_epoch: 30
 
 # loss weights
 weight_Ly: 0.01
