@@ -16,19 +16,19 @@ input_dim: 8 # If vector-based representation: input_dim = 2*dof else input_dim 
 condition_dim: 2 # (x, y) coordinates of end-effector
 latent_dim: 6 # normally: input_dim - condition_dim
 num_layers: 3 # 6 # number of hidden layers for each, encoder and decoder
-hidden_dim: 200 # 300 # number of neurons per fully connected layer
+hidden_dim: 500 # 300 # number of neurons per fully connected layer
 
 # -------------------
 # Training
 # -------------------
 
-dataset_samples: 10000
+dataset_samples: 1000000
 num_epochs: 60
 batch_size: 1000
-lr_rate: 0.0041 # 0.01
+lr_rate: 0.0001 # 0.0001
 weight_decay: 1.0e-05 # 0.0001
 variational_beta: 0.0067 # for weighting KLdivergence / reconstruction loss
-checkpoint_epoch: 0
+checkpoint_epoch: 30
 
 # lr-scheduler
 # milestones: [100, 200] # [50, 150]
