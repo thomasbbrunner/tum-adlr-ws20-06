@@ -35,25 +35,25 @@ if __name__ == '__main__':
 
     # INN: # of parameters
     # dummy values for now
-    params_INN = [2566284, 6876180]
+    params_INN = [2566284, 997884, 2494380]
 
     # INN: e_posterior
     # dummy values for now
-    e_posterior_INN = [0.0422, 0.0490]
-    e_resim_INN = [0.0097, 0.0083]
+    e_posterior_INN = [0.0428, 0.0429, 0.0447]
+    e_resim_INN = [0.0100, 0.0035, 0.0038]
 
     # CVAE: # of parameters
     # dummy values for now
-    params_CVAE = [744108, 166814, 1303226, 395291]
+    params_CVAE = [166814, 1022020, 1303226]
 
     # CVAE: e_posterior
     # dummy values for now
-    e_posterior_CVAE = [0.0484, 0.0446, 0.0534, 0.0608]
-    e_resim_CVAE = [4.2692e-05, 0.0002, 0.0012, 0.0050]
+    e_posterior_CVAE = [0.0449, 0.0494, 0.0528]
+    e_resim_CVAE = [0.0002, 0.0007, 0.0012]
 
     # annotations
-    annotations_cVAE = ['4DOF', '6DOF', '10DoF', '15DoF']
-    annotations_INN = ['6DOF', '10DoF']
+    annotations_cVAE = ['6DOF', '8DoF', '10DoF']
+    annotations_INN = ['6DOF', '8DoF', '10DoF']
 
     ####################################################################################################################
 
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     plt.plot(names_CVAE_post, values_CVAE_post, color="#bc5090", label="CVAE", marker='o')
     plt.grid(True, color="#93a1a1", alpha=0.3)
     plt.ylabel('error of posterior')
-    plt.legend(frameon=False)
+    plt.legend(frameon=False, fontsize=20)
     plt.title('Comparison between INN and cVAE')
     plt.savefig('figures/evaluation/comparison_e_posterior.jpg')
 
@@ -77,6 +77,8 @@ if __name__ == '__main__':
     plt.title('Comparison between INN and cVAE')
     plt.savefig('figures/evaluation/comparison_e_resim.jpg')
 
+    ####################################################################################################################
+
     # alternative plot
     # e_posterior
     plt.figure(figsize=(15, 8), dpi=80)
@@ -84,16 +86,19 @@ if __name__ == '__main__':
     plt.plot(params_CVAE, e_posterior_CVAE, color="#bc5090", label="CVAE", marker='o')
 
     for i, txt in enumerate(annotations_cVAE):
-        plt.annotate(txt, (params_CVAE[i], e_posterior_CVAE[i]))
+        plt.annotate(txt, (params_CVAE[i], e_posterior_CVAE[i]), fontsize=15)
 
     for i, txt in enumerate(annotations_INN):
-        plt.annotate(txt, (params_INN[i], e_posterior_INN[i]))
+        plt.annotate(txt, (params_INN[i], e_posterior_INN[i]), fontsize=15)
 
     plt.grid(True, color="#93a1a1", alpha=0.3)
-    plt.xlabel('number of parameters')
-    plt.ylabel('error of posterior')
-    plt.legend(frameon=False)
-    plt.title('Comparison between INN and cVAE')
+    plt.xticks(fontsize=20, rotation=0)
+    plt.yticks(fontsize=20, rotation=0)
+    plt.xlabel('number of parameters', fontsize=20)
+    plt.ylabel('error of posterior', fontsize=20)
+
+    plt.legend(frameon=False, fontsize=20)
+    plt.title('Comparison between INN and cVAE', fontsize=25)
     plt.savefig('figures/evaluation/comparison_e_posterior_alternative.jpg')
 
     # e_resim
@@ -102,14 +107,16 @@ if __name__ == '__main__':
     plt.plot(params_CVAE, e_resim_CVAE, color="#bc5090", label="CVAE", marker='o')
 
     for i, txt in enumerate(annotations_cVAE):
-        plt.annotate(txt, (params_CVAE[i], e_resim_CVAE[i]))
+        plt.annotate(txt, (params_CVAE[i], e_resim_CVAE[i]), fontsize=15)
 
     for i, txt in enumerate(annotations_INN):
-        plt.annotate(txt, (params_INN[i], e_resim_INN[i]))
+        plt.annotate(txt, (params_INN[i], e_resim_INN[i]), fontsize=15)
 
     plt.grid(True, color="#93a1a1", alpha=0.3)
-    plt.xlabel('number of parameters')
-    plt.ylabel('re-simulation error')
-    plt.legend(frameon=False)
-    plt.title('Comparison between INN and cVAE')
+    plt.xticks(fontsize=20, rotation=0)
+    plt.yticks(fontsize=20, rotation=0)
+    plt.xlabel('number of parameters', fontsize=20)
+    plt.ylabel('re-simulation error', fontsize=20)
+    plt.legend(frameon=False, fontsize=20)
+    plt.title('Comparison between INN and cVAE', fontsize=25)
     plt.savefig('figures/evaluation/comparison_e_resim_alternative.jpg')

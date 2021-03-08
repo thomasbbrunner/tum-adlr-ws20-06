@@ -62,7 +62,7 @@ if __name__ == '__main__':
 
     elif config["model"] == "CVAE":
 
-        config["lr_rate"] = tune.loguniform(0.01, 0.0001)
+        config["lr_rate"] = tune.loguniform(0.0001, 0.01)
         # config["variational_beta"] = tune.loguniform(0.00001, 0.01)
         # config["batch_size"] = tune.choice([100, 250, 500, 1000])
         config["num_layers"] = tune.qrandint(3, 15, 1)
