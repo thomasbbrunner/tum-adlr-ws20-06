@@ -85,8 +85,8 @@ if __name__ == '__main__':
     TEST_SAMPLES = int(0.3 * DATASET_SAMPLES)
     # ensures that models are trained and tested on the same samples
     # torch.manual_seed(42)
-    # torch.manual_seed(123)
-    torch.manual_seed(321)
+    torch.manual_seed(1)
+    # torch.manual_seed(321)
 
     train_dataset, test_dataset = torch.utils.data.random_split(dataset, [TRAIN_SAMPLES, TEST_SAMPLES])
     test_dataloader = DataLoader(test_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
@@ -135,7 +135,7 @@ if __name__ == '__main__':
 
             # plot sample configuration from estimated posterior by rejection sampling
             robotsim.heatmap(
-                joint_states, robot, highlight=22, transparency=0.2,
+                joint_states, robot, highlight=22, transparency=0.1,
                 path='{}rejection_sampling_{}_{}DOF.png'.format(
                     config['results_dir'], config['model'], config['dof']))
 
@@ -170,7 +170,7 @@ if __name__ == '__main__':
         if n == 0:
             # plot sample configuration from predicted posterior
             robotsim.heatmap(
-                pred_joint_states.cpu(), robot, highlight=22, transparency=0.2,
+                pred_joint_states.cpu(), robot, highlight=22, transparency=0.1,
                 path="{}predicted_posterior_{}_{}DOF.png".format(
                     config['results_dir'], config['model'], config['dof']))
 
