@@ -40,7 +40,7 @@ In our project, we are evaluating the feasibility of using neural networks for i
 \section*{Methods}
 \subsection*{Robot Simulations}
 
-To train and test our models, we developed simulations of planar robotic arms with revolute joints. As we are interested in testing the limits of our models, we created simulations of arbitraty degrees of freedom (DOFs). In general, the forward kinematics equations of a planar robot arm with link lengths \( l_i \) and \( N \) revolute joints with joint angles \( \theta_i \) can be described as:
+To train and test our models, we developed simulations of planar robotic arms with revolute joints. As we are interested in testing the limits of our models, we created simulations of arbitraty degrees of freedom (DoFs). In general, the forward kinematics equations of a planar robot arm with link lengths \( l_i \) and \( N \) revolute joints with joint angles \( \theta_i \) can be described as:
 \begin{equation}
     x_{TCP} = \sum_{i=1}^{N}{l_i \cos\left( \sum_{j=1}^{i}{\theta_j} \right)}
 \end{equation}
@@ -61,11 +61,11 @@ These equations were modified for fast vectorized numerical computation by the e
     \label{ytcp vectorized}
 \end{equation}
 
-In our current setup, we do not take the angle of the tool center point (TCP) into consideration. Thus, the location of the TCP is defined by its \( x, y \) coordinates. As a result of this, all simulations with more than 2 DOF can up to infinite solutions of the inverse kinematics for a given TCP position. The 2 DOF robot arm can have up to two solutions.
+In our current setup, we do not take the angle of the tool center point (TCP) into consideration. Thus, the location of the TCP is defined by its \( x, y \) coordinates. As a result of this, all simulations with more than 2 DoF can up to infinite solutions of the inverse kinematics for a given TCP position. The 2 DoF robot arm can have up to two solutions.
 
 \subsection*{Dataset}
 
-The dataset used for training is composed of one million samples of robot configurations for each DOF. Figure~\ref{fig:datasets} shows an illustration of the datasets. Each configuration was sampled from a normal distribution $ \theta_i \sim \mathcal{N}(\mu=0, \sigma=0.2) $. Thus, the dataset is composed mostly of configurations in which the robot arm is extended. This reflects real-world use cases of robot arms, which have limited workspaces and whose tasks are focused on one section of the workspace. Moreover, limiting the range of the joints improved the performance of the networks, as this avoids the discontinuity in the angles at \( \theta = \pi \).
+The dataset used for training is composed of one million samples of robot configurations for each DoF. Figure~\ref{fig:datasets} shows an illustration of the datasets. Each configuration was sampled from a normal distribution $ \theta_i \sim \mathcal{N}(\mu=0, \sigma=0.2) $. Thus, the dataset is composed mostly of configurations in which the robot arm is extended. This reflects real-world use cases of robot arms, which have limited workspaces and whose tasks are focused on one section of the workspace. Moreover, limiting the range of the joints improved the performance of the networks, as this avoids the discontinuity in the angles at \( \theta = \pi \).
 
 % TODO add images of datasets
 
@@ -89,7 +89,7 @@ As stated in \cite{Ardizzone2018}, the INN only needs to be trained on the well-
 
 \subsection*{Hyperparameter Optimization}
 
-For our tests, we trained a network for each robot simulation (DOF). Thus, the sizes and selection of hyperparameters of each network had to match the complexity of the simulation. To compare the performance of the networks across different DOFs in a fair setting, we used Tune \cite{liaw2018tune} to perform a random search of the hyperparameters. To reduce computation time, we trained the models using a subset of the main dataset, which was composed of \( 1e4 \) samples.
+For our tests, we trained a network for each robot simulation (DoF). Thus, the sizes and selection of hyperparameters of each network had to match the complexity of the simulation. To compare the performance of the networks across different DoFs in a fair setting, we used Tune \cite{liaw2018tune} and Scikit Optimize \cite{scikit-optimize} to perform a black-box optimization of the hyperparameters. To reduce computation time, we trained the models using a subset of the main dataset, which was composed of \( 1e4 \) samples.
 
 % TODO eventually add table with tuned parameters and 
 % the range of the parameters!
@@ -102,7 +102,7 @@ The previous two model architectures (cVAE and INN) have been implemented in PyT
 
 \subsection*{Evaluation protocol}
 
-We extended the degrees of freedoms (DoF) of the robots up to 10 DoF and performed hyperparameter optimization (HPO) for the hyperparameters for $DoF = [6, 8, 10]$ by evaluating $100$ points in the hyperparameters space for each DoF. But now it is important to mention that due to HPO, the number of trainable parameters differs between cVAE and INN. The batch size is kept fixed to $1000$ for both networks.
+We extended the degrees of freedoms (DoF) of the robots up to 10 DoF and performed hyperparameter optimization (HPO) for the hyperparameters for $ \text{DoF} = [6, 8, 10]$ by evaluating $100$ points in the hyperparameters space for each DoF. But now it is important to mention that due to HPO, the number of trainable parameters differs between cVAE and INN. The batch size is kept fixed to $1000$ for both networks.
 For the cVAE, we optimized the learning rate, the weight decay, the number of hidden layers for the encoder and decoder and the amount of neurons per layer. For the INN, we optimized the learning rate, the weight decay, the number of coupling layers, the amount of layers per subnet and also the number of neurons per subnet layer.
 Both networks have been trained for 60 epochs on a dataset with 1 million samples and a train and test spit of 70 and 30, respectively. For evaluation, we used again the two evaluation metrics which have been described in the midterm report:
 
@@ -119,7 +119,7 @@ Both networks have been trained for 60 epochs on a dataset with 1 million sample
 \centering
 \begin{tabular}{|c|c|c|c|c|c|}
 \hline
- DOF & learning rate & weight decay & \# hidden layers & \# neurons & \# trainable parameters\\
+ DoF & learning rate & weight decay & \# hidden layers & \# neurons & \# trainable parameters\\
  \hline
  6  & ... & ...& ... & ... & ...\\
  10  & ... & ... & ... & ... & ...\\
@@ -127,14 +127,14 @@ Both networks have been trained for 60 epochs on a dataset with 1 million sample
  \hline
 \end{tabular}
 \vspace{5pt}
-\caption{\label{tab:results:cvae}  Hyperparameters for cvae which has been trained on a planar robot with $N$ DOF with $N=[4, 6, 10, 15]$.}
+\caption{\label{tab:results:cvae}  Hyperparameters for cvae which has been trained on a planar robot with $N$ DoF with $N=[4, 6, 10, 15]$.}
 \end{table*}
 
 \begin{table*}[h]
 \centering
 \begin{tabular}{|c|c|c|c|c|c|c|}
 \hline
- DOF & learning rate & weight decay & \# coupling layers & \# subnet layers & \# neurons per subnet layer &  \# trainable parameters\\
+ DoF & learning rate & weight decay & \# coupling layers & \# subnet layers & \# neurons per subnet layer &  \# trainable parameters\\
  \hline
  6  & ... & ...& ... & ... & ... & ...\\
  10  & ... & ... & ... & ... & ... & ...\\
@@ -142,7 +142,7 @@ Both networks have been trained for 60 epochs on a dataset with 1 million sample
  \hline
 \end{tabular}
 \vspace{5pt}
-\caption{\label{tab:results:inn}  Hyperparameters for inn which has been trained on a planar robot with $N$ DOF with $N=[4, 6, 10, 15]$.}
+\caption{\label{tab:results:inn}  Hyperparameters for inn which has been trained on a planar robot with $N$ DoF with $N=[4, 6, 10, 15]$.}
 \end{table*}
 
 The hyperparameters for the cVAE and INN chosen by HPO are depicted in Table \ref{tab:results:cvae} and \ref{tab:results:inn}, respectively. Because of HPO, the number of parameters per robot is not approximately equal, anymore. As it can be seen in the tables, the best architectures are not the architectures with the most numbers of trainable parameters. This also shows that the hyperparameters search space is sufficient. 
