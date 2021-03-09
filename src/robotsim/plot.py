@@ -60,12 +60,13 @@ def plot(joint_states, robot, title=None, path=None, show=False):
     return fig, ax
 
 
-def heatmap(joint_states, robot, highlight=None, transparency=None, title=None, path=None, show=False):
+def heatmap(joint_states, robot, ax=None, highlight=None, transparency=None, title=None, path=None, show=False):
     """Plots heatmat of robot for specified joint states.
 
     Args:
     joint_states: joint states to plot
     robot: object of RobotSim
+    ax: axes instance to plot heatmap
     highlight: index of element in joint_states to highlight
     transparency: factor for transparency of each arm 
         (good values are between 0.001 and 0.3)
@@ -86,14 +87,17 @@ def heatmap(joint_states, robot, highlight=None, transparency=None, title=None, 
 
     joint_coords = robot.get_joint_coords(joint_states)
 
-    fig, ax = plt.subplots()
-    ax.grid()
-    plot_limit = np.sum(robot.get_length())*1.1
-    # ax.set_xlim([-plot_limit, plot_limit])
-    ax.set_xlim([0.0, plot_limit])
-    ax.set_ylim([-plot_limit, plot_limit])
-    ax.set_xlabel("$x_1$")
-    ax.set_ylabel("$x_2$")
+    existing_ax = bool(ax)
+
+    if not existing_ax:
+        fig, ax = plt.subplots()
+        ax.grid()
+        plot_limit = np.sum(robot.get_length())*1.1
+        # ax.set_xlim([-plot_limit, plot_limit])
+        ax.set_xlim([0.0, plot_limit])
+        ax.set_ylim([-plot_limit, plot_limit])
+        ax.set_xlabel("$x_1$")
+        ax.set_ylabel("$x_2$")
 
     if title:
         ax.set_title(title)
@@ -121,10 +125,13 @@ def heatmap(joint_states, robot, highlight=None, transparency=None, title=None, 
             arm[:, 1].flatten(),
             c='r', s=6, zorder=11)
 
-    if path:
+    if path and not existing_ax:
         fig.savefig(path, dpi=300)
 
-    if show:
+    if show and not existing_ax:
         fig.show()
 
-    return fig, ax
+    if not existing_ax:
+        return fig, ax
+    else:
+        return ax

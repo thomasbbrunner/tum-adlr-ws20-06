@@ -108,26 +108,44 @@ class RobotSimDataset(Dataset):
         if show:
             fig.show()
 
-    def plot_configurations(self, transparency=None, path=None, show=False):
+    def plot_configurations(self, ax=None, transparency=None, path=None, show=False):
 
-        fig, ax = robotsim.heatmap(
-            self._joint_states, self._robot,
-            highlight=1, transparency=transparency,
-            path=None, show=False)
+        existing_ax = bool(ax)
+
+        if existing_ax:
+            ax = robotsim.heatmap(
+                self._joint_states, self._robot,
+                ax=ax, highlight=1, transparency=transparency,
+                path=None, show=False)
+        else:
+            fig, ax = robotsim.heatmap(
+                self._joint_states, self._robot,
+                highlight=1, transparency=transparency,
+                path=None, show=False)
 
         # prettier limits for publication
-        # ax.set_xlim([-1, 4])
-        # ax.set_ylim([-2.5, 2.5])
+        # ax.set_aspect(1)
+        # ax.set_xlim([0, 7])
+        # ax.set_ylim([-5, 5])
 
-        ax.set_title(
-            "Configurations in Dataset ({} DOF, {} samples)". format(
-                self._num_dof, self._num_samples))
+        if existing_ax:
+            ax.set_title(
+                "{} DoF". format(self._num_dof))
+        else:
+            ax.set_title(
+                "Configurations in Dataset ({} DOF, {} samples)". format(
+                    self._num_dof, self._num_samples))
 
-        if path:
+        if path and not existing_ax:
             fig.savefig(path, dpi=300)
 
-        if show:
+        if show and not existing_ax:
             fig.show()
+
+        if existing_ax:
+            return ax
+        else:
+            return fig, ax
 
 
 if __name__ == "__main__":
