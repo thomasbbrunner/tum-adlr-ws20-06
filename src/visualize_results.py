@@ -35,12 +35,12 @@ if __name__ == '__main__':
 
     # INN: # of parameters
     # dummy values for now
-    params_INN = [2772084, 997884, 2494380]
+    params_INN = [1108872, 2772084, 997884, 2494380]
 
     # INN: e_posterior
     # dummy values for now
-    e_posterior_INN = [0.0388, 0.0429, 0.0447]
-    e_resim_INN = [0.0041, 0.0035, 0.0038]
+    e_posterior_INN = [0.0376, 0.0388, 0.0429, 0.0447]
+    e_resim_INN = [0.0023, 0.0041, 0.0035, 0.0038]
 
     # CVAE: # of parameters
     # dummy values for now
@@ -53,12 +53,12 @@ if __name__ == '__main__':
 
     # annotations
     annotations_cVAE = ['4DoF', '6DOF', '8DoF', '10DoF']
-    annotations_INN = ['6DOF', '8DoF', '10DoF']
+    annotations_INN = ['4DoF', '6DOF', '8DoF', '10DoF']
 
     ####################################################################################################################
 
     # e_posterior
-    plt.figure(figsize=(8, 5), dpi=80)
+    plt.figure(figsize=(6, 8), dpi=80)
     plt.plot(names_INN_post, values_INN_post, color="#073642", label="INN", marker='o')
     plt.plot(names_CVAE_post, values_CVAE_post, color="#bc5090", label="CVAE", marker='o')
     plt.grid(True, color="#93a1a1", alpha=0.3)
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     plt.savefig('figures/evaluation/comparison_e_posterior.jpg')
 
     # e_resim
-    plt.figure(figsize=(8, 5), dpi=80)
+    plt.figure(figsize=(6, 8), dpi=80)
     plt.plot(names_INN_resim, values_INN_resim, color="#073642", label="INN", marker='o')
     plt.plot(names_CVAE_resim, values_CVAE_resim, color="#bc5090", label="CVAE", marker='o')
     plt.grid(True, color="#93a1a1", alpha=0.3)
@@ -81,7 +81,7 @@ if __name__ == '__main__':
 
     # alternative plot
     # e_posterior
-    plt.figure(figsize=(15, 8), dpi=80)
+    plt.figure(figsize=(15, 12), dpi=80)
     plt.plot(params_INN, e_posterior_INN, color="#073642", label="INN", marker='o')
     plt.plot(params_CVAE, e_posterior_CVAE, color="#bc5090", label="CVAE", marker='o')
 
@@ -102,7 +102,7 @@ if __name__ == '__main__':
     plt.savefig('figures/evaluation/comparison_e_posterior_alternative.jpg')
 
     # e_resim
-    plt.figure(figsize=(15, 8), dpi=80)
+    plt.figure(figsize=(15, 12), dpi=80)
     plt.plot(params_INN, e_resim_INN, color="#073642", label="INN", marker='o')
     plt.plot(params_CVAE, e_resim_CVAE, color="#bc5090", label="CVAE", marker='o')
 
