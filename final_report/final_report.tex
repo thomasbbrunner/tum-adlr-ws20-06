@@ -22,7 +22,7 @@
 \begin{document}
 
 
-\title{Neural Networks for Inverse Kinematics Problems in Robotics}
+\title{Neural Networks for \\Inverse Kinematics Problems in Robotics}
 
 \author{\IEEEauthorblockN{Franziska Schwaiger}
     \IEEEauthorblockA{\textit{Matriculation number: 03658670}}
@@ -42,30 +42,22 @@ In our project, we are evaluating the feasibility of using neural networks for i
 
 To train and test our models, we developed simulations of planar robotic arms with revolute joints. As we are interested in testing the limits of our models, we created simulations of arbitraty degrees of freedom (DoFs). In general, the forward kinematics equations of a planar robot arm with link lengths \( l_i \) and \( N \) revolute joints with joint angles \( \theta_i \) can be described as:
 \begin{equation}
-    x_{TCP} = \sum_{i=1}^{N}{l_i \cos\left( \sum_{j=1}^{i}{\theta_j} \right)}
-\end{equation}
-\begin{equation}
-    y_{TCP} = \sum_{i=1}^{N}{l_i \sin\left( \sum_{j=1}^{i}{\theta_j} \right)}
-\end{equation}
-\begin{equation}
-    \theta_{TCP} = \sum_{i=1}^{N}{\theta_i}
+    x_\text{TCP} = \sum_{i=1}^{N}{l_i \cos\left( \sum_{j=1}^{i}{\theta_j} \right)}, \ 
+    y_\text{TCP} = \sum_{i=1}^{N}{l_i \sin\left( \sum_{j=1}^{i}{\theta_j} \right)}
 \end{equation}
 
-These equations were modified for fast vectorized numerical computation by the element-wise computation of the sine and cosine of the matrix multiplication of the joint angles vector \( \bm{\theta} = \left[ \theta_1, \theta_2 , ... \right]^\text{T} \) with an upper triangular matrix with ones as elements \( \bm{U} \). The results are then multiplied with the link lengths vector \( \bm{l} = \left[ l_1, l_2, ... \right]^\text{T} \), as shown in Equations \ref{xtcp vectorized} and \ref{ytcp vectorized}.
+These equations were then modified for fast vectorized numerical computation. The resulting operation and be seen in Equation~\ref{tcp vectorized}, with joint angles vector \( \bm{\theta} = \left[ \theta_1, \theta_2 , ... \right]^\text{T} \), the upper triangular matrix with ones as elements \( \bm{U} \) and the link lengths vector \( \bm{l} = \left[ l_1, l_2, ... \right]^\text{T} \).
 \begin{equation}
-    x_{TCP} = \cos \left( \bm{\theta}\ \bm{U} \right) \bm{l}
-    \label{xtcp vectorized}
-\end{equation}
-\begin{equation}
-    y_{TCP} = \sin \left( \bm{\theta}\ \bm{U} \right) \bm{l}
-    \label{ytcp vectorized}
+    x_\text{TCP} = \cos \left( \bm{\theta}\ \bm{U} \right) \bm{l}, \ 
+    y_\text{TCP} = \sin \left( \bm{\theta}\ \bm{U} \right) \bm{l}
+    \label{tcp vectorized}
 \end{equation}
 
 In our current setup, we do not take the angle of the tool center point (TCP) into consideration. Thus, the location of the TCP is defined by its \( x, y \) coordinates. As a result of this, all simulations with more than 2 DoF can up to infinite solutions of the inverse kinematics for a given TCP position. The 2 DoF robot arm can have up to two solutions.
 
 \subsection*{Dataset}
 
-The dataset used for training is composed of one million samples of robot configurations for each DoF. Figure~\ref{fig:datasets} shows an illustration of the datasets. Each configuration was sampled from a normal distribution $ \theta_i \sim \mathcal{N}(\mu=0, \sigma=0.2) $. Thus, the dataset is composed mostly of configurations in which the robot arm is extended. This reflects real-world use cases of robot arms, which have limited workspaces and whose tasks are focused on one section of the workspace. Moreover, limiting the range of the joints improved the performance of the networks, as this avoids the discontinuity in the angles at \( \theta = \pi \).
+The dataset used for training is composed of \( 10^6 \) samples of robot configurations for each DoF. In our experiments, we used simulations with 4, 6, 8 and 10 DoF. Figure~\ref{fig:datasets} shows an illustration of the datasets. Each configuration was sampled from a normal distribution \( \theta_i \sim \mathcal{N}(\mu=0, \sigma=0.2) \). Thus, the dataset is composed mostly of configurations in which the robot arm is extended. This reflects real-world use cases of robot arms, which have limited workspaces and whose tasks are focused on one section of the workspace. Moreover, limiting the range of the joints improved the performance of the networks, as this avoids the discontinuity in the angles at \( \theta = \pi \).
 
 % TODO add images of datasets
 
@@ -89,10 +81,35 @@ As stated in \cite{Ardizzone2018}, the INN only needs to be trained on the well-
 
 \subsection*{Hyperparameter Optimization}
 
-For our tests, we trained a network for each robot simulation (DoF). Thus, the sizes and selection of hyperparameters of each network had to match the complexity of the simulation. To compare the performance of the networks across different DoFs in a fair setting, we used Tune \cite{liaw2018tune} and Scikit Optimize \cite{scikit-optimize} to perform a black-box optimization of the hyperparameters. To reduce computation time, we trained the models using a subset of the main dataset, which was composed of \( 1e4 \) samples.
+For our tests, we trained a network for each robot simulation (DoF). Thus, the sizes and selection of hyperparameters of each network had to match the complexity of the simulation. To compare the performance of the networks across different DoFs in a fair setting, we used Tune \cite{liaw2018tune} and Scikit Optimize \cite{scikit-optimize} to perform a black-box optimization of the hyperparameters. To reduce computation time, we trained the models using a subset of the main dataset, which was composed of \( 10^4 \) samples. The ranges of hyperparameters used can be seen in Table~\ref{tab:hyperparameter-ranges-inn} and \ref{tab:hyperparameter-ranges-cvae}. These values were based on intuition and previous experience in training these networks.
 
-% TODO eventually add table with tuned parameters and 
-% the range of the parameters!
+\begin{table*}[h]
+    \caption{Ranges of inn hyperparameters used during hyperparameter search.}
+    \label{tab:hyperparameter-ranges-inn}
+    \centering
+    \begin{tabular}{|l|c|c|c|c|c|}
+    \hline
+      & Learning rate & \# Subnet layers & \# Coupling layers & \# Neurons per layer & Weight decay \\
+     \hline
+     Min  & 0.0001 & 3 & 6 & 100 & 0.00001 \\
+     Max  & 0.005 & 7 & 10 & 300 & 0.001 \\
+     \hline
+    \end{tabular}
+\end{table*}
+
+\begin{table*}[h]
+    \caption{Ranges of cvae hyperparameters used during hyperparameter search.}
+    \label{tab:hyperparameter-ranges-cvae}
+    \centering
+    \begin{tabular}{|l|c|c|c|c|}
+    \hline
+      & Learning rate & \# Layers & \# Neurons per layer & Weight decay \\
+     \hline
+     Min  & 0.0001 & 3 & 200 & 0.00001 \\
+     Max  & 0.01 & 15 & 500 & 0.001 \\
+     \hline
+    \end{tabular}
+\end{table*}
 
 \subsection*{Implementation}
 
@@ -116,33 +133,35 @@ Both networks have been trained for 60 epochs on a dataset with 1 million sample
 % TABLES
 %%%%%%%%%%%%%%%%%%%%%%
 \begin{table*}[h]
+\caption{Hyperparameters for cvae trained on a planar robot with revolute joints}
+\label{tab:results:cvae}
 \centering
 \begin{tabular}{|c|c|c|c|c|c|}
 \hline
- DoF & learning rate & weight decay & \# hidden layers & \# neurons & \# trainable parameters\\
- \hline
- 6  & ... & ...& ... & ... & ...\\
- 10  & ... & ... & ... & ... & ...\\
- 15  & ... & ... & ... & ... & ...\\
- \hline
+DoF & Learning rate & \# Layers & \# Neurons per layer & Weight decay & \# Trainable parameters \\
+\hline
+4  & 0.009 & 3 & 230 & 0.0002 & 217128 \\
+6  & 0.0041 & 3 & 200 & 0.00001 & 166814 \\
+8  & 0.0001 & 3 & 500 & 0.00001 & 1022020 \\
+10  & 0.00063 & 5 & 400 & 0.00029 & 1303226 \\
+\hline
 \end{tabular}
-\vspace{5pt}
-\caption{\label{tab:results:cvae}  Hyperparameters for cvae which has been trained on a planar robot with $N$ DoF with $N=[4, 6, 10, 15]$.}
 \end{table*}
 
 \begin{table*}[h]
+\caption{Hyperparameters for inn trained on a planar robot with revolute joints}
+\label{tab:results:inn}
 \centering
-\begin{tabular}{|c|c|c|c|c|c|c|}
+\begin{tabular}{|c|c|c|c|c|c|c|c|}
 \hline
- DoF & learning rate & weight decay & \# coupling layers & \# subnet layers & \# neurons per subnet layer &  \# trainable parameters\\
- \hline
- 6  & ... & ...& ... & ... & ... & ...\\
- 10  & ... & ... & ... & ... & ... & ...\\
- 15  & ... & ... & ... & ... & ... & ...\\
- \hline
+DoF & Learning rate & \# Subnet layers & \# Coupling layers & \# Neurons per layer & Weight decay & \# Trainable parameters \\
+\hline
+4  & ... & ...& ... & ... & ... & ... \\
+6  & 0.001 & 5 & 7 & 180 & 0.0003 & 2772084 \\
+8  & 0.0014 & 4 & 9 & 115 & 0.0004 & 997884 \\
+10  & 0.002 & 5 & 7 & 170 & 0.0005 & 2494380 \\
+\hline
 \end{tabular}
-\vspace{5pt}
-\caption{\label{tab:results:inn}  Hyperparameters for inn which has been trained on a planar robot with $N$ DoF with $N=[4, 6, 10, 15]$.}
 \end{table*}
 
 The hyperparameters for the cVAE and INN chosen by HPO are depicted in Table \ref{tab:results:cvae} and \ref{tab:results:inn}, respectively. Because of HPO, the number of parameters per robot is not approximately equal, anymore. As it can be seen in the tables, the best architectures are not the architectures with the most numbers of trainable parameters. This also shows that the hyperparameters search space is sufficient. 
