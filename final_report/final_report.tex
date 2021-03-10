@@ -61,7 +61,7 @@ The dataset used for training is composed of \( 10^6 \) samples of robot configu
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=\linewidth]{figures/normal_std_0.2_all_DoF.png}
+    \includegraphics[width=\linewidth]{figures/normal_std_0_2_all_DoF.png}
     \caption{Subset of datasets used for training and testing.}
     \label{fig:datasets} 
 \end{figure}
@@ -72,7 +72,7 @@ As already mentioned in the previous section, we avoid discontinuities by restri
 
 The first approach is a non-minimal parameterization of the configuration space as it uses a vector-based representation which was already described in the midterm report to avoid singularities at the boundaries of the joint angles. The drawback of this approach is that the input space is doubled which becomes more and more a problem when increasing the amount of revolute joints of the planar robot.
 
-Therefore, we also considered an alternative approach where we just consider the joint angles resulting in a minimal-reparameterization of the configuration space, again. The discontinuities are now considered in the loss function for the reconstruction error of the of the joint angle space. It ensures that, for example when having a ground truth joint angle $\theta _{gt} = 178^\circ$ and a predicted joint angle $\theta _{pred} = -178^\circ$, the difference between these two angles is only $4^\circ$ instead of $356^\circ$ resulting in a smaller loss.
+Therefore, we also considered an alternative approach where we just consider the joint angles resulting in a minimal-parameterization of the configuration space, again. The discontinuities are now considered in the loss function for the reconstruction error of the joint angle space. It ensures that, for example when having a ground truth joint angle $\theta _{gt} = 178^\circ$ and a predicted joint angle $\theta _{pred} = -178^\circ$, the difference between these two angles is only $4^\circ$ instead of $356^\circ$ resulting in a smaller loss.
 
 \subsection*{Network Architectures}
 
@@ -82,7 +82,7 @@ Invertible Neural Networks (INN) model a bijective mapping from the joint angles
 
 Additionally, INNs share properties with normalizing flows \cite{normalizingFlows2010, normalizingFlows2013} which gradually transform a normal density into the desired data density. They are also bijective and for both normalizing flows and INNs, a tractable Jacobian exists which allows explicit computation of posterior probabilities. As the focus in this work lies on the comparison between cVAE and INN, normalizing flows are not considered anymore.
 
-As stated in \cite{Ardizzone2018}, the INN only needs to be trained on the well-understood forward process and then the inverse process can be obtained for free by just running the network backwards at prediction time. The authors also mention that results can be improved with additional unsupervised backward training. When applying INNs to the inverse kinematics problem, we found that to match the performance of the cVAE, unsupervised brackward training is crucial. This results in two network passes per training step to accumulate the gradients and slows down training a lot. Additionally, when training INNs the parameters need to be adjusted carefully as training can be become unstable.
+As stated in \cite{Ardizzone2018}, the INN only needs to be trained on the well-understood forward process and then the inverse process can be obtained for free by just running the network backwards at prediction time. The authors also mention that results can be improved with additional unsupervised backward training. When applying INNs to the inverse kinematics problem, we found that to match the performance of the cVAE, unsupervised backward training is crucial. This results in two network passes per training step to accumulate the gradients and slows down training a lot. Additionally, when training INNs the parameters need to be adjusted carefully as training can become unstable.
 
 \subsection*{Hyperparameter Optimization}
 
@@ -124,11 +124,11 @@ The previous two model architectures (cVAE and INN) have been implemented in PyT
 
 \subsection*{Evaluation protocol}
 
-We extended the degrees of freedoms (DoF) of the robots up to 10 DoF and performed hyperparameter optimization (HPO) for the hyperparameters for $ \text{DoF} = [6, 8, 10]$ by evaluating $100$ points in the hyperparameters space for each DoF. But now it is important to mention that due to HPO, the number of trainable parameters differs between cVAE and INN. The batch size is kept fixed to $1000$ for both networks.
+We extended the DoF of the robots up to 10 DoF and performed hyperparameter optimization (HPO) for the hyperparameters for $ \text{DoF} = [4, 6, 8, 10]$. Due to HPO, the number of trainable parameters differs between cVAE and INN. The batch size is kept fixed to $1000$ for both networks.
 For the cVAE, we optimized the learning rate, the weight decay, the number of hidden layers for the encoder and decoder and the amount of neurons per layer. For the INN, we optimized the learning rate, the weight decay, the number of coupling layers, the amount of layers per subnet and also the number of neurons per subnet layer.
 Both networks have been trained for 60 epochs on a dataset with 1 million samples and a train and test split of 70 and 30, respectively. For evaluation, we used again the two evaluation metrics which have been described in the midterm report:
 
-1. The average posterior mismatch between the distribution generated by the model and the ground truth estimate obtained via rejection sampling. For generating the posterior, we used 100 samples per ground truth position and averaged over 1000 samples from the dataset.
+1. The average posterior mismatch between the distribution generated by the model and the ground truth estimate obtained via rejection sampling. For generating the posterior, we used 100 samples per ground truth position and averaged over 1000 samples from the test dataset.
 
 2. The average re-simulation error as the mean squared distance between the ground truth end-effector position and the re-simulated end-effector position obtained from the predicted joint angles. The re-simulation error was averaged over the whole test dataset.
 
@@ -171,7 +171,7 @@ DoF & Learning rate & \# Subnet layers & \# Coupling layers & \# Neurons per lay
 
 The hyperparameters for the cVAE and INN chosen by HPO are depicted in Table \ref{tab:results:cvae} and \ref{tab:results:inn}, respectively. Because of HPO, the number of parameters per robot is not approximately equal, anymore. As it can be seen in the tables, the best architectures are not the architectures with the most numbers of trainable parameters. This also shows that the hyperparameters search space is sufficient. 
 
-For both networks, the mismatch of the posterior distribution and the re-simulation error is plotted over the number of parameters in Fig. \ref{fig:plot:posterior} and \ref{fig:plot:resim}, respectively. Each plotted point is labelled with the corresponding robot of different DoF. As it can be seen, when increasing the number of degrees of freedom, the number of parameters does not have to be increased, as well. This is also a result of the HPO. 
+For both networks, the mismatch of the posterior distribution and the re-simulation error is plotted over the number of parameters in Fig. \ref{fig:plot:posterior} and \ref{fig:plot:resim}, respectively. Each plotted point is labelled with the corresponding robot of different DoF. As it can be seen, when increasing the number of DoF, the number of parameters does not have to be increased, as well. This is a result of the HPO. 
 The mismatch of the predicted posterior (see Fig. \ref{fig:plot:posterior}) with the ground truth posterior obtained from rejection sampling is less for the INN as for the cVAE. But in contrast to that, the cVAE performs consistently better on the re-simulation error as the INN (see Fig. \ref{fig:plot:resim}).
 
 %%%%%%%%%%%%%%%%%%%%%%
@@ -180,16 +180,16 @@ The mismatch of the predicted posterior (see Fig. \ref{fig:plot:posterior}) with
 \begin{figure}[!ht]
 \centering
 	\includegraphics[width=\linewidth]{figures/comparison_e_posterior_alternative.png}
-    \caption{\label{fig:plot:posterior} Results. Mismatch of posterior. Needs to be completed.}
+    \caption{\label{fig:plot:posterior} Average posterior mismatch between the distribution generated by the model and the ground truth estimated obtained via rejection sampling.}
 \end{figure}
 
 \begin{figure}[!ht]
 \centering
 	\includegraphics[width=\linewidth]{figures/comparison_e_resim_alternative.png}
-    \caption{\label{fig:plot:resim} Results. Mismatch of re-simulation error. Needs to be completed.}
+    \caption{\label{fig:plot:resim} Average re-simulation error as the mean squared distance between ground truth end-effector position and the re-simulated end-effector position obtain from the predicted joint angles.}
 \end{figure}
 
-In Fig. \ref{fig:q_quantile:cVAE:6DOF} and \ref{fig:q_quantile:INN:6DOF}, the area of the convex hull of the $97$th percentile of $1000$ re-simulated end-effector positions (green dots) with a ground truth at $(x, y) = [3.47, 0.19]$ (red dot) is visualized for the cVAE and INN, respectively.  As it can be seen, the re-simulated points of the INN span a larger convex hull with an area of $0.85$ around the ground truth position than the re-simulated points of the cVAE with an area of $0.15$. This behaviour is also reflected in the chart of the re-simualtion error (see Fig. \ref{fig:plot:resim}) as described previously. But despite of having a larger re-simulation error, the INN recovers the full posterior distribution of the joint angles much better than the cVAE, as it can be seen in Fig. \ref{fig:posterior:6dof}. 
+In Fig. \ref{fig:q_quantile:cVAE:10DOF} and \ref{fig:q_quantile:INN:10DOF}, this behaviour is described in more detail: A convex hull is drawn around the 97th percentile of the re-simulated points (green dots) and the corresponding ground truth end-effector position (red dot) at $(x, y) = [3.47, 0.19]$ of a 10 DoF robot for the cVAE and INN, respectively.  As it can be seen, the are of this convex hull is larger for the INN ($0.85$) than for the cVAE ($0.15$). But despite of having a larger re-simulation error, the INN generates the full posterior distribution of the joint angles much better than the cVAE, as it can be seen in Fig. \ref{fig:posterior:10dof}. 
 
 %%%%%%%%%%%%%%%%%%%%%%
 % FIGURES, CONVEX HULL
@@ -249,7 +249,7 @@ In Fig. \ref{fig:q_quantile:cVAE:6DOF} and \ref{fig:q_quantile:INN:6DOF}, the ar
 
 \section*{Conclusion}
 
-In this work, we evaluated through simulation experiments the feasability of using neural network architectures to fully recover the posterior distribution of the hidden parameter space in the context of inverse kinematics problems in robotics. For this, we studied invertible neural networks and compared them to conditional Variational Autoencoders using as a baseline. At first, we constructed simple planar robots with up to 4 revolute joints and then extended the simulations with more complex planar robots with up to 15 revolute joints. To find the best set of hyper parameters we performed Bayesian optimization.
+In this work, we evaluated through simulation experiments the feasability of using neural network architectures to fully generate the posterior distribution of the hidden parameter space in the context of inverse kinematics problems in robotics. For this, we studied invertible neural networks and compared them to conditional Variational Autoencoders using as a baseline. At first, we constructed simple planar robots with up to 4 revolute joints and then extended the simulations with more complex planar robots with up to 10 revolute joints. To find the best set of hyper parameters we performed Bayesian optimization.
 
 Using evaluation metrics defined in previous research, given the end-effector position we found that cVAEs are better in predicting the values of the joint angles which, when applied to forward kinematics again, result in being closer to the ground truth end-effector position. In contrast, experiments show that INNs better recover the full posterior distribution over the joint angle space. 
 
