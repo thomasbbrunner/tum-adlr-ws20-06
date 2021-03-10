@@ -19,7 +19,7 @@ if __name__ == '__main__':
         params_INN[i] = params_INN[i] * 1e-6
 
     # INN: e_posterior
-    e_posterior_INN = [0.014587438760325313, 0.012290126254782081, 0.01165938847279176, 0.01248140924004838]
+    e_posterior_INN = [0.0376, 0.0388, 0.0429, 0.0447]
     e_resim_INN = [0.0023, 0.0041, 0.0035, 0.0038]
 
 
@@ -29,7 +29,7 @@ if __name__ == '__main__':
         params_CVAE[i] = params_CVAE[i] * 1e-6
 
     # CVAE: e_posterior
-    e_posterior_CVAE = [0.014851279410067945, 0.008709543236764148, 0.007258017353480682, 0.00765587985701859]
+    e_posterior_CVAE = [0.0422, 0.0449, 0.0494, 0.0528]
     e_resim_CVAE = [7.6100e-05, 0.0002, 0.0007, 0.0012]
 
     for i in range(len(e_posterior_INN)):
