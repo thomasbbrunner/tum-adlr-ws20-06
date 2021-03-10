@@ -189,7 +189,7 @@ The mismatch of the predicted posterior (see Fig. \ref{fig:plot:posterior}) with
     \caption{\label{fig:plot:resim} Average re-simulation error as the mean squared distance between ground truth end-effector position and the re-simulated end-effector position obtain from the predicted joint angles.}
 \end{figure}
 
-In Fig. \ref{fig:q_quantile:cVAE:10DOF} and \ref{fig:q_quantile:INN:10DOF}, this behaviour is described in more detail: A convex hull is drawn around the 97th percentile of the re-simulated points (green dots) and the corresponding ground truth end-effector position (red dot) at $(x, y) = [3.47, 0.19]$ of a 10 DoF robot for the cVAE and INN, respectively.  As it can be seen, the are of this convex hull is larger for the INN ($0.85$) than for the cVAE ($0.15$). But despite of having a larger re-simulation error, the INN generates the full posterior distribution of the joint angles much better than the cVAE, as it can be seen in Fig. \ref{fig:posterior:10dof}. 
+In Fig. \ref{fig:q_quantile:cVAE:10DOF} and \ref{fig:q_quantile:INN:10DOF}, this behaviour is described in more detail: A convex hull is drawn around the 97th percentile of the re-simulated points (green dots) and the corresponding ground truth end-effector position (red dot) at $(x, y) = [3.47, 0.19]$ of a 10 DoF robot for the cVAE and INN, respectively.  As it can be seen, the area of this convex hull is larger for the INN ($0.85$) than for the cVAE ($0.15$). But despite of having a larger re-simulation error, the INN generates the full posterior distribution of the joint angles much better than the cVAE, as it can be seen in Fig. \ref{fig:posterior:10dof}. 
 
 %%%%%%%%%%%%%%%%%%%%%%
 % FIGURES, CONVEX HULL
@@ -202,7 +202,7 @@ In Fig. \ref{fig:q_quantile:cVAE:10DOF} and \ref{fig:q_quantile:INN:10DOF}, this
     \subfloat[INN]{\includegraphics[width=0.47\linewidth]{figures/q_quantile_prediction_INN_6DOF.png}
         \label{fig:q_quantile:INN:6DOF}}
 
-    \caption{Area of the convex hull of the \(97\)th percentile of the re-simulated end-effector coordinates with the ground truth end-effector position at $(x, y) = [3.47, 0.19]$ and $1000$ samples. Number of DoF: 6.}
+    \caption{Area of the convex hull of the \(97\)th percentile of the re-simulated end-effector coordinates with the ground truth end-effector position at $(x, y) = [3.42, 0.68]$ and $1000$ samples. Number of DoF: 6.}
 \end{figure*}
 
 \begin{figure*}[tbh]
@@ -230,7 +230,7 @@ In Fig. \ref{fig:q_quantile:cVAE:10DOF} and \ref{fig:q_quantile:INN:10DOF}, this
     \subfloat[INN]{\includegraphics[width=0.32\linewidth]{figures/predicted_posterior_INN_6DOF.png}
         \label{fig:INN:6DOF}}
 
-    \caption{\label{fig:posterior:6dof} Arm configuration of a planar manipulator with $6$ revolute joints and end-effector position at $(x, y) = [3.47, 0.19]$. 1000 samples are drawn from each model's predicted posterior $\tilde{p}(x | y_{gt})$, one random sample configuration is highlighted. $e_{posterior} = 0.032$ for the cVAE and $e_{posterior} = 0.018$ for the INN.}
+    \caption{\label{fig:posterior:6dof} Arm configuration of a planar manipulator with $6$ revolute joints and end-effector position at $(x, y) = [3.42, 0.68]$. 1000 samples are drawn from each model's predicted posterior $\tilde{p}(x | y_{gt})$, one random sample configuration is highlighted. $e_{posterior} = 0.012$ for the cVAE and $e_{posterior} = 0.0068$ for the INN.}
 \end{figure*}
 
 \begin{figure*}[tbh]
