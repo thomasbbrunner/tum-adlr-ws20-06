@@ -84,9 +84,10 @@ if __name__ == '__main__':
     TRAIN_SAMPLES = int(0.7 * DATASET_SAMPLES)
     TEST_SAMPLES = int(0.3 * DATASET_SAMPLES)
     # ensures that models are trained and tested on the same samples
-    # torch.manual_seed(42)
-    torch.manual_seed(1)
-    # torch.manual_seed(321)
+    # use same seed as in train mode
+    torch.manual_seed(42)
+    # seed used for plotting
+    # torch.manual_seed(1)
 
     train_dataset, test_dataset = torch.utils.data.random_split(dataset, [TRAIN_SAMPLES, TEST_SAMPLES])
     test_dataloader = DataLoader(test_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
@@ -116,8 +117,8 @@ if __name__ == '__main__':
     mismatch_avg.append(0)
     for n in range(N):
 
-        N_x = test_dataset.__getitem__(n)[0]
-        N_y = test_dataset.__getitem__(n)[1]
+        N_x = test_dataset[n][0]
+        N_y = test_dataset[n][1]
 
         print('n / N : %i / %i' % (n, N))
 
@@ -125,7 +126,7 @@ if __name__ == '__main__':
         # Generate gt estimate p_gt(x|y*) obtained by rejection sampling with M samples
 
         joint_states = robot.rejection_sampling(
-            tcp_coordinates=N_y, num_samples=M, eps=0.05, mean=0, std=0.5)
+            tcp_coordinates=N_y, num_samples=M, eps=0.05, mean=0, std=STD)
 
         # generate plots for visualization for first sample
         if n == 0:
