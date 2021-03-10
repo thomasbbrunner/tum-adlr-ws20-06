@@ -52,4 +52,4 @@ if __name__ == '__main__':
     axs[1].set_xlim([0, 4])
     axs[2].set_xlim([0, 5])
     axs[3].set_xlim([0, 6])
-    fig.savefig("figures/evaluation/dataset/normal_std_" + str(std) + "_all_DoF.jpg")
+    fig.savefig("figures/evaluation/dataset/normal_std_" + str(std) + "_all_DoF.png", dpi=300)
