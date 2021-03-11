@@ -192,7 +192,6 @@ class INN(nn.Module):
             return epoch, loss
 
     def save_weights(self, PATH):
-        # TODO: save whole model state
         torch.save(self.state_dict(), PATH)
 
     def load_weights(self, PATH):
@@ -201,23 +200,3 @@ class INN(nn.Module):
             self.load_state_dict(torch.load(PATH))
         else:
             self.load_state_dict(torch.load(PATH, map_location=torch.device('cpu')))
-
-
-
-# Testing example
-if __name__ == '__main__':
-
-    # inn = INN(input_dim=6, hidden_dim=128, output_dim=6)
-    permutation = FixedRandomPermutation(input_dim=6, seed=42)
-
-    print(permutation.in_channels)
-    print(permutation.permutation)
-    print(permutation.permutation_inv)
-
-    x = torch.Tensor([[0, 1, 2, 3, 4, 5], [0, 1, 2, 3, 4, 5]])
-
-    print('Original x: ', x)
-    x_permuted = permutation(x, inverse=False)
-    print('Permuted x: ', x_permuted)
-    x_repermuted = permutation(x_permuted, inverse=True)
-    print('x_repermuted x: ', x_repermuted)
