@@ -35,7 +35,7 @@
 
 \section*{Introduction}
 
-In our project, we are evaluating the feasibility of using neural networks in robotics. More specifically, we are investigating the performance of Invertible Neural Networks (INN) and Conditional Variational Autoencoders (cVAE) for learning the inverse kinematics of a planar robotic arm with revoulte joints. In this report, we outline the progress made and discuss the results we have obtained.
+In our project, we are evaluating the feasibility of using neural networks in robotics. More specifically, we are investigating the performance of Invertible Neural Networks (INN) and Conditional Variational Autoencoders (cVAE) for learning the inverse kinematics of a planar robotic arm with revolute joints. In this report, we outline the progress made and discuss the results we have obtained.
 
 \section*{Methods}
 \subsection*{Robot Simulations}
@@ -46,7 +46,7 @@ To evaluate the performance of the architectures, we developed simulations of pl
     y_\text{TCP} = \sum_{i=1}^{N}{l_i \sin\left( \sum_{j=1}^{i}{\theta_j} \right)}
 \end{equation}
 
-To improve the training and testing performance of our models, we modified these equations for fast vectorized numerical computation. The resulting operations and be seen in Equation~\ref{tcp vectorized}, with joint angles vector \( \bm{\theta} = \left[ \theta_1, \theta_2 , ... \right]^\text{T} \), the upper triangular matrix with ones as elements \( \bm{U} \) and the link lengths vector \( \bm{l} = \left[ l_1, l_2, ... \right]^\text{T} \).
+To improve the training and testing performance of our models, we modified these equations for fast vectorized numerical computation. The resulting operations can be seen in Equation~\ref{tcp vectorized}, with joint angles vector \( \bm{\theta} = \left[ \theta_1, \theta_2 , ... \right]^\text{T} \), the upper triangular matrix with ones as elements \( \bm{U} \) and the link lengths vector \( \bm{l} = \left[ l_1, l_2, ... \right]^\text{T} \).
 \begin{equation}
     x_\text{TCP} = \cos \left( \bm{\theta}^\text{T}\ \bm{U} \right) \bm{l}, \ 
     y_\text{TCP} = \sin \left( \bm{\theta}^\text{T}\ \bm{U} \right) \bm{l}
@@ -72,7 +72,7 @@ As was already mentioned in the previous section, we avoid discontinuities by re
 
 The first approach is a non-minimal parameterization of the configuration space that uses an augmented vector-based representation of the angles, which was already described in the midterm report. The drawback of this approach is its larger input space, which makes the task increasingly harder to solve for robots with higher DoFs.
 
-For this reason, we also considered an alternative approach, in which we the discontinuities are considered in the loss function of the reconstruction error. It ensures that the computation of distances between angles takes the orientation of these angles into consideration. Thus, it avoids large negative losses for angles with distinct values, but whose orientation is similar.
+For this reason, we also considered an alternative approach, in which we considered the discontinuities in the loss function of the reconstruction error. It ensures that the computation of distances between angles takes the orientation of these angles into consideration. Thus, it avoids large negative losses for angles with distinct values, but whose orientation is similar.
 
 \subsection*{Network Architectures}
 
@@ -88,7 +88,7 @@ As stated in \cite{Ardizzone2018}, INNs only need to be trained on the well-unde
 
 \subsection*{Hyperparameter Optimization}
 
-As stated before, we trained a network of each architecture (cVAE and INN) for each dataset (4, 6, 8 and 10 DoF), which resulted in 8 models with different complexities. The sizes and hyperparameters of each model had to match the complexity of the simulation. To compare the performance of the networks across different DoFs in a fair setting, we used Tune \cite{liaw2018tune} and Scikit Optimize \cite{scikit-optimize} to perform a black-box optimization of the hyperparameters. For each model, 100 sets of hyperparameters were sampled, which were then used to train the networks using a subset of the main dataset (\( 10^4 \) samples). We opted for a reduced number of samples to help reduce the computation time of the hyperparameter search. 
+As stated before, we trained a network of each architecture (cVAE and INN) for each dataset (4, 6, 8 and 10 DoF), which resulted in 8 models with different complexities. The sizes and hyperparameters of each model had to match the complexity of the simulation. To compare the performance of the networks across different DoFs in a fair setting, we used Tune \cite{liaw2018tune} and Scikit Optimize \cite{scikit-optimize} to perform Bayesian Optimization of the hyperparameters. For each model, 100 sets of hyperparameters were sampled, which were then used to train the networks using a subset of the main dataset (\( 10^4 \) samples). We opted for a reduced number of samples to help reduce the computation time of the hyperparameter search. 
 
 For the cVAE, we optimized the learning rate, the weight decay, the number of hidden layers for the encoder and decoder and the amount of neurons per layer. For the INN, we optimized the learning rate, the weight decay, the number of coupling layers, the amount of layers per subnet and also the number of neurons per subnet layer. The ranges of hyperparameters used can be seen in Tables~\ref{tab:hyperparameter-ranges-inn} and \ref{tab:hyperparameter-ranges-cvae}. These values were based on intuition and previous experience in training these networks.
 
@@ -254,9 +254,9 @@ These results are illustrated in more detail with examples of 6DoF and 10DoF rob
 
 \section*{Conclusion}
 
-In this work, we evaluated the feasibility of using neural networks to learn the posterior distribution of the hidden parameter space in the context of inverse kinematics problems in robotics. For this, we developed simulations of planar robotic arm with an arbitrary number of revolute joints. Using the simulations, we studied Invertible Neural Networks \cite{Ardizzone2018} and compared them to conditional Variational Autoencoders \cite{Sohn2015}. We explored the performance of these architectures for both simple planar robot configurations with 4 revolute joints and more complex configurations with up to 10 revolute joints. To find the best set of hyperparameters we performed a hyperparameter search.
+In this work, we evaluated the feasibility of using neural networks to learn the posterior distribution of the hidden parameter space in the context of inverse kinematics problems in robotics. For this, we developed simulations of planar robotic arm with an arbitrary number of revolute joints. Using the simulations, we studied Invertible Neural Networks \cite{Ardizzone2018} and compared them to conditional Variational Autoencoders \cite{Sohn2015}. We explored the performance of these architectures for both simple planar robot configurations with 4 revolute joints and more complex configurations with up to 10 revolute joints. To find the best set of hyperparameters we performed a Bayesian optimization.
 
-Using evaluation metrics defined in previous research \cite{Kruse2019}, we found that cVAEs are better at predicting the values of the joint angles which result in a given the end-effector position. In contrast, our experiments show that INNs are able to better recover the full posterior distribution over the joint angle space. 
+Using evaluation metrics defined in previous research \cite{Kruse2019}, we found that cVAEs are better at predicting the values of the joint angles. In contrast, our experiments show that INNs are able to better recover the full posterior distribution over the joint angle space. 
 
 Unlike stated in previous research \cite{Ardizzone2018}, we had to perform an additional unsupervised backward training of the INN to match the performance of the cVAE. This resulted in considerably slower training times for the INN models. Moreover, the INN models tended to be more unstable during training. Despite these shortcomings, INNs are an interesting and powerful tool for recovering the full posterior parameters distribution and also for explicitly computing the posterior probability by using tractable Jacobians.
 
