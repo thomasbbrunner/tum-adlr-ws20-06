@@ -124,7 +124,7 @@ The previous two model architectures (cVAE and INN) have been implemented in PyT
 
 \subsection*{Evaluation protocol}
 
-We extended the DoF of the robots up to 10 DoF and performed hyperparameter optimization (HPO) for the hyperparameters for $ \text{DoF} = [4, 6, 8, 10]$. Due to HPO, the number of trainable parameters differs between cVAE and INN. The batch size is kept fixed to $1000$ for both networks.
+We extended the DoF of the robots up to 10 DoF and performed hyperparameter optimization (HPO) for the hyperparameters for $ \text{DoF} = [4, 6, 8, 10]$. Due to Bayesian optimization, the number of trainable parameters differs between cVAE and INN. The batch size is kept fixed to $1000$ for both networks.
 For the cVAE, we optimized the learning rate, the weight decay, the number of hidden layers for the encoder and decoder and the amount of neurons per layer. For the INN, we optimized the learning rate, the weight decay, the number of coupling layers, the amount of layers per subnet and also the number of neurons per subnet layer.
 Both networks have been trained for 60 epochs on a dataset with 1 million samples and a train and test split of 70 and 30, respectively. For evaluation, we used again the two evaluation metrics which have been described in the midterm report:
 
@@ -171,8 +171,7 @@ DoF & Learning rate & \# Subnet layers & \# Coupling layers & \# Neurons per lay
 
 The hyperparameters for the cVAE and INN chosen by HPO are depicted in Table \ref{tab:results:cvae} and \ref{tab:results:inn}, respectively. Because of HPO, the number of parameters per robot is not approximately equal, anymore. As it can be seen in the tables, the best architectures are not the architectures with the most numbers of trainable parameters. This also shows that the hyperparameters search space is sufficient. 
 
-For both networks, the mismatch of the posterior distribution and the re-simulation error is plotted over the number of parameters in Fig. \ref{fig:plot:posterior} and \ref{fig:plot:resim}, respectively. Each plotted point is labelled with the corresponding robot of different DoF. As it can be seen, when increasing the number of DoF, the number of parameters does not have to be increased, as well. This is a result of the HPO. 
-The mismatch of the predicted posterior (see Fig. \ref{fig:plot:posterior}) with the ground truth posterior obtained from rejection sampling is less for the INN as for the cVAE. But in contrast to that, the cVAE performs consistently better on the re-simulation error as the INN (see Fig. \ref{fig:plot:resim}).
+For both networks, the mismatch of the posterior distribution and the re-simulation error is plotted over the number of parameters in Fig. \ref{fig:plot:posterior} and \ref{fig:plot:resim}, respectively. Each plotted point is labelled with the corresponding robot of different DoF. The mismatch of the predicted posterior (Fig. \ref{fig:plot:posterior}) with the ground truth posterior obtained from rejection sampling is less for the INN as for the cVAE. But in contrast to that, the cVAE performs consistently better on the re-simulation error as the INN (Fig. \ref{fig:plot:resim}).
 
 %%%%%%%%%%%%%%%%%%%%%%
 % RESULTS, FIGURES
@@ -189,7 +188,7 @@ The mismatch of the predicted posterior (see Fig. \ref{fig:plot:posterior}) with
     \caption{\label{fig:plot:resim} Average re-simulation error as the mean squared distance between ground truth end-effector position and the re-simulated end-effector position obtain from the predicted joint angles.}
 \end{figure}
 
-In Fig. \ref{fig:q_quantile:cVAE:10DOF} and \ref{fig:q_quantile:INN:10DOF}, this behaviour is described in more detail: A convex hull is drawn around the 97th percentile of the re-simulated points (green dots) and the corresponding ground truth end-effector position (red dot) at $(x, y) = [3.47, 0.19]$ of a 10 DoF robot for the cVAE and INN, respectively.  As it can be seen, the area of this convex hull is larger for the INN ($0.85$) than for the cVAE ($0.15$). But despite of having a larger re-simulation error, the INN generates the full posterior distribution of the joint angles much better than the cVAE, as it can be seen in Fig. \ref{fig:posterior:10dof}. 
+In Fig. \ref{fig:q_quantile:cVAE:6DOF} / \ref{fig:q_quantile:cVAE:10DOF} and \ref{fig:q_quantile:INN:6DOF} / \ref{fig:q_quantile:INN:10DOF}, this behaviour is described in more detail with an explicit example of a 6DoF and 10DoF robot, respectively: A convex hull is drawn around the 97th percentile of the re-simulated points (green dots) and the corresponding ground truth end-effector position (red dot) for the cVAE and INN, respectively.  As it can be seen, the area of this convex hull is larger for the INN ($0.43$ / $1.15$) than for the cVAE ($0.15$ / $1.02$). But despite of having a larger re-simulation error, the INN generates the full posterior distribution of the joint angles much better than the cVAE, as it can be seen in Fig. \ref{fig:posterior:6dof} and \ref{fig:posterior:10dof} for the 6DoF and 10 DoF robot, respectively. 
 
 %%%%%%%%%%%%%%%%%%%%%%
 % FIGURES, CONVEX HULL
@@ -253,7 +252,7 @@ In this work, we evaluated through simulation experiments the feasability of usi
 
 Using evaluation metrics defined in previous research, given the end-effector position we found that cVAEs are better in predicting the values of the joint angles which, when applied to forward kinematics again, result in being closer to the ground truth end-effector position. In contrast, experiments show that INNs better recover the full posterior distribution over the joint angle space. 
 
-Unlike stated in previous research, we had to perform an additional unsupervised backward training to match the performance of the cVAE resulting in slowing down the training a lot. Also, INNs tend to be more unstable in the training process as cVAEs. Despite this, INNs are an interesting and powerful tool in not only recovering the full posterior parameters distribution but also being able to explicitly compute the posterior probability by using tractably Jacobians.
+Unlike stated in previous research, we had to perform an additional unsupervised backward training to match the performance of the cVAE resulting in slowing down the training a lot. Also, INNs tend to be more unstable in the training process as cVAEs. Despite this, INNs are an interesting and powerful tool in not only recovering the full posterior parameters distribution but also being able to explicitly compute the posterior probability by using tractable Jacobians.
 
 \nocite{*}
 \bibliographystyle{IEEEtran}
