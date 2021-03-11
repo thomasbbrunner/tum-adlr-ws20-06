@@ -29,7 +29,7 @@ if __name__ == '__main__':
     pathlib.Path("figures/evaluation/dataset/").mkdir(exist_ok=True)
 
     fig = Figure(figsize=(9,5))
-    fig.suptitle("Configurations in Dataset (subset of $10^4$ samples)")
+    # fig.suptitle("Configurations in Dataset (subset of $10^4$ samples)")
     gridspec_kw = {"width_ratios": [3/18, 4/18, 5/18, 6/18]}
     axs = fig.subplots(nrows=1, ncols=4, gridspec_kw=gridspec_kw, sharey=True)
 
@@ -52,4 +52,4 @@ if __name__ == '__main__':
     axs[1].set_xlim([0, 4])
     axs[2].set_xlim([0, 5])
     axs[3].set_xlim([0, 6])
-    fig.savefig("figures/evaluation/dataset/normal_std_" + str(std) + "_all_DoF.png", dpi=300)
+    fig.savefig("figures/evaluation/normal_std_" + str(std).replace(".", "_") + "_all_DoF.png", dpi=300)

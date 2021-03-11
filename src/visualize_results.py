@@ -65,7 +65,7 @@ if __name__ == '__main__':
     plt.ylabel('error of posterior (1e-2)')#, fontsize=30)
 
     plt.legend()#frameon=False, fontsize=30)
-    plt.title('Comparison between INN and cVAE')#, fontsize=40)
+    # plt.title('Comparison between INN and cVAE')#, fontsize=40)
     plt.savefig('figures/evaluation/comparison_e_posterior_alternative.png', dpi=300)
 
     ####################################################################################################################
@@ -89,5 +89,5 @@ if __name__ == '__main__':
     plt.xlabel('number of parameters (1e6)')#, fontsize=30)
     plt.ylabel('re-simulation error (1e-3)')#, fontsize=30)
     plt.legend()#frameon=False, fontsize=30)
-    plt.title('Comparison between INN and cVAE')#, fontsize=40)
+    # plt.title('Comparison between INN and cVAE')#, fontsize=40)
     plt.savefig('figures/evaluation/comparison_e_resim_alternative.png', dpi=300)
