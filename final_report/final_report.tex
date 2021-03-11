@@ -53,11 +53,11 @@ These equations were then modified for fast vectorized numerical computation. Th
     \label{tcp vectorized}
 \end{equation}
 
-In our current setup, we do not take the angle of the tool center point (TCP) into consideration. Thus, the location of the TCP is defined by its \( x, y \) coordinates. As a result of this, all simulations with more than 2 DoF can up to infinite solutions of the inverse kinematics for a given TCP position. The 2 DoF robot arm can have up to two solutions.
+In our current setup, we do not take the angle of the tool center point (TCP) into consideration. Thus, the location of the TCP is defined by its \( x, y \) coordinates. As a result of this, all simulations with more than 2 DoF can have up to infinite solutions of the inverse kinematics for a given TCP position. The 2 DoF robot arm can have up to two solutions.
 
 \subsection*{Dataset}
 
-The dataset used for training is composed of \( 10^6 \) samples of robot configurations for each DoF. In our experiments, we used simulations with 4, 6, 8 and 10 DoF. Figure~\ref{fig:datasets} shows an illustration of the datasets. Each configuration was sampled from a normal distribution \( \theta_i \sim \mathcal{N}(\mu=0, \sigma=0.2) \). Thus, the dataset is composed mostly of configurations in which the robot arm is extended. This reflects real-world use cases of robot arms, which have limited workspaces and whose tasks are focused on one section of the workspace. Moreover, limiting the range of the joints improved the performance of the networks, as this avoids the discontinuity in the angles at \( \theta = \pi \).
+The dataset used for training is composed of \( 10^6 \) samples of robot configurations for each DoF. In our experiments, we used simulations with 4, 6, 8 and 10 DoF. Fig.\ref{fig:datasets} shows an illustration of the datasets. Each configuration was sampled from a normal distribution \( \theta_i \sim \mathcal{N}(\mu=0, \sigma=0.2) \). Thus, the dataset is composed mostly of configurations in which the robot arm is extended. This reflects real-world use cases of robot arms, which have limited workspaces and whose tasks are focused on one section of the workspace. Moreover, limiting the range of the joints improved the performance of the networks, as this avoids the discontinuity in the angles at \( \theta = \pi \).
 
 \begin{figure}[!ht]
     \centering
