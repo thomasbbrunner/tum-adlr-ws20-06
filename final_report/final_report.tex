@@ -70,9 +70,9 @@ We generated four different datasets for different robot configurations. Each da
 
 As was already mentioned in the previous section, we avoid discontinuities by restricting the configuration space of the robot. Yet we implemented two approaches which consider this discontinuity in the angles at $\theta_i = \pm \pi$ to extend the implemented networks to inverse kinematics problems with general configuration spaces.
 
-The first approach is a non-minimal parameterization of the configuration space that uses an augmented vector-based representation of the angles, which was already described in the midterm report. The drawback of this approach is its larger input space, which makes the task increasingly harder to solve for robots with higher DoFs.
+The first approach is a non-minimal parameterization of the configuration space that uses an augmented vector-based representation of the angles, which was already described in the midterm report. The drawback of this approach is its non-minimal input space, which makes the optimization of the models increasingly harder when adding more and more DoF to the robot.
 
-For this reason, we also considered an alternative approach, in which we considered the discontinuities in the loss function of the reconstruction error. It ensures that the computation of distances between angles takes the orientation of these angles into consideration. Thus, it avoids large negative losses for angles with distinct values, but whose orientation is similar.
+For this reason, we also considered an alternative approach, in which we considered the discontinuities in the loss function of the reconstruction error. It ensures that the computation of distances between angles takes the orientation of these angles into consideration. Thus, it avoids large negative losses for angles with distinct values, but whose orientation is similar. This approach we used throughout our experiments for all robots and both networks.
 
 \subsection*{Network Architectures}
 
@@ -84,7 +84,7 @@ Invertible Neural Networks (INN) \cite{Ardizzone2018} model a bijective mapping 
 
 Additionally, INNs share properties with normalizing flows \cite{normalizingFlows2010, normalizingFlows2013} which gradually transform a normal density into the desired data density. They are also bijective and for both normalizing flows and INNs, a tractable Jacobian exists which allows explicit computation of posterior probabilities. As the focus in this work lies on the comparison between cVAE and INN, normalizing flows are not considered anymore.
 
-As stated in \cite{Ardizzone2018}, INNs only need to be trained on the well-understood forward process. The inverse process can be obtained for free by just running the network backwards at prediction time. The authors also mention that results can be improved with additional unsupervised backward training. When applying INNs to the inverse kinematics problem, we found that unsupervised backward training is crucial to match the performance of the cVAE. This results in two network passes per training step to accumulate the gradients, which leads to much slower training. Additionally, when training INNs the parameters need to be adjusted carefully as training can become unstable.
+As stated in \cite{Ardizzone2018}, INNs only need to be trained on the well-understood forward process. The inverse process can be obtained for free by just running the network backwards at prediction time. The authors also mention that results can be improved with additional unsupervised backward training. When applying INNs to the inverse kinematics problem, we found that unsupervised backward training is crucial to match the performance of the cVAE which mitigates the advantage, the authors of \cite{Ardizzone2018} state. When applying additional unsupervided losses for the backward pass, the training consists of two network passes per training step and an accumulation of the gradients, which leads to much slower training. Additionally, when training INNs the parameters need to be adjusted carefully as training can become unstable. 
 
 \subsection*{Hyperparameter Optimization}
 
