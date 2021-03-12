@@ -154,11 +154,14 @@ def plot_contour_lines(points, gt, PATH, title="", percentile=0.97):
     plt.suptitle(title)
     plt.grid(True, color="#93a1a1", alpha=0.3)
     # define axis limits dynamically
-    plt.axis([gt[0]-0.25, gt[0]+0.25, gt[1]-0.25, gt[1]+0.25])
+    border = 0.1
+    plt.axis([gt[0]-border, gt[0]+border, gt[1]-border, gt[1]+border])
     plt.scatter(points[:, 0], points[:, 1], c='g', s=0.5)
     plt.scatter(gt[0], gt[1], c='r')
     for simplex in hull.simplices:
         plt.plot(selected_points[simplex, 0], selected_points[simplex, 1], 'k-')
+    plt.xlabel("$x_1$")
+    plt.ylabel("$x_2$")
     plt.savefig(PATH)
 
 def rejection_sampling(robot, tcp, dof, samples):

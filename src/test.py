@@ -42,11 +42,13 @@ if __name__ == '__main__':
 
     DATASET_SAMPLES = 1e6
     N = 1000
-    M = 100
+    M = 1000
     percentile = 0.97
     STD = 0.2
     NORMAL = True
     # idx of posterior distribution to plot
+    # 5 for 6 DoF
+    # 232489 for 10 DoF
     TO_PLOT = 5
 
     ####################################################################################################################
@@ -84,10 +86,8 @@ if __name__ == '__main__':
     TRAIN_SAMPLES = int(0.7 * DATASET_SAMPLES)
     TEST_SAMPLES = int(0.3 * DATASET_SAMPLES)
     # ensures that models are trained and tested on the same samples
-    # use same seed as in train mode
     torch.manual_seed(42)
-    # seed used for plotting
-    # torch.manual_seed(1)
+
 
     train_dataset, test_dataset = torch.utils.data.random_split(dataset, [TRAIN_SAMPLES, TEST_SAMPLES])
     test_dataloader = DataLoader(test_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=4)
