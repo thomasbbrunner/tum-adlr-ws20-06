@@ -8,6 +8,7 @@
 \usepackage{cite}
 \usepackage{bm}
 \usepackage{graphicx}
+\usepackage{tabularx}
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage[caption=false,font=footnotesize]{subfig}
@@ -15,7 +16,9 @@
 % \usepackage{subcaption}
 % \captionsetup{compatibility=false}
 
-
+% for tables using tabularx 
+% make text centered vertically
+\renewcommand{\tabularxcolumn}[1]{m{#1}}
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08emT\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 
@@ -72,7 +75,7 @@ As was already mentioned in the previous section, we avoid discontinuities by re
 
 The first approach is a non-minimal parameterization of the configuration space that uses an augmented vector-based representation of the angles, which was already described in the midterm report. The drawback of this approach is its non-minimal input space, which makes the optimization of the models increasingly harder when adding more and more DoF to the robot.
 
-For this reason, we also considered an alternative approach, in which we considered the discontinuities in the loss function of the reconstruction error. It ensures that the computation of distances between angles takes the orientation of these angles into consideration. Thus, it avoids large negative losses for angles with distinct values, but whose orientation is similar. This approach we used throughout our experiments for all robots and both networks.
+For this reason, we also considered an alternative approach, in which we considered the discontinuities in the loss function of the reconstruction error. It ensures that the computation of distances between angles takes the orientation of these angles into consideration. Thus, it avoids large negative losses for angles with distinct values, but whose orientation is similar. This approach was used throughout our experiments for all robots and both networks.
 
 \subsection*{Network Architectures}
 
@@ -84,7 +87,7 @@ Invertible Neural Networks (INN) \cite{Ardizzone2018} model a bijective mapping 
 
 Additionally, INNs share properties with normalizing flows \cite{normalizingFlows2010, normalizingFlows2013} which gradually transform a normal density into the desired data density. They are also bijective and for both normalizing flows and INNs, a tractable Jacobian exists which allows explicit computation of posterior probabilities. As the focus in this work lies on the comparison between cVAE and INN, normalizing flows are not considered anymore.
 
-As stated in \cite{Ardizzone2018}, INNs only need to be trained on the well-understood forward process. The inverse process can be obtained for free by just running the network backwards at prediction time. The authors also mention that results can be improved with additional unsupervised backward training. When applying INNs to the inverse kinematics problem, we found that unsupervised backward training is crucial to match the performance of the cVAE which mitigates the advantage, the authors of \cite{Ardizzone2018} state. When applying additional unsupervided losses for the backward pass, the training consists of two network passes per training step and an accumulation of the gradients, which leads to much slower training. Additionally, when training INNs the parameters need to be adjusted carefully as training can become unstable. 
+As stated in \cite{Ardizzone2018}, INNs only need to be trained on the well-understood forward process. The inverse process can be obtained for free by just running the network backwards at prediction time. However, this training approach did not lead to satisfying results. According to the authors, the results can be improved with additional unsupervised backward training. When applying INNs to the inverse kinematics problem, we found that this unsupervised backward training is crucial to match the performance of the cVAE. This proved to be a disadvantage of INNs, as it requires two network passes (a forward and a backward pass) and accumulation of the gradients of both directions before the update of network parameters can be performed. This leads to much slower training when compared to the cVAE. Additionally, when training INNs the parameters need to be adjusted carefully as training can become unstable.
 
 \subsection*{Hyperparameter Optimization}
 
@@ -92,33 +95,37 @@ As stated before, we trained a network of each architecture (cVAE and INN) for e
 
 For the cVAE, we optimized the learning rate, the weight decay, the number of hidden layers for the encoder and decoder and the amount of neurons per layer. For the INN, we optimized the learning rate, the weight decay, the number of coupling layers, the amount of layers per subnet and also the number of neurons per subnet layer. The ranges of hyperparameters used can be seen in Tables~\ref{tab:hyperparameter-ranges-inn} and \ref{tab:hyperparameter-ranges-cvae}. These values were based on intuition and previous experience in training these networks.
 
-\begin{table*}[ht]
+\begin{table}[ht]
+    \scriptsize
     \caption{Ranges of inn hyperparameters used during hyperparameter search.}
     \label{tab:hyperparameter-ranges-inn}
+    \newcolumntype{C}{>{\centering\arraybackslash}X}
     \centering
-    \begin{tabular}{|l|c|c|c|c|c|}
+    \begin{tabularx}{\linewidth}{|l|C|C|C|C|C|}
     \hline
       & Learning rate & \# Subnet layers & \# Coupling layers & \# Neurons per layer & Weight decay \\
      \hline
      Min  & 0.0001 & 3 & 6 & 100 & 0.00001 \\
      Max  & 0.005 & 7 & 10 & 300 & 0.001 \\
      \hline
-    \end{tabular}
-\end{table*}
+    \end{tabularx}
+\end{table}
 
-\begin{table*}[ht]
+\begin{table}[ht]
+    \scriptsize
     \caption{Ranges of cvae hyperparameters used during hyperparameter search.}
     \label{tab:hyperparameter-ranges-cvae}
+    \newcolumntype{C}{>{\centering\arraybackslash}X}
     \centering
-    \begin{tabular}{|l|c|c|c|c|}
+    \begin{tabularx}{\linewidth}{|l|C|C|C|C|}
     \hline
       & Learning rate & \# Layers & \# Neurons per layer & Weight decay \\
      \hline
      Min  & 0.0001 & 3 & 200 & 0.00001 \\
      Max  & 0.01 & 15 & 500 & 0.001 \\
      \hline
-    \end{tabular}
-\end{table*}
+    \end{tabularx}
+\end{table}
 
 \subsection*{Implementation}
 
@@ -139,7 +146,7 @@ We trained each model using the best performing hyperparameters from the hyperpa
 %%%%%%%%%%%%%%%%%%%%%%
 % TABLES
 %%%%%%%%%%%%%%%%%%%%%%
-\begin{table*}[h]
+\begin{table*}[b]
 \caption{Best-performing hyperparameters for cvae trained on a planar robot with revolute joints}
 \label{tab:results:cvae}
 \centering
@@ -155,7 +162,7 @@ DoF & Learning rate & \# Layers & \# Neurons per layer & Weight decay & \# Train
 \end{tabular}
 \end{table*}
 
-\begin{table*}[h]
+\begin{table*}[b]
 \caption{Best-performing hyperparameters for inn trained on a planar robot with revolute joints}
 \label{tab:results:inn}
 \centering
@@ -178,13 +185,13 @@ The results of the evaluations (the mismatch of the posterior distribution and t
 %%%%%%%%%%%%%%%%%%%%%%
 % RESULTS, FIGURES
 %%%%%%%%%%%%%%%%%%%%%%
-\begin{figure}[ht]
+\begin{figure}[t]
 \centering
 	\includegraphics[width=\linewidth]{figures/comparison_e_posterior_alternative.png}
     \caption{\label{fig:plot:posterior} Average posterior mismatch between the distribution generated by the model and the ground truth estimate obtained via rejection sampling.}
 \end{figure}
 
-\begin{figure}[ht]
+\begin{figure}[t]
 \centering
 	\includegraphics[width=\linewidth]{figures/comparison_e_resim_alternative.png}
     \caption{\label{fig:plot:resim} Average re-simulation error as the mean squared distance between the ground truth end-effector position and the re-simulated end-effector position obtained from the predicted joint angles.}
